@@ -1,12 +1,23 @@
-﻿using Infoline.WorkOfTime.BusinessAccess;
+﻿using Infoline.Framework.Database;
+using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessAccess.Business.Product;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
+    public class SellOutDashboardModel
+    {
+        public IndexData IndexData { get; set; }
+        public ResultStatus ProductSellOut { get; set; }
+        public ResultStatus DistSellOut { get; set; }
+        public ResultStatus ProductSellOutProductChartData { get; set; }
+        public ResultStatus ProductSellOutDistChartData { get; set; }
+
+    }
     public class VWPRD_TitanDeviceActivatedController : Controller
     {
         [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator  )]
@@ -98,6 +109,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             var data = new VMPRD_TitanDeviceActivated().GetDistReportForSeller(distId);
             return Json(data, JsonRequestBehavior.AllowGet);
+        }
+        [AllowEveryone]
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        public JsonResult GetSellerReportWithDates(Guid distId, DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetDistReportForSellerWithDates(distId,startDate,endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }        
+        
+        [AllowEveryone]
+        [PageInfo("Dashboard Sayfası Verileri")]
+        public async Task<JsonResult> GetPageReport(DateTime startDate, DateTime endDate)
+        {
+            SellOutDashboardModel pageReport = new SellOutDashboardModel();
+            pageReport.IndexData = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetIndexData());
+            pageReport.ProductSellOut = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate));
+            pageReport.DistSellOut = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate));
+            pageReport.ProductSellOutProductChartData = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate));
+            pageReport.ProductSellOutDistChartData = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate));
+
+            return Json(pageReport, JsonRequestBehavior.AllowGet);
         }
     }
 }

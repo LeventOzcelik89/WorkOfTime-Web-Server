@@ -11,8 +11,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
     {
         [AllowEveryone]
         [PageInfo("Bayi Aktivasyon Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici, SHRoles.UretimYonetici)]
-        public ActionResult SellerReport(PRD_EntegrastionActionSellerReport model)
+        public ActionResult SellerReport(PRD_EntegrastionActionSellerReport model, string endDate = null)
         {
+            if(endDate != null)
+            {
+            model.endDate = DateTime.Parse(endDate);
+            }
             return View(model.Load());
         }
 

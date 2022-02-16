@@ -2,7 +2,7 @@
     ViewBag.Title = "SellOut Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var now = DateTime.Now;
-    var startOfWeek = now.AddDays(DayOfWeek.Monday-now.DayOfWeek).Date;
+    var startOfWeek = now.AddDays(DayOfWeek.Monday - now.DayOfWeek).Date;
     var endOfWeek = startOfWeek.AddDays(7).Date;
     var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
     var endOfMonth = startOfMonth.AddMonths(1).Date;
@@ -16,17 +16,21 @@
         border-color: #2f96b4;
         color: white;
     }
+
     .filterButtonPassive {
         background-color: #49afcd;
         border-color: #2f96b4;
         color: white;
     }
+
     ul, li {
         list-style-type: none;
     }
+
     .active {
         color: black !important;
     }
+
     .btn-group .btn + .btn {
         margin-left: -9px !important;
     }
@@ -56,8 +60,8 @@
                         @Html.Akilli().DatePicker("endDate").Value(DateTime.Now).Max(DateTime.Now)
                     </div>
                     <div class="col-sm-2">
-                        
-                       <button id="query" style="margin-top:27px" class="btn btn-primary">Sorgula</button>
+
+                        <button id="query" style="margin-top:27px" class="btn btn-primary">Sorgula</button>
                     </div>
                 </div>
             </div>
@@ -159,206 +163,207 @@
             page.randomColorNumber++;
             return page.colorArray[page.randomColorNumber];
         },
-        setIndexData: function () {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetIndexData", {}, function (data) {
-                $("#total").text(data.All);
-                $("#today").text(data.Today);
-                $("#seven").text(data.Seven);
-                $("#thirty").text(data.Month);
-            });
+        setIndexData: function (data) {
+            $("#total").text(data.All);
+            $("#today").text(data.Today);
+            $("#seven").text(data.Seven);
+            $("#thirty").text(data.Month);
         },
         removeAllLis: function () {
             $("#sellOutProduct li").remove();
             $("#sellOutDist li").remove();
         },
-        setDataSourceForProductSellOut: function (startDate, endDate) {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOut", { startDate: startDate, endDate: endDate }, function (data) {
-                var count = 0;
-                $("#sellOutProduct li").remove();
-                $.each(data.objects, function (i, item) {
-                    count = count + parseInt(item.Count);
-                    $("#sellOutProduct").append(
-                        '<li class= "clearfix">' +
-                        '<span class="pull-left" data-category="0">' +
-                        '<i class="fa fa-mobile-phone" style="color:gray"></i>' + item.Name +
-                        '</span>' +
-                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" >' + item.Count + '</span>' +
-                        '</li>'
-                    );
-                });
+        setDataSourceForProductSellOut: function (data) {
+            var count = 0;
+            $("#sellOutProduct li").remove();
+            $.each(data.objects, function (i, item) {
+                count = count + parseInt(item.Count);
                 $("#sellOutProduct").append(
                     '<li class= "clearfix">' +
                     '<span class="pull-left" data-category="0">' +
-                    '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
+                    '<i class="fa fa-mobile-phone" style="color:gray"></i>' + item.Name +
                     '</span>' +
-                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" ">' + count + '</span>' +
+                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" >' + item.Count + '</span>' +
                     '</li>'
                 );
             });
+            $("#sellOutProduct").append(
+                '<li class= "clearfix">' +
+                '<span class="pull-left" data-category="0">' +
+                '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
+                '</span>' +
+                '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" ">' + count + '</span>' +
+                '</li>'
+            );
         },
-        setDataSourceForDistSellOut: function (startDate, endDate) {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetDistSellOut", { startDate: startDate, endDate: endDate }, function (data) {
-                var count = 0;
-                var countSelling = 0;
-                $("#sellOutDist li").remove();
-                $.each(data.objects, function (i, item) {
-                    var isCompanyDistributor = false;
-                    if (item.Types != null) {
-                        isCompanyDistributor = item.Types.toLowerCase().includes("distribütör");
-                    }
-                    count = count + parseInt(item.Count);
-                    countSelling += item.SellingCount;
-                    if (isCompanyDistributor == true) {
-                        $("#sellOutDist").append(
-                            '<li class= "clearfix" >' +
-                            '<a target="_blank" href="/PRD/VWPRD_EntegrationAction/SellerReport?DistributorId=' + item.Id + '"' +
-                            '<span class="pull-left" data-category="0">' +
-                            '<i class="fa fa-building"  style="color:gray"></i>' + item.Name +
-                            '</span></a>' +
-                            '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Aktive Olan Miktar" >' + item.Count + '</span>' +
-                            '</li>'
-                        );
-                    }
-                    else {
-                        $("#sellOutDist").append(
-                            '<li class= "clearfix" >' +
-                            '<span class="pull-left" data-category="0">' +
-                            '<i class="fa fa-building" style="color:gray"></i>' + item.Name +
-                            '</span>'+
-                            '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Toplam Aktive Olan Miktar"  >' + item.Count + '</span>' +
+        setDataSourceForDistSellOut: function (data) {
+            var startDate = $("#startDate").val();
+            var endDate = $("#endDate").val();
+            var count = 0;
+            var countSelling = 0;
+            $("#sellOutDist li").remove();
+            $.each(data.objects, function (i, item) {
+                var isCompanyDistributor = false;
+                if (item.Types != null) {
+                    isCompanyDistributor = item.Types.toLowerCase().includes("distribütör");
+                }
+                count = count + parseInt(item.Count);
+                countSelling += item.SellingCount;
+                if (isCompanyDistributor == true) {
+                    $("#sellOutDist").append(
+                        '<li class= "clearfix" >' +
+                        '<a target="_blank" href="/PRD/VWPRD_EntegrationAction/SellerReport?DistributorId=' + item.Id + '&startDate=' + startDate + '&endDate=' + endDate +'"' +
+                        '<span class="pull-left" data-category="0">' +
+                        '<i class="fa fa-building"  style="color:gray"></i>' + item.Name +
+                        '</span></a>' +
+                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Aktive Olan Miktar" >' + item.Count + '</span>' +
+                        '</li>'
+                    );
+                }
+                else {
+                    $("#sellOutDist").append(
+                        '<li class= "clearfix" >' +
+                        '<span class="pull-left" data-category="0">' +
+                        '<i class="fa fa-building" style="color:gray"></i>' + item.Name +
+                        '</span>'+
+                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Toplam Aktive Olan Miktar"  >' + item.Count + '</span>' +
 
-                            '</li>'
-                        );
-                    }
-                  
-                });
-                $("#sellOutDist").append(
-                    '<li class= "clearfix">' +
-                    '<span class="pull-left" data-category="0">' +
-                    '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
-                    '</span>' +
-                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs"  data-original-title="Toplam Aktive Olan Miktar" ">' + count + '</span>  ' +
-                   
-                    '</li>'
-                );
+                        '</li>'
+                    );
+                }
+
             });
+            $("#sellOutDist").append(
+                '<li class= "clearfix">' +
+                '<span class="pull-left" data-category="0">' +
+                '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
+                '</span>' +
+                '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs"  data-original-title="Toplam Aktive Olan Miktar" ">' + count + '</span>  ' +
+
+                '</li>'
+            );
         },
-        createProductChart(startDate,endDate) {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOutProductChartData", { startDate: startDate, endDate: endDate }, function (data) {
-                var obj = data.objects;
-                $("#chart").kendoChart({
-                    title: {
-                        text: "Ürün Bazlı SellOut Grafiği"
+        createProductChart(data) {
+            var obj = data.objects;
+            $("#chart").kendoChart({
+                title: {
+                    text: "Ürün Bazlı SellOut Grafiği"
+                },
+                legend: {
+                    position: "bottom"
+                },
+                chartArea: {
+                    background: ""
+                },
+                seriesDefaults: {
+                    type: "line",
+                    style: "smooth"
+                },
+                series: obj.data.Series,
+                valueAxis: {
+                    labels: {
+                        format: "{0}"
                     },
-                    legend: {
-                        position: "bottom"
+                    line: {
+                        visible: false
                     },
-                    chartArea: {
-                        background: ""
+                    axisCrossingValue: -10
+                },
+                categoryAxis: {
+                    categories: obj.data.Dates,
+                    majorGridLines: {
+                        visible: false
                     },
-                    seriesDefaults: {
-                        type: "line",
-                        style: "smooth"
-                    },
-                    series: obj.data.Series,
-                    valueAxis: {
-                        labels: {
-                            format: "{0}"
-                        },
-                        line: {
-                            visible: false
-                        },
-                        axisCrossingValue: -10
-                    },
-                    categoryAxis: {
-                        categories: obj.data.Dates,
-                        majorGridLines: {
-                            visible: false
-                        },
-                        labels: {
-                            rotation: "auto"
-                        }
-                    },
-                    pannable: {
+                    labels: {
+                        rotation: "auto"
+                    }
+                },
+                pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
                         lock: "y"
                     },
-                    zoomable: {
-                        mousewheel: {
-                            lock: "y"
-                        },
-                        selection: {
-                            lock: "y"
-                        }
-                    },
-                    tooltip: {
-                        visible: true,
-                        format: "{0}%",
-                        template: "#= series.name #: #= value #"
+                    selection: {
+                        lock: "y"
                     }
-                });
+                },
+                tooltip: {
+                    visible: true,
+                    format: "{0}%",
+                    template: "#= series.name #: #= value #"
+                }
             });
         },
-        createDistChart(startDate, endDate) {
-              GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOutDistChartData", { startDate: startDate, endDate: endDate }, function (data) {
-                var obj = data.objects;
-                $("#chart1").kendoChart({
-                    title: {
-                        text: "Distribütör Bazlı SellOut Grafiği"
+        createDistChart(data) {
+            var obj = data.objects;
+            $("#chart1").kendoChart({
+                title: {
+                    text: "Distribütör Bazlı SellOut Grafiği"
+                },
+                legend: {
+                    position: "bottom"
+                },
+                chartArea: {
+                    background: ""
+                },
+                seriesDefaults: {
+                    type: "line",
+                    style: "smooth"
+                },
+                series: obj.data.Series,
+                valueAxis: {
+                    labels: {
+                        format: "{0}"
                     },
-                    legend: {
-                        position: "bottom"
+                    line: {
+                        visible: false
                     },
-                    chartArea: {
-                        background: ""
+                    axisCrossingValue: -10
+                },
+                categoryAxis: {
+                    categories: obj.data.Dates,
+                    majorGridLines: {
+                        visible: false
                     },
-                    seriesDefaults: {
-                        type: "line",
-                        style: "smooth"
-                    },
-                    series: obj.data.Series,
-                    valueAxis: {
-                        labels: {
-                            format: "{0}"
-                        },
-                        line: {
-                            visible: false
-                        },
-                        axisCrossingValue: -10
-                    },
-                    categoryAxis: {
-                        categories: obj.data.Dates,
-                        majorGridLines: {
-                            visible: false
-                        },
-                        labels: {
-                            rotation: "auto"
-                        }
-                    },
-                    pannable: {
+                    labels: {
+                        rotation: "auto"
+                    }
+                },
+                pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
                         lock: "y"
                     },
-                    zoomable: {
-                        mousewheel: {
-                            lock: "y"
-                        },
-                        selection: {
-                            lock: "y"
-                        }
-                    },
-                    tooltip: {
-                        visible: true,
-                        format: "{0}%",
-                        template: "#= series.name #: #= value  # Adet"
+                    selection: {
+                        lock: "y"
                     }
-                });
+                },
+                tooltip: {
+                    visible: true,
+                    format: "{0}%",
+                    template: "#= series.name #: #= value  # Adet"
+                }
+            });
+
+        },
+        getPageRecords: function (startDate, endDate) {
+            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetPageReport", { startDate: startDate, endDate: endDate }, function (data) {
+                page.setIndexData(data.IndexData);
+                page.setDataSourceForProductSellOut(data.ProductSellOut);
+                page.setDataSourceForDistSellOut(data.DistSellOut);
+                page.createProductChart(data.ProductSellOutProductChartData);
+                page.createDistChart(data.ProductSellOutDistChartData);
             });
         }
     }
-    page.setIndexData();
-    page.setDataSourceForProductSellOut('@startOfMonth','@endOfMonth');
-    page.setDataSourceForDistSellOut('@startOfMonth', '@endOfMonth');
-    $(document).ready(page.createProductChart('@startOfMonth', '@endOfMonth'));
-    $(document).ready(page.createDistChart('@startOfMonth', '@endOfMonth'));
+
+
+    $(document).ready(page.getPageRecords('@startOfMonth','@endOfMonth'));
+
     $('[data-query]').on("click", function (e) {
         if ($(this).attr("data-selector") == "created") {
             var _this = $(this);
@@ -390,9 +395,6 @@
     $(document).on("click", "#query", function () {
         var startDate = $("#startDate").val();
         var endDate = $("#endDate").val();
-        page.setDataSourceForDistSellOut(startDate, endDate);
-        page.setDataSourceForProductSellOut(startDate, endDate);
-        page.createProductChart(startDate, endDate)
-        page.createDistChart(startDate, endDate);
+        page.getPageRecords(startDate, endDate);
     });
 </script>
