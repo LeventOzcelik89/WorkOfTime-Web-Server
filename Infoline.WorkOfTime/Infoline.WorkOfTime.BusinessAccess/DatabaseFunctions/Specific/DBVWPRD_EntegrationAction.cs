@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWPRD_EntegrationAction>().Where(a => a.DistributorId == id && a.ActivationDate <= endDate && a.ActivationDate >= startDate).Execute().ToArray();
+                return db.Table<VWPRD_EntegrationAction>().Where(a => a.DistributorId == id && a.Invoice_Address <= endDate && a.Invoice_Address >= startDate).Execute().ToArray();
             }
         }
         public VWPRD_EntegrationAction[] GetVWPRD_EntegrationActionBySellerId(Guid id, DbTransaction tran = null)
