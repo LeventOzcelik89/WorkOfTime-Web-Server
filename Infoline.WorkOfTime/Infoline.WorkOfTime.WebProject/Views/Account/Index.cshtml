@@ -161,6 +161,12 @@
             $(this).addClass(res == 0 ? "red" : "green");
         })
         .on('ready', function () {
+            GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResultForBreak', {}, function (res) {
+                var totalBreak = res[0].totalBreak;
+                $("#finishTheBreak").append('<p style="position: absolute;top: 70 %; margin-left: 65%; %;font-size: 65%;"> ' + totalBreak + ' <p/>');
+            });
+        })
+        .on('ready', function () {
             dateData = (new Date()).toLocaleDateString('tr-TR');
 
             GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetDataPersonTotalWorking', { date: dateData }, function (res) {
@@ -168,7 +174,8 @@
 
                 $("#workFinishes").append('<p style="position: absolute;top: 70 %; margin-left: 43%; %;font-size: 65%;"> ' + totalWorkings + ' <p/>');
                 $("#workFinish").append('<p style="position: absolute;top: 70 %; margin-left: 43%; %;font-size: 65%;"> ' + totalWorkings + ' <p/>');
-            })
+            });
+
             if ('@Model.sH_ShiftTrackings.shiftTrackingStatus' == '' ||  '@Model.sH_ShiftTrackings.shiftTrackingStatus' == null) {
                 $('#statusOne').css('display', 'block');
             }
@@ -181,6 +188,7 @@
             }
             else if ('@Model.sH_ShiftTrackings.shiftTrackingStatus' == 2) {
                 $('#statusTwo').css('display', 'block');
+
             }
             else if ('@Model.sH_ShiftTrackings.shiftTrackingStatus' == 3) {
                 $('#statusThree').css('display', 'block');

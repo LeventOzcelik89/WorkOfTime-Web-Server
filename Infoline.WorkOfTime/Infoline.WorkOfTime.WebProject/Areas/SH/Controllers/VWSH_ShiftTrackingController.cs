@@ -222,6 +222,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 
+        [AllowEveryone]
+        [PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.Personel)]
+        public ContentResult GetGeneralDataReportResultForBreak(DateTime? startDate, DateTime? endDate,Guid? userIds)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            startDate = DateTime.Today;
+            endDate = DateTime.Today;
+            var res = new VMShiftTrackingModel().GetGeneralDataReportResultForTotalBreak(startDate.Value, endDate.Value, userStatus.user.id);
+            return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalBreak).ToList()), "application/json");
+        }
+
+
         [PageInfo("Mesai Başla", SHRoles.Personel)]
         [HttpPost]
         public JsonResult WorkStart(SH_ShiftTracking item)     
