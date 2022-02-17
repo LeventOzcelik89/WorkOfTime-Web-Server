@@ -110,7 +110,7 @@
                 <h4>Bayi Bazlı Toplam Kanal Sell-Out Raporu</h4>
             </div>
         </div>
-        <div class="ibox-content clearfix" style="min-height: 350px; max-height: 500px; overflow: scroll">
+        <div class="ibox-content clearfix">
             @*<ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutDist">
                 </ul>*@
             <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutDist">
@@ -165,61 +165,13 @@
 <script>
 
     var page = {
-        randomColorNumber: -1,
-        colorArray: ["badge-primary", "badge-danger", "badge-warning", "badge-info"],
-        getRandomColor: function () {
-            if (page.randomColorNumber >= page.colorArray.length - 1) {
-                page.randomColorNumber = 0;
-                return page.colorArray[page.randomColorNumber];
-            }
-            page.randomColorNumber++;
-            return page.colorArray[page.randomColorNumber];
-        },
-        setIndexData: function () {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetIndexData", {}, function (data) {
-                $("#total").text(data.All);
-                $("#today").text(data.Today);
-                $("#seven").text(data.Seven);
-                $("#thirty").text(data.Month);
-            });
-        },
-        removeAllLis: function () {
-            $("#sellOutProduct li").remove();
-            $("#sellOutDist li").remove();
-        },
-        setDataSourceForProductSellOut: function (startDate, endDate) {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOut", { startDate: startDate, endDate: endDate }, function (data) {
-                var count = 0;
-                $("#sellOutProduct li").remove();
-                $.each(data.objects, function (i, item) {
-                    count = count + parseInt(item.Count);
-                    $("#sellOutProduct").append(
-                        '<li class= "clearfix">' +
-                        '<span class="pull-left" data-category="0">' +
-                        '<i class="fa fa-mobile-phone" style="color:gray"></i>' + item.Name +
-                        '</span>' +
-                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" >' + item.Count + '</span>' +
-                        '</li>'
-                    );
-                });
-                $("#sellOutProduct").append(
-                    '<li class= "clearfix">' +
-                    '<span class="pull-left" data-category="0">' +
-                    '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
-                    '</span>' +
-                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" ">' + count + '</span>' +
-                    '</li>'
-                );
-            });
-        },
-        setDataSourceForDistSellOut: function (distributionId) {
+            setDataSourceForDistSellOut: function (distributionId) {
             var startDate = $("#startDate").val();
             var endDate = $("#endDate").val();
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetSellerReportWithDates", { distId: distributionId, startDate: startDate, endDate: endDate }, function (data) {
+            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetSellerReport", { distId: distributionId, startDate: startDate, endDate: endDate }, function (data) {
 
                 var count = 0;
                 var countSelling = 0;
-
 
                 $("#sellOutDist").kendoGrid({
                     toolbar: ["excel"],
@@ -240,14 +192,15 @@
                     resizable: true,
                     columns: [
                         { field: "Name", title: "Bayi İsmi" },
-                        { field: "SellingCount", title: "Satılan", width: 250 },
-                        { field: "Count", title: "Aktive Olan", width: 250 }
+                        { field: "SellingCount", title: "Satılan", width: 200 },
+                        { field: "Count", title: "Aktive Olan", width: 200 }
                     ],
                 });
 
                 var icon = $("#sellOutDist .k-i-excel");
                 $("#sellOutDist .k-grid-excel").text("");
                 $("#sellOutDist .k-grid-excel").append(icon);
+
                 $.each(data, function (i, item) {
                 	if (item == null) {
                 		return;
@@ -260,116 +213,6 @@
                 $("#total").text(count);
             });
         },
-        createProductChart(startDate, endDate) {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOutProductChartData", { startDate: startDate, endDate: endDate }, function (data) {
-                var obj = data.objects;
-                $("#chart").kendoChart({
-                    title: {
-                        text: "Ürün Bazlı SellOut Grafiği"
-                    },
-                    legend: {
-                        position: "bottom"
-                    },
-                    chartArea: {
-                        background: ""
-                    },
-                    seriesDefaults: {
-                        type: "line",
-                        style: "smooth"
-                    },
-                    series: obj.data.Series,
-                    valueAxis: {
-                        labels: {
-                            format: "{0}"
-                        },
-                        line: {
-                            visible: false
-                        },
-                        axisCrossingValue: -10
-                    },
-                    categoryAxis: {
-                        categories: obj.data.Dates,
-                        majorGridLines: {
-                            visible: false
-                        },
-                        labels: {
-                            rotation: "auto"
-                        }
-                    },
-                    pannable: {
-                        lock: "y"
-                    },
-                    zoomable: {
-                        mousewheel: {
-                            lock: "y"
-                        },
-                        selection: {
-                            lock: "y"
-                        }
-                    },
-                    tooltip: {
-                        visible: true,
-                        format: "{0}%",
-                        template: "#= series.name #: #= value #"
-                    }
-                });
-            });
-        },
-        createDistChart(startDate, endDate) {
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOutDistChartData", { startDate: startDate, endDate: endDate }, function (data) {
-                var obj = data.objects;
-                $("#chart1").kendoChart({
-                    title: {
-                        text: "Distribütör Bazlı SellOut Grafiği"
-                    },
-                    legend: {
-                        position: "bottom"
-                    },
-                    chartArea: {
-                        background: ""
-                    },
-                    seriesDefaults: {
-                        type: "line",
-                        style: "smooth"
-                    },
-                    series: obj.data.Series,
-                    valueAxis: {
-                        labels: {
-                            format: "{0}"
-                        },
-                        line: {
-                            visible: false
-                        },
-                        axisCrossingValue: -10
-                    },
-                    categoryAxis: {
-                        categories: obj.data.Dates,
-                        majorGridLines: {
-                            visible: false
-                        },
-                        labels: {
-                            rotation: "auto"
-                        }
-                    },
-                    pannable: {
-                        lock: "y"
-                    },
-                    zoomable: {
-                        mousewheel: {
-                            lock: "y"
-                        },
-                        selection: {
-                            lock: "y"
-                        }
-                    },
-                    tooltip: {
-                        visible: true,
-                        format: "{0}%",
-                        template: "#= series.name #: #= value  # Adet"
-                    }
-                });
-            });
-        }
     }
 
     page.setDataSourceForDistSellOut('@Html.Raw(Model.DistributorId)');
