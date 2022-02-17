@@ -120,14 +120,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         
         [AllowEveryone]
         [PageInfo("Dashboard Sayfası Verileri")]
-        public async Task<JsonResult> GetPageReport(DateTime startDate, DateTime endDate)
+        public  JsonResult GetPageReport(DateTime startDate, DateTime endDate)
         {
             SellOutDashboardModel pageReport = new SellOutDashboardModel();
-            pageReport.IndexData = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetIndexData());
-            pageReport.ProductSellOut = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate));
-            pageReport.DistSellOut = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate));
-            pageReport.ProductSellOutProductChartData = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate));
-            pageReport.ProductSellOutDistChartData = await Task.FromResult(new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate));
+            pageReport.IndexData = new VMPRD_TitanDeviceActivated().GetIndexData();
+            pageReport.ProductSellOut = new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate);
+            pageReport.DistSellOut = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
+            pageReport.ProductSellOutProductChartData = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
+            pageReport.ProductSellOutDistChartData = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
 
             return Json(pageReport, JsonRequestBehavior.AllowGet);
         }
