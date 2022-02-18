@@ -55,14 +55,18 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             var link = basem.TrimEnd("\\Files".ToCharArray());
             var fullPath = link+path;
             var fileExist = System.IO.File.Exists(fullPath);
-
+            
+            if (!fileExist)
+            {
+                var feedback = new FeedBack().Error(id +"'li dosya kaydı bulunamadı", "Dosya bulunamadı..", true);
+                return null;
+            }
 
             byte[] byteFile = System.IO.File.ReadAllBytes(fullPath);
             var name = Path.GetFileName(fullPath);
             var mime = MimeMapping.GetMimeMapping(name);
-
+            mime = "application/pdf";
             return File(byteFile, mime, name);
-            
         }
 
         public ActionResult PreviewTable(string DataTable, Guid[] DataIds, bool Filter = true)
@@ -110,11 +114,14 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             var files = new List<string>();
             if (url.IndexOf("CMP/VWCMP_Request/Print") > -1)
             {
-                var id = url.Split('=');
-                if(id.Count() == 2)
+                //var id = url.Split('=');
+                var id = url.Split('/').LastOrDefault();
+                //if(id.Count() == 2)
+                if(id != null)
                 {
-                    var file = new WorkOfTimeDatabase().GetSYS_FilesByDataId(new Guid(id[1]));
-                    if(file != null)
+                    //var file = new WorkOfTimeDatabase().GetSYS_FilesByDataId(new Guid(id[1]));
+                    var file = new WorkOfTimeDatabase().GetSYS_FilesById(Guid.Parse(id));
+                    if (file != null)
                     {
                         var path = System.Configuration.ConfigurationManager.AppSettings["FilesPath"] + file.FilePath.Replace("/Files", "");
                         files.Add(path);

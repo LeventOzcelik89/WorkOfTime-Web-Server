@@ -183,7 +183,7 @@ $(document)
             }
 
         } else {
-            var url = window.location.host + $(this).parents(".file-item").data("url");
+            var url = window.location.host + "/Files/PreviewFile/" + $li.attr("data-id");
 
             navigator.clipboard.writeText(url)
                 .then(() => {
@@ -199,7 +199,7 @@ $(document)
 
     })
     .on("click", '.fileupload-container [data-task="download"]', function (e) {
-
+        debugger;
         var $ul = $(this).parents("ul");
         var $li = $(this).parents("li");
         var file = $li.data("file");
@@ -207,13 +207,18 @@ $(document)
         if (file) {
             saveAs(file, file.name);
         } else {
-            window.open($(this).parents(".file-item").data("url"), "_blank", "", true);
+            window.location.href = "/Files/PreviewFile/" + $li.attr("data-id");
+            //window.open($(this).parents(".file-item").data("url"), "_blank", "", true);
             MesajSuccess("Dosya indirme işlemi başarılı", "Mesaj");
         }
 
     })
     .on("click", '.fileupload-container [data-task="mail"]', function (e) {
-        var url = window.location.origin + $(this).parents(".file-item").data("url");
+        debugger;
+        var $li = $(this).parents("li");
+        var url = window.location.origin + "/Files/PreviewFile/" + $li.attr("data-id");
+        //var url = window.location.origin + $(this).parents(".file-item").data("url");
+
 
         $message = $('<div class="clearfix">');
 
