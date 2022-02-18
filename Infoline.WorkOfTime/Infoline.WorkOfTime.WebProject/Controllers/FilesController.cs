@@ -1,15 +1,15 @@
 ﻿using Infoline.WorkOfTime.BusinessAccess;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using TuesPechkin;
+
 
 namespace Infoline.WorkOfTime.WebProject.Controllers
 {
+
     [AllowEveryone]
     public class FilesController : Controller
     {
@@ -41,6 +41,28 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
                 FileBase = fileBase,
                 Filter = Filter
             });
+        }
+
+        public FileResult PreviewFile(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var file = db.GetSYS_FilesById(id);
+            var path = file.FilePath.Replace("/", "\\");
+            var basem = System.Configuration.ConfigurationManager.AppSettings.Get("FilesPath");
+#if DEBUG
+            basem = Server.MapPath("~/Files");
+#endif
+            var link = basem.TrimEnd("\\Files".ToCharArray());
+            var fullPath = link+path;
+            var fileExist = System.IO.File.Exists(fullPath);
+
+
+            byte[] byteFile = System.IO.File.ReadAllBytes(fullPath);
+            var name = Path.GetFileName(fullPath);
+            var mime = MimeMapping.GetMimeMapping(name);
+
+            return File(byteFile, mime, name);
+            
         }
 
         public ActionResult PreviewTable(string DataTable, Guid[] DataIds, bool Filter = true)

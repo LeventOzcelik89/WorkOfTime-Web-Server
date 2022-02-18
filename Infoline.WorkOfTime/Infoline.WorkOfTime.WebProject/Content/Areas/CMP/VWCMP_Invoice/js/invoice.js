@@ -904,11 +904,18 @@ $(document)
         }
     })
     .on("keyup", '[data-calculate="keyup"]', function (e) {
+        debugger;
         e.preventDefault();
         var newValue = e.target.value;
         if (newValue[newValue.length - 1] == ",") {
             return;
         }
+        if (newValue.indexOf(',') > -1 || newValue.indexOf('.') > -1) {
+            if (newValue[newValue.length - 1] == "0") {
+                return;
+            }
+        }
+
         if (newValue.charAt(newValue.length - 1) != ",") {
             var dropdown = $(this).data("kendoNumericTextBox");
             // newValue = parseFloat(newValue.replace(",", "."));
