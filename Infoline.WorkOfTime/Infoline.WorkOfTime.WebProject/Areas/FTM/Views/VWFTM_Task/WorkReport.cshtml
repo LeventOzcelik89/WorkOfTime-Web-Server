@@ -1,6 +1,6 @@
 ﻿
 @{
-	ViewBag.Title = "İş Raporu";
+	ViewBag.Title = "Günlük İş Takip";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -301,10 +301,11 @@
 					startTime: new Date(starttime),
 					endTime: new Date(endtime),
 					height: 700,
+					showWorkHours: true,
 					eventHeight: 10,
 					//majorTick: 60,
 					localization: "tr-TR",
-					views: ["timeline"],
+					views: ["timeline","day", "agenda"],
 					scroll: true,
 					eventTemplate: $("#event-template").html(),
 					dataSource: resObjects,
@@ -315,10 +316,8 @@
 					},
 					add: function (e) {
 						Kendo_GetRequest('/FTM/VWFTM_Task/Insert?assignableUsers=' + e.event.attendees, { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
-
 						e.preventDefault();
 						return false;
-
 					},
 					edit: function (e) {
 						var buttonsContainer = e.container.find(".k-edit-buttons");
@@ -344,6 +343,7 @@
 				});
 
 				$("[class='k-link k-scheduler-refresh']").remove()
+				$('[data-name="timeline"]').children(".k-link").text("Zaman Çizelgesi")
 			}
 		})
 	}
