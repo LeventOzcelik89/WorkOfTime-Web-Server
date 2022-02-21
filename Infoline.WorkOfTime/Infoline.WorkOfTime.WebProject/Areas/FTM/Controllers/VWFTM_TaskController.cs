@@ -1465,9 +1465,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		public JsonResult DailyUserNewReport(DateTime? start, List<Guid?> userIds, Guid? customer, Guid? customerStorage)
 		{
 
-			//Kodlar Düzenlenecek To Do olarak Maddeye olarak not alındı.
-			//Lütfen ön yargılı yaklaşmayalım.
-
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			if (start == null)
@@ -1479,7 +1476,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			var taskIds = new List<Guid>();
 			if (userIds.Count(x => x.HasValue) == 0)
 			{
-				taskOperation = db.GetVWFTM_TaskOperationByNewCreated(start.Value).ToList();
+				taskOperation = db.GetVWFTM_TaskOperationByNewCreated(start.Value, null).ToList();
 				var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsersNew(start.Value, null).ToList();
 				task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
 				task.AddRange(task2);
@@ -1495,7 +1492,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
 			{
 				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-				if (authoritys.Count() > 0)
+				if (authoritys.Any())
 					task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToList();
 			}
 			var dailyReport = new List<DailyPersonalReportPersonalData>();
@@ -1506,7 +1503,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			{
 				i++;
 				var operation = taskOperation.Where(x => x.taskId == taskItem.id && x.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi && (x.status != (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi && x.status != (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi));
-				if (operation.Count() > 0)
+				if (operation.Any())
 				{
 					var startDate = operation.Where(a => a.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi && a.created.HasValue).Select(a => a.created.Value).FirstOrDefault();
 					var endDate = new DateTime();
@@ -1560,7 +1557,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 						endDate = taskItem.dueDate.Value;
 					}
 
-					var userId = new Guid();
+					var userId = Guid.NewGuid();
 					var userName = "";
 
 					if (taskItem.assignUserId.HasValue)

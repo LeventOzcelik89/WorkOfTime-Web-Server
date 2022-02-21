@@ -316,7 +316,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
-		public VWFTM_Task[] GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsersNew(DateTime date, DbTransaction tran = null)
+		public VWFTM_Task[] GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsersNew(DateTime date, List<Guid?> userIds, DbTransaction tran = null)
 		{
 			var startdate = date;
 			var enddate = date.AddMonths(1).AddDays(-1);
@@ -325,10 +325,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				var query = "SELECT  * FROM VWFTM_Task WHERE ((LEN(assignableUserIds) = 36 and assignUserId is null) or (assignUserId is not null)) and planStartDate >= '" + string.Format("{0:yyyy-MM-dd HH:mm}", startdate) + "' and dueDate <= '" + string.Format("{0:yyyy-MM-dd HH:mm}", enddate) + "' AND lastOperationStatus >= " + (int)EnumFTM_TaskOperationStatus.GorevBaslandi + "AND lastOperationStatus <" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "";
 
+				if (userIds != null)
+				{
+					return db.ExecuteReader<VWFTM_Task>("SELECT  * FROM VWFTM_Task WHERE assignableUserIds IN (" + string.Format("'{0}'", string.Join("','", userIds)) + ") or  assignUserId IN (" + string.Format("'{0}'", string.Join("','", userIds)) + ") and planStartDate >= '" + string.Format("{0:yyyy-MM-dd HH:mm}", startdate) + "' and dueDate <= '" + string.Format("{0:yyyy-MM-dd HH:mm}", enddate) + "'").ToArray();
+				}
+
 				return db.ExecuteReader<VWFTM_Task>(query).ToArray();
 			}
 		}
-
 
 
 		public SummaryHeadersTask GetVWFTM_TaskByUserIdCounts(Guid userId, DbTransaction tran = null)

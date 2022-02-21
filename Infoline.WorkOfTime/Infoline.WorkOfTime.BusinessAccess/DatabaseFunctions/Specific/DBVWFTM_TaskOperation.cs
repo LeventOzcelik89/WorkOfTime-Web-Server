@@ -88,16 +88,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		}
 
 
-		public VWFTM_TaskOperation[] GetVWFTM_TaskOperationByNewCreated(DateTime date, DbTransaction tran = null)
+		public VWFTM_TaskOperation[] GetVWFTM_TaskOperationByNewCreated(DateTime date, List<Guid?> userIds, DbTransaction tran = null)
 		{
 			using (var db = GetDB(tran))
 			{
 				var startdate = date;
 				var enddate = date.AddMonths(1).AddDays(-1);
 
+				if (userIds != null)
+				{
+					return db.Table<VWFTM_TaskOperation>().Where(a => a.userId.In(userIds.ToArray()) && a.created >= startdate && a.created <= enddate && a.status >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi && a.status < (int)EnumFTM_TaskOperationStatus.CozumBildirildi).Execute().OrderBy(c => c.created).ToArray();
+				}
+
 				return db.Table<VWFTM_TaskOperation>().Where(a => a.created >= startdate && a.created <= enddate && a.status >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi && a.status < (int)EnumFTM_TaskOperationStatus.CozumBildirildi).Execute().OrderBy(c => c.created).ToArray();
 			}
 		}
-
 	}
 }
