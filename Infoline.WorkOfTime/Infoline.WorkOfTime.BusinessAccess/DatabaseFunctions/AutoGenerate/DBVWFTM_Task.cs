@@ -31,7 +31,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         /// </summary>
         /// <param name="simpleQuery">Filtre parametreleri olarak obje doldurularak gönderilir.</param>
         /// <param name="tran">Mevcut dışında farklı bir transection kullanılacak ise bu parametreye gönderilir.</param>
-         /// <returns>Filtre Sonucu VWFTM_Task dizi objesini geri döndürür.</returns>
+        /// <returns>Filtre Sonucu VWFTM_Task dizi objesini geri döndürür.</returns>
         public VWFTM_Task[] GetVWFTM_Task(SimpleQuery simpleQuery, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
@@ -67,5 +67,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        /// <summary>
+        /// VWFTM_Task tablosundan takvimde gösterilecek kayıtları çeken fonksiyondur
+        /// </summary>
+        /// <returns>VWFTM_Task dizi objesini geri döndürür.</returns>
+        public VWFTM_Task[] GetVWFTM_TaskByCalendar(Guid userId, DateTime start, DateTime end, bool isManager)
+        {
+            using (var db = GetDB())
+            {
+                if (isManager)
+                {
+                    return db.Table<VWFTM_Task>().Where(a => a.planStartDate >= start && a.dueDate <= end).Execute().ToArray();
+                }
+                else
+                {
+                    return db.Table<VWFTM_Task>().Where(a => a.planStartDate >= start && a.dueDate <= end && (a.assignableUserIds.Contains(userId.ToString()) || a.helperUserIds.Contains(userId.ToString()))).Execute().ToArray();
+                }
+            }
+        }
     }
 }

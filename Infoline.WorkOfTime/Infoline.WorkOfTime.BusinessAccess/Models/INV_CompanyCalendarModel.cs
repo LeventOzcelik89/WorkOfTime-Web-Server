@@ -319,8 +319,34 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						default:
 							break;
 					}
-				}
+                }
+            }
+			VWFTM_Task[] tasks;
+
+			var roles = db.GetSH_UserRoleByUserId(userId);
+
+			var userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.SahaGorevOperator) || a.roleid == new Guid(SHRoles.SahaGorevYonetici)).ToArray();
+			if (userRoles.Count() > 0)
+			{
+				tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, true).ToArray();
+            }
+            else
+            {
+				tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, false).ToArray();
 			}
+
+			list.AddRange(tasks.Select(x => new CalendarModel
+			{
+				id = x.id,
+				katilimcilar = x.assignableUserTitles + ", " + x.helperUserTitles,
+				start = x.planStartDate,
+				end = x.dueDate,
+				color = GetTypeColor(null),
+				description = x.code + " kodlu " + x.type_Title + " görevi.",
+				title = x.code + " Kodlu Görev",
+				type = 58,
+			}));
+
 			return list;
 		}
 
