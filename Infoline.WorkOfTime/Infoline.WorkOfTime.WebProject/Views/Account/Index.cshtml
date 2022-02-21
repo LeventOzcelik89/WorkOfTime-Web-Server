@@ -55,7 +55,7 @@
                     label: "Kalan"
                 },
             ],
-            excuseData:[
+            excuseData: [
                 {
                     value: @Html.Raw(Json.Encode(userStatus.user.PermitExcuseUsed)),
                     color: "#FF5733",
@@ -69,6 +69,7 @@
                     label: "Kalan"
                 },
             ],
+
             chartOptions: {
                    tooltips: {
       callbacks: {
@@ -91,6 +92,24 @@
       bodyFontSize: 14,
       displayColors: false
     }
+            },
+            timeBreak: function () {
+                dateData = (new Date()).toLocaleDateString('tr-TR');
+                GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResultForBreak', { date: dateData }, function (res) {
+                    Timers(res);
+
+                });
+
+            },
+            times: function () {
+                dateData = (new Date()).toLocaleDateString('tr-TR');
+                GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResultTotalBreaks', { date: dateData }, function (res) {
+                    debugger;
+                    var totals = res;
+
+                    $("#startBreak").append('<p style="position: absolute;top: 70%; margin-left: 25%; %;font-size: 59%;"> ' + totals + ' <p/>');
+                    $("#startBreaks").append('<p style="position: absolute;top: 70 %; margin-left: 25%; %;font-size: 59%;"> ' + totals + ' <p/>');
+                });
             }
         },
         functions: {
@@ -144,6 +163,54 @@
             }
         }
     }
+    function Timers(res) {
+        debugger;
+        var sec = res;
+        function sad(val) {
+            return val > 9 ? val : "0" + val;
+        }
+        function pad(val) {
+            if (val >= 120)
+            {
+                val = val % 60;
+                if (val <= 9) {
+                    val = "0" + val;
+                }
+            }
+            else if (val > 60 && val < 120) {
+                val = val - 60;
+                if (val < 10) {
+                    val = "0" + val;
+                }
+
+                }
+            else if (val >= 10 && val <= 60 ) {
+                val = Math.round(val)
+                if (val == 60)
+                {
+                    val = "00"
+                }
+                }
+            else {
+                vals = Math.round(val);
+                val = "0" + vals;
+                }
+            return val;
+        }
+        if (myPage.defines.timer) {
+            clearInterval(myPage.defines.timer)
+        }
+        myPage.defines.timer = setInterval(function () {
+            document.getElementById("seconds").innerHTML = pad(++sec % 60);
+            document.getElementById("minutes").innerHTML = pad(parseInt(sec / 60, 10));
+            document.getElementById("hours").innerHTML = sad(Math.floor(sec / 3600));
+
+        }, 1000);
+
+        $("#finishTheBreak").append('<div style="position: absolute;top: 70 %; margin-left: 65%;font-size: 65%;"> </span><span  id="hours"></span>:<span  id="minutes"></span>:<span  id="seconds"> </div>');
+    
+    }
+
     $(document)
         .on("ready", function () {
             if (@Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0) {
@@ -161,22 +228,20 @@
             $(this).addClass(res == 0 ? "red" : "green");
         })
         .on('ready', function () {
-            dateData = (new Date()).toLocaleDateString('tr-TR');
-            GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResultForBreak', { date: dateData }, function (res) {
-                debugger;
-                var totalBreak = res;
-                $("#finishTheBreak").append('<p style="position: absolute;top: 70 %; margin-left: 65%; %;font-size: 65%;"> ' + totalBreak + ' <p/>');
-            });
+            myPage.defines.timeBreak();
         })
         .on('ready', function () {
-
             debugger;
+            myPage.defines.times();
+         
+        })
+        .on('ready', function () {          
             dateData = (new Date()).toLocaleDateString('tr-TR');
             GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetDataPersonTotalWorking', { date: dateData }, function (res) {
                 var totalWorkings = res;
 
-                $("#workFinishes").append('<p style="position: absolute;top: 70 %; margin-left: 43%; %;font-size: 65%;"> ' + totalWorkings + ' <p/>');
-                $("#workFinish").append('<p style="position: absolute;top: 70 %; margin-left: 43%; %;font-size: 65%;"> ' + totalWorkings + ' <p/>');
+                $("#workFinishes").append('<p style="position: absolute;top: 70 %; margin-left: 25%; %;font-size: 59%;"> ' + totalWorkings + ' <p/>');
+                $("#workFinish").append('<p style="position: absolute;top: 70 %; margin-left: 25%; %;font-size: 59%;"> ' + totalWorkings + ' <p/>');
             });
 
             if ('@Model.sH_ShiftTrackings.shiftTrackingStatus' == '' ||  '@Model.sH_ShiftTrackings.shiftTrackingStatus' == null) {
@@ -201,6 +266,21 @@
             }
         })
         .on('click', "#startBreak", function () {
+            myPage.defines.timeBreak();
+            GetLocation(function (Location) {
+                GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/StartBreak', { location: Location }, function (res) {
+                    feedback(res.FeedBack);
+                    if (res.Result == true) {
+                        $('#statusTwo').css('display', 'block');
+                        $('#statusThree').css('display', 'none');
+                        $('#statusOne').css('display', 'none');
+                        $('#statusZero').css('display', 'none');
+                    };
+                });
+            });
+        })
+        .on('click', "#startBreaks", function () {
+            myPage.defines.timeBreak();
             GetLocation(function (Location) {
                 GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/StartBreak', { location: Location }, function (res) {
                     feedback(res.FeedBack);
@@ -214,6 +294,9 @@
             });
         })
         .on('click', "#finishTheBreak", function () {
+            $('#startBreak p').remove();
+            $('#startBreaks p').remove();
+            myPage.defines.times();
             GetLocation(function (Location) {
                 GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/FinishTheBreak', {location: Location }, function (res) {
                     feedback(res.FeedBack);
@@ -256,7 +339,6 @@
 
         })
         .on('click', "#workStart", function () {
-
             GetLocation(function (Location) {
                 GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/WorkStart', { location: Location }, function (res) {
                     feedback(res.FeedBack);
@@ -857,14 +939,14 @@
 <div class="col-md-4">
     @if (TenantConfig.Tenant.TenantCode == 1139 || TenantConfig.Tenant.TenantCode == 1100)
     {
- 
-        <div data-href="/SH/VWSH_ShiftTracking/StartBreak">
+
+        <div data-href="/SH/VWSH_ShiftTracking/FinishTheBreak">
             <div style="display:none;" id="statusOne">
                 <div class="col-sm-12">
-                        <button id="workStart" class="btn dim btn-large-dim  btn-success button-color btn-outline" style=" height: 50px; width: 100% !important;">
-                            <i class="fa fa-stop fa-2x" style=" font-size: 1.9vw !important"></i>
-                            <span>MESAİYE BAŞLA</span>
-                        </button>
+                    <button id="workStart" class="btn dim btn-large-dim  btn-success button-color btn-outline" style=" height: 50px; width: 100% !important;">
+                        <i class="fa fa-stop fa-2x" style=" font-size: 1.9vw !important"></i>
+                        <span>MESAİYE BAŞLA</span>
+                    </button>
                 </div>
             </div>
             <div style="display:none;" id="statusZero">
@@ -891,8 +973,8 @@
             </div>
             <div style="display:none;" id="statusThree">
                 <div class="col-sm-6">
-                    <button id="startBreak" class="btn dim btn-large-dim  btn-success button-color btn-outline" style=" height: 50px; width: 100% !important;">
-                        <i class="fa fa-pause fa-2x"style=" font-size: 1.9vw !important"></i>
+                    <button id="startBreaks" class="btn dim btn-large-dim  btn-success button-color btn-outline" style=" height: 50px; width: 100% !important;">
+                        <i class="fa fa-pause fa-2x" style=" font-size: 1.9vw !important"></i>
                         <span>MOLA VER</span>
                     </button>
                 </div>
