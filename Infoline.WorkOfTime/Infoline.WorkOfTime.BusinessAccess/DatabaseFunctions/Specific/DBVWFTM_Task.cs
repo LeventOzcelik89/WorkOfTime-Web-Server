@@ -671,7 +671,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public VWFTM_Task[] GetVWFTM_TaskByCalendar(Guid userId, DateTime start, DateTime end, bool isManager)
+        public VWFTM_Task[] GetVWFTM_TaskByCalendar(Guid userId, DateTime start, DateTime end, bool isManager, Guid[] followingTaskIds)
         {
             using (var db = GetDB())
             {
@@ -681,7 +681,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
                 else
                 {
-                    return db.Table<VWFTM_Task>().Where(a => a.planStartDate >= start && a.dueDate <= end && (a.assignableUserIds.Contains(userId.ToString()) || a.helperUserIds.Contains(userId.ToString()) || a.createdby == userId)).Execute().ToArray();
+                    return db.Table<VWFTM_Task>().Where(a => a.planStartDate >= start && a.dueDate <= end && (a.assignableUserIds.Contains(userId.ToString()) || a.helperUserIds.Contains(userId.ToString()) || a.createdby == userId || a.id.In(followingTaskIds))).Execute().ToArray();
                 }
             }
         }

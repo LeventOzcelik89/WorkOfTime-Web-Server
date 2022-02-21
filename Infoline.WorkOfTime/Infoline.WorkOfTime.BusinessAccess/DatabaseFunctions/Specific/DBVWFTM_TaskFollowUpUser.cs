@@ -20,5 +20,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWFTM_TaskFollowUpUser>().Where(a => a.taskId == taskId).Execute().ToArray();
             }
         }
+
+        public VWFTM_TaskFollowUpUser[] GetVWFTM_TaskFollowUpUserByUserId(Guid userId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWFTM_TaskFollowUpUser>().Where(a => a.userId == userId).Execute().ToArray();
+            }
+        }
     }
 }

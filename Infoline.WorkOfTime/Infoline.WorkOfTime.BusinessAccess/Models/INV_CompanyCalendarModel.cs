@@ -323,6 +323,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             List<VWFTM_Task> tasks = new List<VWFTM_Task>();
 
+            var followingTasks = db.GetVWFTM_TaskFollowUpUserByUserId(userId).Where(x=>x.taskId.HasValue).Select(x=>x.taskId.Value).ToArray();
+
             var roles = db.GetSH_UserRoleByUserId(userId);
 
             var userRolesManager = roles.Where(a => a.roleid == new Guid(SHRoles.SahaGorevOperator) || a.roleid == new Guid(SHRoles.SahaGorevYonetici)).ToArray();
@@ -331,11 +333,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (userRolesManager.Count() > 0)
             {
-                tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, true).ToList();
+                tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, true, followingTasks).ToList();
             }
             else if (userRoles.Count() > 0)
             {
-                tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, false).ToList();
+                tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, false, followingTasks).ToList();
             }
 
             if (tasks.Count() > 0)
@@ -343,7 +345,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 list.AddRange(tasks.Select(x => new CalendarModel
                 {
                     id = x.id,
-                    katilimcilar = x.assignUser_Title + ", " + x.helperUserTitles,
+                    katilimcilar = x.assignUser_Title ?? x.assignableUserTitles,
                     start = x.planStartDate,
                     end = x.dueDate,
                     color = GetTypeColor(null),
