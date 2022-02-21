@@ -332,13 +332,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public VMFTM_TaskPlanCalendarModel[] CalendarNewDataSource(PageSecurity userStatus)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
-			var query = "SELECT * FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < " + (int)EnumFTM_TaskOperationStatus.GorevBaslandi + "AND planStartDate IS NULL AND dueDate >= GETDATE()";
+			var query = "SELECT id,code,customer_Title,customerStorage_Title,fixture_Title,taskPlanId_Title,priority_Title,plate,priority,lastOperationStatus,assignUserId,assignableUserIds,isComplete,taskPlanId_Title,type_Title,description,penaltyStartDate,amercementTotal,SLAText,assignableUserTitles,taskSubjectType_Title,planLater FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < " + (int)EnumFTM_TaskOperationStatus.GorevBaslandi + "AND assignUserId IS NULL AND assignableUserIds IS NULL AND dueDate >= GETDATE()";
 			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
 
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
 			{
 				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-				if (authoritys.Count() > 0)
+				if (authoritys.Any())
 				{
 					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
 				}

@@ -310,6 +310,7 @@ namespace System.Web.Mvc
             var sahayonetimi = new Menu("Görev Yönetimi", "#", "fa fa-wrench");
             sahayonetimi.AddChild(new Menu("Görevler", "/FTM/VWFTM_Task/Index"));
             sahayonetimi.AddChild(new Menu("Bakım Planları", "/FTM/VWFTM_TaskPlan/AllTaskDetail"));
+            sahayonetimi.AddChild(new Menu("Günlük İş Takip", "/FTM/VWFTM_Task/WorkReport"));
             sahayonetimi.AddChild(new Menu("Personel İş Takip", "/FTM/VWFTM_Task/PersonDailyReport"));
             sahayonetimi.AddChild(new Menu("Bakım Yönetimi", "/FTM/VWFTM_TaskPlan/Index"));
             sahayonetimi.AddChild(new Menu("Görev Haritası", "/FTM/VWFTM_Task/Map"));
