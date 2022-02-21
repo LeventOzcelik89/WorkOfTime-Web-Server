@@ -81,7 +81,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
                 else
                 {
-                    return db.Table<VWFTM_Task>().Where(a => a.planStartDate >= start && a.dueDate <= end && (a.assignableUserIds.Contains(userId.ToString()) || a.helperUserIds.Contains(userId.ToString()))).Execute().ToArray();
+                    return db.Table<VWFTM_Task>().Where(a => a.planStartDate >= start && a.dueDate <= end && (a.assignableUserIds.Contains(userId.ToString()) || a.helperUserIds.Contains(userId.ToString()) || a.createdby == userId)).Execute().ToArray();
                 }
             }
         }
