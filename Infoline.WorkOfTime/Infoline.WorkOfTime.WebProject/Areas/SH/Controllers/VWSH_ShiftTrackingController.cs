@@ -186,7 +186,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 
-        [AllowEveryone]
         [PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.Personel)]
         public ContentResult GetDataPersonTotalWorking(DateTime date, Guid? userId)
         {
@@ -222,20 +221,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 
-        // Eski çalışan Fonksiyon Toplam Mola süresini getiriyor bize
-        //[AllowEveryone]
-        //[PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.Personel)]
-        //public ContentResult GetGeneralDataReportResultForBreak(DateTime? startDate, DateTime? endDate,Guid? userIds)
-        //{
-        //    var userStatus = (PageSecurity)Session["userStatus"];
-        //    startDate = DateTime.Today;
-        //    endDate = DateTime.Today;
-        //    var res = new VMShiftTrackingModel().GetGeneralDataReportResultForTotalBreak(startDate.Value, endDate.Value, userStatus.user.id);
-        //    return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalBreak).ToList()), "application/json");
-        //}
-        [AllowEveryone]
         [PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.Personel)]
         public ContentResult GetGeneralDataReportResultForBreak(DateTime date, Guid? userId)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var res = new VMShiftTrackingModel().GetDataPersonBreak(date, userStatus.user.id);
+            return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.breakCounter).FirstOrDefault(a => a.userId == userStatus.user.id).breakCounter), "application/json");
+        }
+
+        [PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.Personel)]
+        public ContentResult GetGeneralDataReportResultTotalBreaks(DateTime date, Guid? userId)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var res = new VMShiftTrackingModel().GetDataPersonBreak(date, userStatus.user.id);

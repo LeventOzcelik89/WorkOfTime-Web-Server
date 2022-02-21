@@ -96,6 +96,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         //[Generic("color", "1ba1e2")]
         //[Description("Outlook")]
         //Outlook = 50
+
+        //Saha Görevleri = 58
     }
 
     partial class WorkOfTimeDatabase

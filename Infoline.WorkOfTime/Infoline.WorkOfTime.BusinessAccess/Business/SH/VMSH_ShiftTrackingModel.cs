@@ -93,7 +93,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var workingMinutes = GetCalculateDayShift(shiftTracking.userId.Value, date, shiftTrackings.Where(a => a.userId == shiftTracking.userId).ToArray());
 
                 TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
-                var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+               var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika : {ts.Seconds} saniye ";
 
                 var userPhoto = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", shiftTracking.userId.Value);
 
@@ -111,7 +111,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return listData;
         }
 
-        public List<VMSH_ShiftTrackingReport> GetDataPersonBreak(DateTime date, Guid? userId)
+        public List<VMSH_ShiftTrackingReports> GetDataPersonBreak(DateTime date, Guid? userId)
         {
             var db = new WorkOfTimeDatabase();
             var ourPersons = new List<VWSH_User>();
@@ -125,38 +125,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
 
             var shiftTrackings = db.VWGetSH_ShiftTrackingByDate(date);
-            var listModel = new List<VMSH_ShiftTrackingReport>();
-            var listData = new List<VMSH_ShiftTrackingReport>();
+            var listModel = new List<VMSH_ShiftTrackingReports>();
+            var listData = new List<VMSH_ShiftTrackingReports>();
 
 
 
-            listModel.AddRange(ourPersons.Select(x => new VMSH_ShiftTrackingReport
+            listModel.AddRange(ourPersons.Select(x => new VMSH_ShiftTrackingReports
             {
                 userId = x.id,
                 date = date,
                 shiftTrackingStart = shiftTrackings.Where(t => t.shiftTrackingStatus == (Int32)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi && t.userId == x.id).OrderBy(c => c.timestamp).FirstOrDefault() ?? new VMSH_ShiftTrackingReport { timestamp = DateTime.Now },
-                shiftTrackingEnd = shiftTrackings.Where(t => t.shiftTrackingStatus == (Int32)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti && t.userId == x.id).OrderByDescending(c => c.timestamp).FirstOrDefault() ?? new VMSH_ShiftTrackingReport { timestamp = DateTime.Now },
-                CompanyId_Title = x.Company_Title,
-                UserId_Title = x.FullName
+                shiftTrackingEnd = shiftTrackings.Where(t => t.shiftTrackingStatus == (Int32)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti && t.userId == x.id).OrderByDescending(c => c.timestamp).FirstOrDefault() ?? new VMSH_ShiftTrackingReport { timestamp = DateTime.Now }
             }));
 
             foreach (var shiftTracking in listModel.ToList())
             {
                 var workingMinutes = GetCalculateDayShiftForBreak(shiftTracking.userId.Value, date, shiftTrackings.Where(a => a.userId == shiftTracking.userId).ToArray());
 
-                TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
-                var breakHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+                  TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
+                var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika : {ts.Seconds} saniye ";
 
-                var userPhoto = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", shiftTracking.userId.Value);
-
-                listData.Add(new VMSH_ShiftTrackingReport
+                listData.Add(new VMSH_ShiftTrackingReports
                 {
-                    totalBreak = breakHoursStringValue.ToString(),
-                    CompanyId_Title = shiftTracking.CompanyId_Title,
-                    UserId_Title = shiftTracking.UserId_Title,
-                    date = shiftTracking.date,
+                     breakCounter = ts.TotalSeconds,
+                     totalBreak = workingHoursStringValue.ToString(),
+                   //totalBreak = ts.ToString(),
                     userId = shiftTracking.userId,
-
                 });
             }
 
@@ -1339,6 +1333,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     }
 
+    public class VMSH_ShiftTrackingReports : VMSH_ShiftTrackingReport
+    {
+        public double breakCounter { get; set; }
+
+    }
 
 
 
