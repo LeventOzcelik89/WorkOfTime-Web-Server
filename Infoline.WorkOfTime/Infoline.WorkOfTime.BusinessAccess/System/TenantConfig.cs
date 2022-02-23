@@ -36,6 +36,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return _tenants;
         }
+      
+
         public static TEN_Tenant GetTenantByTenantDomain(string domain = null)
         {
             var tenantlar = GetTenants();
