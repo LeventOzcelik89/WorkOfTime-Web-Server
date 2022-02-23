@@ -312,27 +312,25 @@
                 page.init();
             })
             .on("select:feature", "#Harita", function (e, resp) {
+
+				page.dfn.harita.overlay.remove('slider-station');
+
                 debugger;
-                page.dfn.harita.overlay.remove('slider-station');
+				//if (resp.type != "remove") {
+                    var elem = resp.element;
+                    var prop = elem.get("properties");
+                    if (prop) {
+                        text = page.getPersonDetailForHover(prop);
+                        var geometry = resp.element.getGeometry();
+                        var coordinate = geometry.getCoordinates();
+                        var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+                        var tooltiplocation = "bottom-right";
+                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [180, -70]);
+                    }
+                //}
 
-				if (resp.type == "add") {
-					var elem = resp.element;
-					var prop = elem.get("properties");
-
-					if (prop) {
-						text = page.getPersonDetailForHover(prop);
-						var geometry = resp.element.getGeometry();
-						var coordinate = geometry.getCoordinates();
-						var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
-						var tooltiplocation = "bottom-right";
-						page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
-						page.dfn.harita.map.updateSize();
-					}
-                }
-
-                if (resp.type == "remove") {
 					page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
-				}
+
             })
     </script>
 }
