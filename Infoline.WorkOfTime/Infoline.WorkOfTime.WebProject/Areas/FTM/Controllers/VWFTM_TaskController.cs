@@ -1504,7 +1504,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 						removedUserIds.Remove(removeIds.Key);
 					}
 				}
-				var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, userIds.ToList());
+				var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsersNew(start.Value, userIds.ToList());
 				task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
 				if (taskOperation.Count() > 0 && removedUserIds.Count() > 0)
 				{
