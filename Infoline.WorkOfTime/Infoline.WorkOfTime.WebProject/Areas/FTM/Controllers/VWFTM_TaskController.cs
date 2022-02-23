@@ -1471,9 +1471,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			{
 				start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
 			}
+
 			var task = new List<VWFTM_Task>();
 			var taskOperation = new List<VWFTM_TaskOperation>();
 			var taskIds = new List<Guid>();
+
+			//if (userIds.Count(x => x.HasValue) == 0)
+			//{
+			//	taskOperation = db.GetVWFTM_TaskOperationByNewCreated(start.Value, null).ToList();
+			//	var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsersNew(start.Value, null).ToList();
+			//	task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
+			//	task.AddRange(task2);
+			//}
+
 			if (userIds.Count(x => x.HasValue) == 0)
 			{
 				taskOperation = db.GetVWFTM_TaskOperationByNewCreated(start.Value, null).ToList();
@@ -1481,6 +1491,36 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
 				task.AddRange(task2);
 			}
+			else
+			{
+				taskOperation = db.GetVWFTM_TaskOperationByNewCreated(start.Value, userIds).ToList();
+				var removedUserIds = new List<Guid?>();
+				if (taskOperation.Count() > 0)
+				{
+					removedUserIds.AddRange(userIds);
+					var ids = taskOperation.GroupBy(x => x.userId).Select(x => x).ToList();
+					foreach (var removeIds in ids)
+					{
+						removedUserIds.Remove(removeIds.Key);
+					}
+				}
+				var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, userIds.ToList());
+				task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
+				if (taskOperation.Count() > 0 && removedUserIds.Count() > 0)
+				{
+					var users = db.GetVWSH_UserByIds(userIds.Where(x => x.HasValue).Select(x => x.Value).ToArray());
+					task.AddRange(users.Select(x => new VWFTM_Task
+					{
+						id = Guid.NewGuid(),
+						assignUserId = x.id,
+						assignUser_Title = x.FullName,
+						created = DateTime.Now.AddYears(-1)
+					}));
+				}
+				task.AddRange(task2);
+			}
+
+
 			if (customer.HasValue)
 			{
 				task = task.Where(x => x.customerId == customer.Value).ToList();
