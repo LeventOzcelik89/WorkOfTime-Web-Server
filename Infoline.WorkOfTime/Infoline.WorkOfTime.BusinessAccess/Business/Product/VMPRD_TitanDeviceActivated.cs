@@ -34,11 +34,18 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         }
         public IndexData GetIndexData()
         {
+            var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var getAllCount = db.GetPRD_TitanDeviceActivatedCount();
-            var getTodayCount = db.GetPRD_TitanDeviceActivatedTodayCount();
-            var getSevenDayCount = db.GetPRD_TitanDeviceActivatedSevenDaysCount();
-            var getMonthCount = db.GetPRD_TitanDeviceActivatedThirtyDaysCount();
+            var getAllTitan = db.GetPRD_TitanDeviceActivatedInventoryAndProductNotNull();
+            var monthTitan = getAllTitan.Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-30));
+            var sevenDayTitan = monthTitan.Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-7));
+            var todayTitan = sevenDayTitan.Where(x => x.CreatedOfTitan >= today);
+
+
+            var getAllCount = getAllTitan.Length;
+            var getTodayCount = todayTitan.Count();
+            var getSevenDayCount = sevenDayTitan.Count();
+            var getMonthCount = monthTitan.Count();
             return
                 new IndexData
                 {
@@ -54,25 +61,24 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return new ResultStatus
             {
                 result = true,
-                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate, endDate).OrderByDescending(x => x.Count)
+                objects = db.GetPRD_TitanDeviceActivatedSellOutProductQuery(startDate, endDate)
             };
         }
         public ResultStatus GetProductSellOutDistReport(DateTime startDate, DateTime endDate)
         {
             db = db ?? new WorkOfTimeDatabase();
-            var getIds = db.GetPRD_TitanDeviceActivatedInventoryIds(startDate, endDate);
-            var getData = db.GetPRD_TitanDeviceActivatedSellOutDist(getIds);
+            var getData = db.GetPRD_TitanDeviceActivatedSellOutDistQuery(startDate, endDate);
             return new ResultStatus
             {
                 result = true,
-                objects = getData.OrderByDescending(x => x.Count)
+                objects = getData
             };
         }
         public ResultStatus GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
         {
             db = db ?? new WorkOfTimeDatabase();
             var data = new ChartData();
-            var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
+            var getAllDevices = db.GetVWPRD_TitanDeviceActivatedWithDates(startDate, endDate);
             var getDates = getAllDevices.GroupBy(x => x.CreatedOfTitan.Value.Date).OrderBy(x => x.Key).Select(x => x.Key).ToList();
             data.Dates = getDates.Select(x => x.ToShortDateString()).ToList();
             var groupedProducts = getAllDevices.GroupBy(x => x.productId_Title).ToList();
@@ -98,8 +104,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             var data = new ChartData();
-            var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
-            var allInventories = db.GetPRD_TitanDeviceActivatedSellOutChartInventoryData(getAllDevices.Where(x => x.InventoryId.HasValue).Select(x => x.InventoryId.Value).ToArray());
+            var allInventories = db.GetPRD_TitanDeviceActivatedSellOutChartInventoryDataQuery(startDate, endDate);
+
             var getDates = allInventories.GroupBy(x => x.created.Value.Date).Select(x => x.Key).OrderBy(x => x).ToList();
             var inventories = allInventories.GroupBy(x => x.lastActionDataCompanyId_Title);
             data.Dates = getDates.Select(x => x.ToShortDateString()).ToList();
@@ -121,27 +127,24 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             };
         }
 
-        public SellOutReportModel[] GetDistReportForSellerWithDates(Guid distId, DateTime startDate, DateTime endDate)
+        public SellerReportPage GetDistReportForSellerWithDates(Guid distId, DateTime startDate, DateTime endDate)
         {
             var db = new WorkOfTimeDatabase();
 
-            var getData = db.GetVWPRD_EntegrationActionByDistrubutorIdAndDate(distId,startDate,endDate);
+            var getData = db.GetVWPRD_EntegrationActionSellerReportByDistIdAndDates(distId, startDate, endDate);
+            var sallesByGrouped = getData.GroupBy(x => x.CustomerOperatorName).Select(a => new SallesByGrouped { CustomerOperatorName = a.Key, activatedCount = a.Sum(s => s.activatedCount), salesCount = a.Sum(s => s.salesCount), notActivatedCount = a.Sum(s => s.notActivatedCount) });
 
-            var groupCustomer = getData.GroupBy(a => a.CustomerOperatorId);
+            var activatedCount = sallesByGrouped.Sum(a => a.activatedCount);
+            var salesCount = sallesByGrouped.Sum(a => a.salesCount);
+            var notActivatedCount = sallesByGrouped.Sum(a => a.notActivatedCount);
 
-            var sellOutReportModelList = new List<SellOutReportModel>();
-
-            foreach (var item in groupCustomer)
+            return new SellerReportPage
             {
-                var sellOutReportModel = new SellOutReportModel();
-                sellOutReportModel.Count = getData.Where(a => a.CustomerOperatorId == item.Key).Count();
-                sellOutReportModel.Id = item.Key;
-                sellOutReportModel.Name = getData.Where(a => a.CustomerOperatorId == item.Key).Select(a => a.CustomerOperatorName).FirstOrDefault();
-                sellOutReportModel.SellingCount = getData.Where(a => a.CustomerOperatorId == item.Key && a.ActivationDate.HasValue).Count();
-
-                sellOutReportModelList.Add(sellOutReportModel);
-            }
-            return sellOutReportModelList.ToArray();
+                sallesByGrouped = sallesByGrouped,
+                totalActivatedCount = activatedCount,
+                totalSalesCount = salesCount,
+                totalNotActivatedCount = notActivatedCount
+            };
         }
         public SellOutReportModel[] GetDistReportForSeller(Guid distId)
         {
@@ -154,7 +157,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var sellOutReportModelList = new List<SellOutReportModel>();
 
             foreach (var item in groupCustomer)
-			{
+            {
                 var sellOutReportModel = new SellOutReportModel();
                 sellOutReportModel.Count = getData.Where(a => a.CustomerOperatorId == item.Key).Count();
                 sellOutReportModel.Id = item.Key;
@@ -181,6 +184,22 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             return TitanServices.GetDeviceActivationInformations();
         }
+    }
+
+    public class SallesByGrouped
+    {
+        public string CustomerOperatorName { get; set; }
+        public int activatedCount { get; set; }
+        public int salesCount { get; set; }
+        public int notActivatedCount { get; set; }
+    }
+
+    public class SellerReportPage
+    {
+        public IEnumerable<SallesByGrouped> sallesByGrouped { get; set; }
+        public int totalActivatedCount { get; set; }
+        public int totalSalesCount { get; set; }
+        public int totalNotActivatedCount { get; set; }
     }
 
     public class PRD_EntegrastionActionSellerReport : VWPRD_EntegrationAction

@@ -36,36 +36,6 @@
         <div>
             <form action="/PRD/VWPRD_EntegrationAction/SellerReport" method="GET">
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="col-sm-12">
-                            <div class="widget style1 yellow-bg">
-                                <div class="row">
-                                    <div class="col-xs-4">
-                                        <i class="icon-basket-2 fa-4x"></i>
-                                    </div>
-                                    <div class="col-xs-8 text-right" style="margin-top: 25px;">
-                                        <h2 style="display:inline-block;"> Toplam Satılan Miktar </h2>
-                                        <h2 style="display:inline-block;" id="total" class="font-bold">0</h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="col-sm-12">
-                            <div class="widget style1 navy-bg">
-                                <div class="row">
-                                    <div class="col-xs-4">
-                                        <i class="fa fa-check fa-5x"></i>
-                                    </div>
-                                    <div class="col-xs-8 text-right" style="margin-top: 25px;">
-                                        <h2 style="display:inline-block;"> Toplam Aktive Olan Cihaz Sayısı </h2>
-                                        <h2 style="display:inline-block;" id="activeTotal" class="font-bold">0</h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="col-md-12" style="padding: 33px; padding-bottom: 0; padding-top: 0;">
                         <div class="form-group" style="width:30%; display:inline-block;">
                             <label class="">Cari Seçimi</label>
@@ -101,6 +71,54 @@
         </div>
     </div>
     <br />
+    <div class="row">
+        <div class="col-md-4">
+
+            <div class="widget style1 yellow-bg">
+                <div class="row">
+                    <div class="col-xs-4">
+                        <i class="icon-basket-2 fa-4x"></i>
+                    </div>
+                    <div class="col-xs-8 text-right">
+                        <h2>Toplam Satılan Miktar</h2>
+                        <h2 id="salesTotal" class="font-bold">0</h2>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="col-md-4">
+
+            <div class="widget style1 navy-bg">
+                <div class="row">
+                    <div class="col-xs-4">
+                        <i class="fa fa-check fa-4x" style="margin-top:6px;"></i>
+                    </div>
+                    <div class="col-xs-8 text-right">
+                        <h2>Toplam Aktive Olan Cihaz Sayısı</h2>
+                        <h2 id="activeTotal" class="font-bold">0</h2>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-4">
+
+            <div class="widget style1 lazur-bg">
+                <div class="row">
+                    <div class="col-xs-4" style="margin-top:6px;">
+                        <i class="icon-cancel fa-3x"></i>
+                    </div>
+                    <div class="col-xs-8 text-right">
+                        <h2>Aktive Olmayan Cihaz Sayısı</h2>
+                        <h2 id="notActiveTotal" class="font-bold">0</h2>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 <div class="col-sm-12">
@@ -168,10 +186,9 @@
             setDataSourceForDistSellOut: function (distributionId) {
             var startDate = $("#startDate").val();
             var endDate = $("#endDate").val();
-            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetSellerReport", { distId: distributionId, startDate: startDate, endDate: endDate }, function (data) {
+            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetSellerReportWithDates", { distId: distributionId, startDate: startDate, endDate: endDate }, function (data) {
 
-                var count = 0;
-                var countSelling = 0;
+
 
                 $("#sellOutDist").kendoGrid({
                     toolbar: ["excel"],
@@ -181,7 +198,7 @@
                         filterable: true
                     },
                     dataSource: {
-                        data: data,
+                        data: data.sallesByGrouped,
                         pageSize: 25
                     },
                     height: 630,
@@ -192,9 +209,10 @@
                     reorderable: true,
                     resizable: true,
                     columns: [
-                        { field: "Name", title: "Bayi İsmi" },
-                        { field: "Count", title: "Satılan", width: 200 },
-                        { field: "SellingCount", title: "Aktive Olan", width: 200 }
+                        { field: "CustomerOperatorName", title: "Bayi İsmi" },
+                        { field: "salesCount", title: "Satılan", width: 200 },
+                        { field: "activatedCount", title: "Aktive Olan", width: 200 },
+                        { field: "notActivatedCount", title: "Aktive Olmayan", width: 200 }
                     ],
                 });
 
@@ -202,16 +220,11 @@
                 $("#sellOutDist .k-grid-excel").text("");
                 $("#sellOutDist .k-grid-excel").append(icon);
 
-                $.each(data, function (i, item) {
-                	if (item == null) {
-                		return;
-                	}
-                	count = count + parseInt(item.Count);
-                    countSelling += parseInt(item.SellingCount);
-                });
 
-                $("#activeTotal").text(countSelling);
-                $("#total").text(count);
+
+                $("#activeTotal").text(data.totalActivatedCount);
+                $("#salesTotal").text(data.totalSalesCount);
+                $("#notActiveTotal").text(data.totalNotActivatedCount);
             });
         },
     }
