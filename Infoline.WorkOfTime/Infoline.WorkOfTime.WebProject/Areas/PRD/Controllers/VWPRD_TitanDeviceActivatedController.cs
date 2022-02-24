@@ -91,18 +91,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
-        public JsonResult GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
-        {
-            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
-        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
-        public JsonResult GetProductSellOutDistChartData(DateTime startDate, DateTime endDate)
-        {
-            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
-            return Json(data, JsonRequestBehavior.AllowGet);
-        }
+        //[PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        //public JsonResult GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
+        //{
+        //    var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
+        //    return Json(data, JsonRequestBehavior.AllowGet);
+        //}
+        //[PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        //public JsonResult GetProductSellOutDistChartData(DateTime startDate, DateTime endDate)
+        //{
+        //    var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
+        //    return Json(data, JsonRequestBehavior.AllowGet);
+        //}
         [AllowEveryone]
         [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public JsonResult GetSellerReport(Guid distId)
@@ -123,12 +123,32 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         public  JsonResult GetPageReport(DateTime startDate, DateTime endDate)
         {
             SellOutDashboardModel pageReport = new SellOutDashboardModel();
-            pageReport.IndexData = new VMPRD_TitanDeviceActivated().GetIndexData();
-            pageReport.ProductSellOut = new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate);
-            pageReport.DistSellOut = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
-            pageReport.ProductSellOutProductChartData = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
-            pageReport.ProductSellOutDistChartData = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
 
+            var t1 = Task.Run(() => {
+                pageReport.IndexData = new VMPRD_TitanDeviceActivated().GetIndexData();
+            } );
+            
+            var t2 = Task.Run(() => {
+                pageReport.ProductSellOut = new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate);
+            } );
+
+            var t3 = Task.Run(() => {
+                pageReport.DistSellOut = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
+            } );
+            
+            var t4 = Task.Run(() => {
+                pageReport.ProductSellOutProductChartData = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
+            } );
+            
+            var t5 = Task.Run(() => {
+                pageReport.ProductSellOutDistChartData = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
+            } );
+
+            t1.Wait();
+            t2.Wait();
+            t3.Wait();
+            t4.Wait();
+            t5.Wait();
             return Json(pageReport, JsonRequestBehavior.AllowGet);
         }
     }
