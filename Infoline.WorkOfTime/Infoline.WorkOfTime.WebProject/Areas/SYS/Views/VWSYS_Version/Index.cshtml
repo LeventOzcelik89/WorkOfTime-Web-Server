@@ -3,80 +3,78 @@
     ViewBag.Title = "Versiyon Yönetimi";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 <style type="text/css">
-    .pad-hor {
-        padding-left: 50px;
-        padding-right: 50px;
+
+
+
+    .version-created {
+        margin-left: 155vh;
     }
+  
 
+    @@media screen and (min-width:1400px) and (max-width:2500px) {
+        .version-created {
+            margin-left: 161vh;
+        }
+    }
 </style>
-<div class="row">
-    <div class="col-md-12 pad-hor">
 
+
+<div class="row">
+    <div class="col-md-12">
         @if (Model._versions != null && Model._versions.Count > 0)
         {
-            foreach (var item in Model._versions)
-            {
-                if (item.isActive == true)
+            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                @foreach (var versions in Model._versions.Select((item, index) => new { item = item, index = index }))
                 {
-                    <div class="ibox">
-                        <div class="ibox-title">
-                            <h5>Versiyon  @(item.versionNumber)</h5>
-                            <div class="ibox-tools">
-                                <a class="collapse-link">
-                                    <i class="fa fa-chevron-up"></i>
-                                </a>
+
+                    if (versions.item.isActive == true)
+                    {
+
+                        <div class="panel panel-default ">
+                            <div class="panel-heading" role="tab" id="@("heading"+versions.index)">
+                                <h4 class="panel-title">
+                                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#@("collapse"+versions.index)" aria-expanded="true" aria-controls="@("collapse"+versions.index)">
+                                        Versiyon  @(versions.item.versionNumber)
+                                        <span class="version-created">@(versions.item.created)</span>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="@("collapse"+versions.index)" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="@("heading"+versions.index)">
+                                <div class="panel-body">
+                                    <p class="pull-left">@(versions.item.versionChange)</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="ibox-content no-padding clearfix">
-                            <ul class="list-group">
-                                <li class="list-group-item">
-                                    <div class="row">
-                                        <div class="col-md-4">Versiyon Değişiklikleri </div>
-                                        <div class="col-md-8">
-                                            <span class="pull-right boldText">
-                                                @(item.versionChange)
-                                            </span>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="ibox collapsed">
-                        <div class="ibox-title">
-                            <h5>Versiyon  @(item.versionNumber)</h5>
-                            <div class="ibox-tools">
-                                <a class="collapse-link">
-                                    <i class="fa fa-chevron-up"></i>
-                                </a>
+
+                    }
+                    else
+                    {
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="@("heading"+versions.index)">
+                                <h4 class="panel-title">
+                                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#@("collapse"+versions.index)" aria-expanded="false" aria-controls="@("collapse"+versions.index)">
+                                        Versiyon  @(versions.item.versionNumber)
+                                        <span class="version-created">@(versions.item.created)</span>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="@("collapse"+versions.index)" class="panel-collapse collapse" role="tabpanel" aria-labelledby="@("heading"+versions.index)">
+                                <div class="panel-body">
+                                    <p class="pull-left">@(versions.item.versionChange)</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="ibox-content no-padding clearfix">
-                            <ul class="list-group">
-                                <li class="list-group-item">
-                                    <div class="row">
-                                        <div class="col-md-4">Versiyon Değişiklikleri </div>
-                                        <div class="col-md-8">
-                                            <span class="pull-right boldText">
-                                                @(item.versionChange)
-                                            </span>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                    }
+
                 }
-            }
+            </div>
         }
         else
         {
             <div class="ibox">
-                <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+                <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;">
                     <strong> Oluşturulmuş bir versiyon bulunmamaktadır. </strong>
                 </div>
             </div>
