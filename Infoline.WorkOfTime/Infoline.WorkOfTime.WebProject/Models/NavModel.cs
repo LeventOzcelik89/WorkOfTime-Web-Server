@@ -213,11 +213,11 @@ namespace System.Web.Mvc
             ik.AddChild(cvhavuzu);
 
             var personeltakip = new Menu("Personel Takip İşlemleri");
+            personeltakip.AddChild(new Menu("Personel Anlık Takip Haritası", "/SH/VWSH_UserLocationTracking/MapAll"));
             if (userStatus.user.id == Guid.Empty)
             {
                 personeltakip.AddChild(new Menu("Personel Takip Haritası", "/SH/VWSH_UserLocationTracking/Map"));
             }
-            personeltakip.AddChild(new Menu("Personel Anlık Takip Haritası", "/SH/VWSH_UserLocationTracking/MapAll"));
             ik.AddChild(personeltakip);
 
             return ik;
@@ -323,6 +323,8 @@ namespace System.Web.Mvc
             gorevRaporlari.AddChild(new Menu("Operasyon Raporu", "/FTM/VWFTM_Task/OperationReport"));
             gorevRaporlari.AddChild(new Menu("Dashboard", "/FTM/VWFTM_Task/WeeklyReport"));
             gorevRaporlari.AddChild(new Menu("Aktivite İzleme", "/FTM/VWFTM_Task/ActivityTracking"));
+            gorevRaporlari.AddChild(new Menu("Personel Anlık Takip Haritası", "/SH/VWSH_UserLocationTracking/MapAll"));
+            gorevRaporlari.AddChild(new Menu("Personel Takip Haritası", "/SH/VWSH_UserLocationTracking/Map"));
             gorevRaporlari.AddChild(new Menu("Müşteri Raporu", "/Customer"));
             gorevRaporlari.AddChild(new Menu("Detaylı Rapor", "/FTM/VWFTM_TaskGrid/Index"));
             gorevRaporlari.AddChild(new Menu("Ay/Yıl Bazlı Rapor", "/FTM/VWFTM_Task/MonthlyTaskReport"));
