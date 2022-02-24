@@ -94,18 +94,73 @@
             changePresId: "",
             data: null,
             init: function () {
-                $('[data-target=".search-content"]').attr("data-placement", "left");
-                GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
-                    page.defines.filteredData = res;
-                    page.locateFeatureToMap();
-                    page.PersonelList();
-                    page.fn.slideTab($('#personAllTemp'), 'PersonelList');
-                }, "Konumlar yükleniyor..");
-                page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarker.png");
-                page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarker.png");
-                page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", "GreenMarkStyle");
-                page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", "MarkStyle");
-                page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+				$('[data-target=".search-content"]').attr("data-placement", "left");
+				$('[data-target=".search-content"]').tooltip();
+				GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
+					page.defines.filteredData = res;
+					page.locateFeatureToMap();
+					page.PersonelList();
+					page.fn.slideTab($('#personAllTemp'), 'PersonelList');
+					$('#selectCompany').addClass('hide');
+				}, "Konumlar yükleniyor..");
+				$('[data-original-title]').tooltip();
+				page.dfn.harita.style.add("GreenMarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarker.png",null,null);
+				page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarker.png", null, null);
+				page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", "GreenMarkStyle");
+				page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", "MarkStyle");
+				page.dfn.harita.feature.events(function (feature, layer) { return false; }, function (feature, layer) { return true; }, function (event, object) { });
+            },
+            onChangePersonFilter: function (element) {
+
+                //1 Green
+                //2 Red
+
+				$('#personAllTemp').html(null);
+
+                $.each($.Enumerable.From(page.defines.filteredData).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
+					var layer = new Date(parseInt(data.timeStamp)) > new Date().addHours(-4)
+						? 1
+                        : 2;
+                    
+					if (element == layer) {
+						var html = $($('#PersonelList').html());
+
+						html.find('[data-id="userId"]').attr('href', '/SH/SH_UserLocationTracking/Map?userId=' + data.userId);
+						html.find('[data-id="userDetail"]').attr('href', '/SH/VWSH_User/Detail?id=' + data.userId);
+						html.find('[data-id="userId_Title"]').html(data.userId_Title ?? "-");
+						html.find('[data-id="title"]').html(data.title ?? "-");
+						html.find('[data-id="configName"]').html(data.configName ?? "-");
+						html.find('[data-id="isTrackingActive"]').addClass(data.isTrackingActive == true ? 'hide' : '');
+						html.find('[data-id="btnLocation"]').attr('data-id', data.userId).on("click", function (e, resp) {
+							var id = $(this).attr("data-id");
+							var feature = page.dfn.harita.feature.add(null, data.id, null);
+							if (feature) {
+								page.dfn.harita.feature.panTo(data.id, 20);
+							}
+						})
+						if (data.ProfilePhoto != null) {
+                            html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto);
+
+						}
+
+						if (layer == 1) {
+							html.find('[data-id="ProfilePhoto"]').attr('style', 'background-color:#14a161');
+
+						}
+						else {
+							html.find('[data-id="ProfilePhoto"]').attr('style', 'background-color:#bc0101');
+						}
+
+
+						html.find('[data-id="btnbtn"]').attr('data-id', data.userId).on("click", function (e) {
+							var id = $(this).attr("data-id");
+							var userid = $(this).attr("data-userId");
+							Kendo_GetRequest("/UT/VWUT_LocationConfigUser/Insert?id=" + id + '&locationConfigId=' + data.locationConfigId, null, $('<button data-task="Insert"></button>'))
+							Kendo_GetRequest("/UT/VWUT_LocationConfigUser/Insert?userId=" + userid + '&locationConfigId=' + data.locationConfigId)
+						});
+						$('#personAllTemp').append(html);
+					}
+				});
             },
             locateFeatureToMap: function () {
                 var points = [];
@@ -118,6 +173,7 @@
                     var layer = new Date(parseInt(item.timeStamp)) > new Date().addHours(-4)
                         ? 'GreenMark'
                         : 'RedMark';
+
                     var feature = page.dfn.harita.feature.add(layer, item.id, item.lastLocation);
                     if (feature == undefined) {
                         return;
@@ -131,8 +187,10 @@
                 $("#outfourhour").text("(" + redCounts + ")");
             },
             search: function (_this) {
+                
                 var key = $(_this).val();
                 $.each($('#personAllTemp .card'), function (e, item) {
+                    
                     if ($(item).find('[data-id="userId_Title"]').text().toLowerCase().indexOf(key.toLowerCase()) > -1 == true) {
                         $(item).removeClass('hide');
                     } else {
@@ -204,6 +262,12 @@
 
 
                 $.each($.Enumerable.From(page.defines.filteredData).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
+
+					var layer = new Date(parseInt(data.timeStamp)) > new Date().addHours(-4)
+						? 1
+						: 2;
+
+
                     var html = $($('#PersonelList').html());
 
                     html.find('[data-id="userId"]').attr('href', '/SH/SH_UserLocationTracking/Map?userId=' + data.userId);
@@ -221,7 +285,17 @@
                     })
                     if (data.ProfilePhoto != null) {
                         html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto);
+
+						
                     }
+
+					if (layer == 1) {
+						html.find('[data-id="ProfilePhoto"]').attr('style', 'background-color:#14a161');
+
+					}
+					else {
+						html.find('[data-id="ProfilePhoto"]').attr('style', 'background-color:#bc0101');
+					}
 
                     html.find('[data-id="btnbtn"]').attr('data-id', data.userId).on("click", function (e) {
                         var id = $(this).attr("data-id");
@@ -238,7 +312,10 @@
                 page.init();
             })
             .on("select:feature", "#Harita", function (e, resp) {
-                page.dfn.harita.overlay.remove('slider-station');
+
+				page.dfn.harita.overlay.remove('slider-station');
+
+				//if (resp.type != "remove") {
                     var elem = resp.element;
                     var prop = elem.get("properties");
                     if (prop) {
@@ -249,6 +326,10 @@
                         var tooltiplocation = "bottom-right";
                         page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [180, -70]);
                     }
+                //}
+
+					page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+
             })
     </script>
 }
@@ -278,10 +359,10 @@
         <div id="ColorInfo" class="color-bar">
             <table class="slider">
                 <tbody>
-                    <tr>
-                        <td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı <span id="infourhour"></span></td>
-                        <td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı <span id="outfourhour"></span></td>
-                    </tr>
+					<tr>
+						<td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;"><span onclick="page.onChangePersonFilter(1)"> 4 Saat içinde Konum Alındı <span id="infourhour"></span></span></td>
+						<td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;"><span onclick="page.onChangePersonFilter(2)">4 Saat İçinde Konum Alınamadı <span id="outfourhour"></span></span></td>
+					</tr>
                 </tbody>
             </table>
         </div>

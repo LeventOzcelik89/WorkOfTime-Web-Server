@@ -90,18 +90,33 @@
 							<label class="control-label label-md" for="sector">Sektör Bilgisi</label>
 						</div>
 						<div class="col-md-8">
-							@(
+							@if (TenantConfig.Tenant.TenantCode == 1174 || TenantConfig.Tenant.TenantCode == 1187)
+							{
+								@(
                                 Html.Akilli().
                                 MultiSelect("sector").
                                 Placeholder("Lütfen Sektör Seçiniz..").
                                 DataTextField("fullname").
                                 DataValueField("id").
                                 BasicInsert(Url.Action("Insert", "VWUT_Sector", new { area = "UT"}), "name", true).
-                                Value(Model.sector).
+                                Action(b => b.Action("DataSourceDropDown", "VWUT_Sector", new { area = "UT" })).
+                                Execute("id")
+                            )
+							}
+							else
+							{
+								@(
+                                Html.Akilli().
+                                MultiSelect("sector").
+                                Placeholder("Lütfen Sektör Seçiniz..").
+                                DataTextField("fullname").
+                                DataValueField("id").
+                                BasicInsert(Url.Action("Insert", "VWUT_Sector", new { area = "UT"}), "name", true).
                                 Action(b => b.Action("DataSourceDropDown", "VWUT_Sector", new { area = "UT" })).
                                 Filter<VWUT_Sector>(a => a.generation > 1).
-                                Execute()
+                                Execute("id")
                             )
+							}
 						</div>
 					</div>
 					<div class="form-group">
