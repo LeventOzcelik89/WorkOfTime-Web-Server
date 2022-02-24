@@ -404,6 +404,10 @@ namespace System.Web.Mvc
             var menu = new Menu("Firma&Cari Yönetimi", "#", "fa fa-building");
             menu.AddChild(new Menu("Firma&Cari Listesi", "/CMP/VWCMP_Company/Index"));
             menu.AddChild(new Menu("Firma&Cari Şube/Depo/Kısımları", "/CMP/VWCMP_Storage/Index"));
+            if (TenantConfig.Tenant.TenantCode == 1187 || TenantConfig.Tenant.TenantCode == 1100)
+            {
+                menu.AddChild(new Menu("Tedarikçi Puanlama", "/CMP/VWCMP_Storage/SupplierScoring"));
+            }
             menu.AddChild(new Menu("Şube/Depo/Kısım Haritası", "/CMP/VWCMP_Storage/Map"));
             menu.AddChild(new Menu("Müşteri Rehberi", "/SH/VWSH_User/ContactCustomerPersons"));
             return menu;

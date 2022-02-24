@@ -22,6 +22,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		{
 			return View();
 		}
+		[PageInfo("Tedarikçi Puanlama", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.IKYonetici)]
+		public ActionResult SupplierScoring()
+		{
+			return View();
+		}
 		[PageInfo("İşletme Şube/Depo/Kısımları Grid Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{

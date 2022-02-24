@@ -86,7 +86,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             {
                 return RedirectToAction("Index");
             }
-            if (userStatus.user.id != data.requesterId && userStatus.user.id != data.assignUserId && data.IssueManagers.Where(a => a.id == userStatus.user.id).FirstOrDefault() != null && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
+            if (userStatus.user.id != data.requesterId && userStatus.user.id != data.assignUserId && data.IssueManagers.Where(a => a.id == userStatus.user.id).FirstOrDefault() != null && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)) && !(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaYonetim))))
             {
                 return RedirectToAction("Index");
             }

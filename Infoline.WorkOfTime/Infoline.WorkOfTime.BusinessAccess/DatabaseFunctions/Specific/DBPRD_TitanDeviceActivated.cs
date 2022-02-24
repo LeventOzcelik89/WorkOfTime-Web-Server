@@ -4,6 +4,7 @@ using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     partial class WorkOfTimeDatabase
@@ -40,7 +41,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_TitanDeviceActivated>().Execute().Where(x=>x.InventoryId!=null && x.ProductId != null).Count();
+                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.InventoryId != null && x.ProductId != null).Execute().Count();
             }
         }
         public int GetPRD_TitanDeviceActivatedTodayCount(DbTransaction tran = null)
@@ -75,9 +76,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public SellOutReportModel[] GetPRD_TitanDeviceActivatedSellOutProduct(DateTime startDate,DateTime endDate)
         {
             using (var db = GetDB()){
-                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title!=null&&x.CreatedOfTitan!=null && x.InventoryId != null).Execute().ToList().Where(x=> (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
+                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title!=null&&x.CreatedOfTitan!=null && x.InventoryId != null && x.CreatedOfTitan >= startDate.Date && x.CreatedOfTitan <= endDate.Date).Execute().ToList().
                    GroupBy(a => a.productId_Title).Select(b => new SellOutReportModel { Count = b.Count(), Name = b.Key })
                    .ToArray();
+            }
+        }
+
+        public SellOutReportModel[] GetPRD_TitanDeviceActivatedSellOutProductQuery(DateTime startDate, DateTime endDate)
+        {
+            using (var db = GetDB())
+            {
+                StringBuilder cc = new StringBuilder();
+                cc.AppendLine("SELECT [dbo].[fn_PRD_ProductFullName](ProductId) as Name, count(ProductId) as Count");
+                cc.AppendLine("FROM PRD_TitanDeviceActivated with(nolock)");
+                cc.AppendLine(string.Format("WHERE ProductId is not null AND CreatedOfTitan >= '{0}' AND CreatedOfTitan <= '{1}' AND InventoryId is not null", startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd")));
+                cc.AppendLine("GROUP BY ProductId");
+                cc.AppendLine("ORDER BY count(ProductId) DESC");
+
+                return db.ExecuteReader<SellOutReportModel>(cc.ToString()).ToArray();
             }
         }
         public SellOutReportModel[] GetPRD_TitanDeviceActivatedSellOutDist(Guid[]ids)
@@ -95,12 +111,44 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public SellOutReportModel[] GetPRD_TitanDeviceActivatedSellOutDistQuery(DateTime startDate, DateTime endDate)
+        {
+            using (var db = GetDB())
+            {
+                StringBuilder cc = new StringBuilder();
+                cc.AppendLine("SELECT lastActionDataCompanyId as Id, lastActionDataCompanyId_Title as Name, lastActionCompanyTitles as Types, COUNT(lastActionDataCompanyId_Title) as Count, (select 0) as SellingCount");
+                cc.AppendLine("FROM VWPRD_Inventory with(nolock)");
+                cc.AppendLine("WHERE id in (SELECT InventoryId");
+                cc.AppendLine("FROM PRD_TitanDeviceActivated");
+                cc.AppendLine(string.Format("WHERE ProductId is not null AND CreatedOfTitan >= '{0}' AND CreatedOfTitan <= '{1}' AND InventoryId is not null)", startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd")));
+                cc.AppendLine("AND lastActionDataCompanyId_Title is not null");
+                cc.AppendLine("GROUP BY lastActionDataCompanyId, lastActionDataCompanyId_Title, lastActionCompanyTitles");
+                cc.AppendLine("ORDER BY COUNT(lastActionDataCompanyId) DESC");
+
+                return db.ExecuteReader<SellOutReportModel>(cc.ToString()).ToArray();
+            }
+        }
 
         public VWPRD_Inventory[] GetPRD_TitanDeviceActivatedSellOutChartInventoryData(Guid[] ids)
         {
             using (var db = GetDB())
             {
                 return db.Table<VWPRD_Inventory>().Where(x => x.id.In(ids) && x.lastActionDataCompanyId_Title != null).Execute().ToArray();
+            }
+        }
+
+        public VWPRD_Inventory[] GetPRD_TitanDeviceActivatedSellOutChartInventoryDataQuery(DateTime startDate, DateTime endDate)
+        {
+            using (var db = GetDB())
+            {
+                StringBuilder cc = new StringBuilder();
+                cc.AppendLine("SELECT t.id, t.created, [dbo].[fn_CMP_CompanyCodeNameById](l.dataCompanyId) as lastActionDataCompanyId_Title");
+                cc.AppendLine("FROM PRD_Inventory as t WITH ( NOLOCK ) OUTER APPLY (Select top 1 * from dbo.PRD_InventoryAction  AS a WITH ( NOLOCK ) where inventoryId = t.id order by created desc) as l");
+                cc.AppendLine("WHERE t.id in (SELECT InventoryId");
+                cc.AppendLine("FROM PRD_TitanDeviceActivated");
+                cc.AppendLine(string.Format("WHERE ProductId is not null AND CreatedOfTitan >= '{0}' AND CreatedOfTitan <= '{1}' AND InventoryId is not null)", startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd")));
+                cc.AppendLine("AND l.dataCompanyId is not null");
+                return db.ExecuteReader<VWPRD_Inventory>(cc.ToString()).ToArray();
             }
         }
         public Guid[] GetPRD_TitanDeviceActivatedInventoryIds(DateTime startDate, DateTime endDate)
@@ -111,6 +159,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null).Execute().ToList().Where(x =>  (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
                   Select(x=>x.InventoryId.Value) 
                    .ToArray();
+            }
+        }        
+        
+        public VWPRD_TitanDeviceActivated[] GetVWPRD_TitanDeviceActivatedWithDates(DateTime startDate, DateTime endDate)
+        {
+           
+            using (var db = GetDB())
+            {
+                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null && x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate).Execute().ToArray();
+            }
+        }
+
+        //test
+        public PRD_TitanDeviceActivated[] GetPRD_TitanDeviceActivatedInventoryAndProductNotNull(DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_TitanDeviceActivated>().Where(x =>  x.InventoryId != null && x.ProductId != null).Execute().ToArray();
             }
         }
     }
