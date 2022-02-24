@@ -32,9 +32,12 @@ namespace Infoline.WorkOfTime.BusinessData
         public string isActive_Title { get; set;}
         public string invoiceAddressLocationId_Title { get; set;}
         public string townTitle { get; set;}
+        public string spesificInvoiceAdress { get; set;}
+        public string spesificOpenAdress { get; set;}
         public string cityTitle { get; set;}
         public string openAddressLocationId_Title { get; set;}
         public string fullName { get; set;}
+        public string CMPTypeIds { get; set;}
         public string logo { get; set;}
         public string Sectors { get; set;}
         public string CMPTypes_Title { get; set;}

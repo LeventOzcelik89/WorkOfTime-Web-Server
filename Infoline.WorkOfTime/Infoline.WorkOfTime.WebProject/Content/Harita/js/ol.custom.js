@@ -1419,7 +1419,8 @@ var AkilliHarita = function (elementId, options) {
 
             element.setAttribute("id", overlayName);
             element.innerHTML = content;
-            element.className = cssClass
+            element.className = cssClass;
+
             _list[overlayName] = new ol.Overlay({
                 element: element,
                 positioning: positioning,
