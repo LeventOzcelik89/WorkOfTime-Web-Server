@@ -22,7 +22,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
-
 			var page = request.Page;
 			request.Filters = new FilterDescriptor[0];
 			request.Sorts = new SortDescriptor[0];
@@ -37,7 +36,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
-
 			var db = new WorkOfTimeDatabase();
 			var data = db.GetVWFTM_TaskPlan(condition);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
@@ -46,44 +44,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		[PageInfo("Planlanmış Görevler Detayı (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ActionResult Detail(Guid id)
 		{
-
 			var model = new TaskSchedulerModel();
 			model.Load(id);
-
 			return View(model);
-
 		}
 
 		[PageInfo("Planlanmış Görev Detayları (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ActionResult TaskDetail(Guid id)
 		{
-
 			var model = new TaskSchedulerModel();
 			model.Load(id);
 			return View(model);
-
-		}
-
-		[PageInfo("Bakım Planları", SHRoles.SahaGorevYonetici)]
-		public ActionResult AllTaskDetailOld()
-		{
-
-			var model = new TaskSchedulerModel();
-			var res = model.GetTaskTemplatePlanList();
-			var userStatus = (PageSecurity)Session["userStatus"];
-			var db = new WorkOfTimeDatabase();
-
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
-			{
-				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-				if (authoritys.Count() > 0)
-				{
-					var tasks = db.GetFTM_TaskByCustomerIds(authoritys.Where(x => x.customerId.HasValue).Select(x => x.customerId.Value).ToArray()).Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray();
-					res.TaskPlan = res.TaskPlan.Where(x => tasks.Contains(x.templateId.Value)).ToArray();
-				}
-			}
-
-			return View(res);
 		}
 
 		[PageInfo("Bakım Planları", SHRoles.SahaGorevYonetici)]
@@ -109,13 +80,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
 			{
 				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-				if (authoritys.Count() > 0)
+				if (authoritys.Any())
 				{
 					var tasks = db.GetFTM_TaskByCustomerIds(authoritys.Where(x => x.customerId.HasValue).Select(x => x.customerId.Value).ToArray()).Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray();
 					res.TaskPlan = res.TaskPlan.Where(x => tasks.Contains(x.templateId.Value)).ToArray();
 				}
 			}
-
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
 		}
 
@@ -142,7 +112,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 					Data = yearData
 				});
 			}
-
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
 		}
 
@@ -150,46 +119,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		[PageInfo("Planlanmış Görev ve Şablon Detayı (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ActionResult TemplatePlanDetail(Guid id)
 		{
-
 			var model = new TaskSchedulerModel();
 			model.Load(id);
-
 			return View(model);
-
-		}
-
-
-		[PageInfo("Tüm Planlanmış Görevlerin Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevMusteri)]
-		public ContentResult AllTaskCalendarDataSource()
-		{
-
-			var res = new List<object>();
-			var db = new WorkOfTimeDatabase();
-			var userStatus = (PageSecurity)Session["userStatus"];
-			var data = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userStatus);
-			var years = data.GroupBy(a => a.end.Year).Select(a => a.Key).OrderBy(a => a).ToArray();
-
-			foreach (var year in years)
-			{
-
-				var yearData = data.Where(a => a.dueDate.HasValue && a.dueDate.Value.Year == year).ToArray();
-
-				res.Add(new
-				{
-					Year = year,
-					Data = yearData
-				});
-
-			}
-
-			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
-
 		}
 
 		[PageInfo("Planlanmış Görevin Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ContentResult TaskCalendarDataSource(Guid id)
 		{
-
 			var res = new List<object>();
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -199,79 +136,57 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
 			foreach (var year in years)
 			{
-
 				var yearData = data.Where(a => a.dueDate.HasValue && a.dueDate.Value.Year == year).ToArray();
-
 				res.Add(new
 				{
 					Year = year,
 					Data = yearData
 				});
-
 			}
-
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
-
-
-			//return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
-
 		}
 
 
 		[PageInfo("Planlanmış Görev ve Görevlerin Seneleri - Takvim (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ContentResult GetTasksByYear()
 		{
-
-
-
 			return Content("", "application/json");
-
 		}
 
 
 		[PageInfo("Planlanmış Görevler Düzenleme (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ActionResult Update(Guid id)
 		{
-
 			var item = new TaskSchedulerModel();
 			item.TaskPlan.id = id;
 			item.TaskPlan.Load();
-
 			return View(item);
-
 		}
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[PageInfo("Planlanmış Görevler Düzenleme (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public JsonResult Update(TaskSchedulerModel item, int? taskCreationTime, int? frequency, int? frequencyInterval)
 		{
-
 			item.TaskPlan.frequency = frequency;
 			item.TaskPlan.taskCreationTime = taskCreationTime;
 			item.TaskPlan.frequencyInterval = frequencyInterval;
-
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-
 			var dbresult = item.TaskPlan.Save(userStatus.user.id);
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
 				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message)
 			};
-
 			return Json(result, JsonRequestBehavior.AllowGet);
-
 		}
 
 		[HttpPost]
 		[PageInfo("Planlanmış Görevler Silme (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public JsonResult Delete(Guid id)
 		{
-
 			var feedback = new FeedBack();
 			var model = new TaskSchedulerModel();
-
 			model.TaskPlan.id = id;
 			var dbresult = model.TaskPlan.Delete();
 
@@ -280,42 +195,33 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				Result = dbresult.result,
 				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message)
 			};
-
 			return Json(result, JsonRequestBehavior.AllowGet);
-
 		}
 
 		[PageInfo("Planlanmış Görevler Yeni Tanımlama (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ActionResult Insert()
 		{
-
 			var data = new TaskSchedulerModel();
 			data.TaskPlan.Load();
 			return View(data);
-
 		}
 
 		[HttpPost]
 		[PageInfo("Planlanmış Görevler Yeni Tanımlama (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public JsonResult Insert(TaskSchedulerModel data, int? taskCreationTime, int? frequency, int? frequencyInterval)
 		{
-
 			data.TaskPlan.frequency = frequency;
 			data.TaskPlan.taskCreationTime = taskCreationTime;
 			data.TaskPlan.frequencyInterval = frequencyInterval;
-
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var dbRes = data.TaskPlan.Save(userStatus.user.id);
 			var feedback = new FeedBack();
-
 			var result = new ResultStatusUI
 			{
 				Result = dbRes.result,
 				FeedBack = dbRes.result ? feedback.Success(dbRes.message) : feedback.Error(dbRes.message)
 			};
-
 			return Json(result, JsonRequestBehavior.AllowGet);
-
 		}
 
 		[PageInfo("Planlanmış Görev ve Şablon Tanımla (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
@@ -323,7 +229,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		{
 			var model = new TaskSchedulerModel();
 			model.Load(id);
-
 			return View(model);
 		}
 
@@ -376,20 +281,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		[PageInfo("Planlanmış Görevler Takvim Detayı (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ActionResult CalendarDetail(VMFTM_TaskModel request)
 		{
-
 			request.Load();
 			return View(request);
-
 		}
 
 		[PageInfo("Planlanmış Görevler Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
-		public ContentResult CalendarDataSource()
+		public ContentResult CalendarDataSource(Guid?[] userIds)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
-			var tasks = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userStatus);
-
+			var tasks = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userIds,userStatus);
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
-
 		}
 	}
 }
