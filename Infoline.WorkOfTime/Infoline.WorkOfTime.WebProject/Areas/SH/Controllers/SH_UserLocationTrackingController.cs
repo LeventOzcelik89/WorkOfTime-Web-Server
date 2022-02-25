@@ -46,11 +46,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			return Content(Infoline.Helper.Json.Serialize(trackingDatas), "application/json");
 		}
 
-		[PageInfo("Personel İzleme Haritası Data Metodu", SHRoles.IdariPersonelYonetici)]
+		[AllowEveryone]
+		[PageInfo("Personel İzleme Haritası Data Metodu", SHRoles.Personel)]
 		public ContentResult GetMapDatas()
 		{
 			var db = new WorkOfTimeDatabase();
-			var locationTrackingDatas = db.GetVWUT_LocationConfigUser().Where(a => a.isTrackingActive == true).ToList();
+			var locationTrackingDatas = db.GetVWUT_LocationConfigUser().Where(a => a.isTrackingActive == true && a.configName != null).ToList();
 			return Content(Infoline.Helper.Json.Serialize(locationTrackingDatas), "application/json");
 		}
 

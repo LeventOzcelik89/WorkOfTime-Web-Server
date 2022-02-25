@@ -1,16 +1,24 @@
 ﻿
 @{
-    ViewBag.Title = "Personel Anlık Takip Haritası";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+	ViewBag.Title = "Personel Anlık Takip Haritası";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
 }
 <link href="~/Content/UserLocationMap/mapAll.css" rel="stylesheet" />
+
+<style type="text/css">
+	.offsetClass {
+        z-index:9999 !important;
+	}
+</style>
+
 @section Javascript{
-    <script type="text/javascript" data-selector="modalContainer">
+	<script type="text/javascript" data-selector="modalContainer">
         var control = false;
         var selectedFeature = null;
         var page = {
             popup: null,
+            featurePanel: null,
             defines: {
                 data: [],
                 filteredData: [],
@@ -103,12 +111,32 @@
 					page.fn.slideTab($('#personAllTemp'), 'PersonelList');
 					$('#selectCompany').addClass('hide');
 				}, "Konumlar yükleniyor..");
-				$('[data-original-title]').tooltip();
-				page.dfn.harita.style.add("GreenMarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarker.png",null,null);
-				page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarker.png", null, null);
-				page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", "GreenMarkStyle");
-				page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", "MarkStyle");
-				page.dfn.harita.feature.events(function (feature, layer) { return false; }, function (feature, layer) { return true; }, function (event, object) { });
+                $('[data-original-title]').tooltip();
+
+
+				var styleId = newGuid();
+                var selectedStyle = newGuid();
+
+				var styleId2 = newGuid();
+				var selectedStyle2 = newGuid();
+
+
+				var logogreen = "/Content/Custom/img/PersonsBackImage/greenMarker.png";
+				var logored = "/Content/Custom/img/PersonsBackImage/redMarker.png";
+
+
+
+				page.dfn.harita.style.add(styleId, "#000", "#000", 1, logogreen, logogreen, 1, 1);
+				page.dfn.harita.style.add(selectedStyle, "#000", "#000", 1, "/Content/Custom/img/PersonsBackImage/blueMarker.png", "/Content/Custom/img/PersonsBackImage/blueMarker.png", 1, 2);
+
+				page.dfn.harita.style.add(styleId2, "#000", "#000", 1, logored, logored, 1, 1);
+				page.dfn.harita.style.add(selectedStyle2, "#000", "#000", 1, "/Content/Custom/img/PersonsBackImage/blueMarker.png", "/Content/Custom/img/PersonsBackImage/blueMarker.png", 1, 2);
+
+                page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", styleId, selectedStyle, selectedStyle);
+				page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", styleId2, selectedStyle2, selectedStyle2);
+
+
+				page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
             },
             onChangePersonFilter: function (element) {
 
@@ -117,17 +145,18 @@
 
 				$('#personAllTemp').html(null);
 
-                $.each($.Enumerable.From(page.defines.filteredData).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
+                $.each($.Enumerable.From(page.defines.filteredData).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
 					var layer = new Date(parseInt(data.timeStamp)) > new Date().addHours(-4)
 						? 1
                         : 2;
-                    
+
 					if (element == layer) {
 						var html = $($('#PersonelList').html());
 
 						html.find('[data-id="userId"]').attr('href', '/SH/SH_UserLocationTracking/Map?userId=' + data.userId);
 						html.find('[data-id="userDetail"]').attr('href', '/SH/VWSH_User/Detail?id=' + data.userId);
-						html.find('[data-id="userId_Title"]').html(data.userId_Title ?? "-");
+                        html.find('[data-id="userId_Title"]').html(data.userId_Title ?? "-");
+						html.find('[data-id="userInfo"]').attr('data-userId', data.userId);
 						html.find('[data-id="title"]').html(data.title ?? "-");
 						html.find('[data-id="configName"]').html(data.configName ?? "-");
 						html.find('[data-id="isTrackingActive"]').addClass(data.isTrackingActive == true ? 'hide' : '');
@@ -135,7 +164,8 @@
 							var id = $(this).attr("data-id");
 							var feature = page.dfn.harita.feature.add(null, data.id, null);
 							if (feature) {
-								page.dfn.harita.feature.panTo(data.id, 20);
+                                page.dfn.harita.feature.panTo(data.id, 20);
+
 							}
 						})
 						if (data.ProfilePhoto != null) {
@@ -166,13 +196,16 @@
                 var points = [];
                 var beforefour = 0;
                 var afterfour = 0;
+				var redCounts = 0;
                 $.each(page.defines.filteredData, function (i, item) {
-                    if (item.lastLocation == null) {
-                        return;
-                    }
+                    
                     var layer = new Date(parseInt(item.timeStamp)) > new Date().addHours(-4)
                         ? 'GreenMark'
                         : 'RedMark';
+
+                    if (item.timeStamp == null) {
+                        redCounts += 1;
+					}
 
                     var feature = page.dfn.harita.feature.add(layer, item.id, item.lastLocation);
                     if (feature == undefined) {
@@ -182,15 +215,15 @@
                     page.dfn.harita.overlay.add("overlay_" + item.id, '<img onerror="ImageError(this, \'/Content/Custom/img/na.png\')" src="' + '@TenantConfig.Tenant.GetWebUrl()' + item.ProfilePhoto + '" />', 'marker', "center-center", feature.getGeometry().getCoordinates());
                 });
                 var greenCounts = page.dfn.harita.layer.get('GreenMark')['GreenMark'].getSource().getFeatures().length;
-                var redCounts = page.dfn.harita.layer.get('RedMark')['RedMark'].getSource().getFeatures().length;
+                redCounts += page.dfn.harita.layer.get('RedMark')['RedMark'].getSource().getFeatures().length;
                 $("#infourhour").text("(" + greenCounts + ")");
                 $("#outfourhour").text("(" + redCounts + ")");
             },
             search: function (_this) {
-                
+
                 var key = $(_this).val();
                 $.each($('#personAllTemp .card'), function (e, item) {
-                    
+
                     if ($(item).find('[data-id="userId_Title"]').text().toLowerCase().indexOf(key.toLowerCase()) > -1 == true) {
                         $(item).removeClass('hide');
                     } else {
@@ -241,12 +274,6 @@
                     '        </ul>                                                                                              ' +
                     '<div class="col-md-12 btnPersonelKonum">                                                                                                        '+
                     ' <div class="row">                                                                                                                              '+
-                    ' <div class="btnpersonelDetayı">                                                                                                                '+
-                    '<a href="/SH/VWSH_User/Detail?id=' + data.userId +'" class="btn btn-md btn-success pull-right" target="_blank">Personel Detayı</a>              '+
-                    ' </div>                                                                                                                                         '+
-                    '<div class="btnKonumDetayı">                                                                                                                    '+
-                    ' <a href="/SH/SH_UserLocationTracking/Map?userId='+ data.userId + '" class="btn btn-md btn-success pull-left" target="_blank">Konum Detayı</a>  '+
-                    '</div>                                                                                                                                          '+
                     '</div>                                                                                                                                          '+
                     '</div>                                                                                                                                          '+
                     '</div>';
@@ -256,12 +283,12 @@
             parseTimeStamp: function (timeStamp) {
                 return kendo.toString(new Date(timeStamp * 1), 'dd.MM.yyyy HH:mm');
             },
-            
+
             PersonelList: function () {
                 $('#personAllTemp').html(null);
 
 
-                $.each($.Enumerable.From(page.defines.filteredData).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
+                $.each($.Enumerable.From(page.defines.filteredData).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
 
 					var layer = new Date(parseInt(data.timeStamp)) > new Date().addHours(-4)
 						? 1
@@ -276,6 +303,7 @@
                     html.find('[data-id="title"]').html(data.title ?? "-");
                     html.find('[data-id="configName"]').html(data.configName ?? "-");
                     html.find('[data-id="isTrackingActive"]').addClass(data.isTrackingActive == true ? 'hide' : '');
+					html.find('[data-id="userInfo"]').attr('data-userId', data.userId);
                     html.find('[data-id="btnLocation"]').attr('data-id', data.userId).on("click", function (e, resp) {
                         var id = $(this).attr("data-id");
                         var feature = page.dfn.harita.feature.add(null, data.id, null);
@@ -284,9 +312,9 @@
                         }
                     })
                     if (data.ProfilePhoto != null) {
-                        html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto);
+						html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto);
 
-						
+
                     }
 
 					if (layer == 1) {
@@ -312,107 +340,122 @@
                 page.init();
             })
             .on("select:feature", "#Harita", function (e, resp) {
-
+                debugger;
 				page.dfn.harita.overlay.remove('slider-station');
 
-				//if (resp.type != "remove") {
+
+
+				if (resp.type != "remove") {
                     var elem = resp.element;
                     var prop = elem.get("properties");
-                    if (prop) {
+                if (prop) {
+
+                    var html = $('#personAllTemp').val();
+                    var data = $("[data-userid=" + prop.id + "]");
+					data.addClass("animated flash infinite")
+                    var offset = data.offset();
+                    if (offset != undefined) {
+
+                        $('#personAllTemp').animate({ scrollTop: offset.top - 30.5 }, 'slow');
+					}
+
+					setTimeout(function () {
+						data.removeClass('animated flash infinite');
+					}, 5000);
+
                         text = page.getPersonDetailForHover(prop);
-                        var geometry = resp.element.getGeometry();
-                        var coordinate = geometry.getCoordinates();
-                        var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
-                        var tooltiplocation = "bottom-right";
+                    var tooltiplocation = "bottom-right";
                         page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [180, -70]);
                     }
-                //}
-
+					$('.ol-overlay-container.ol-selectable').first().css({ 'z-index': 2 });
+                }
+				else {
 					page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+				}
+
 
             })
-    </script>
+	</script>
 }
 <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
 
 
-    <div class="btn-bar left top animated slideInLeft">
-        <div class="btn-container m-b-lg">
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomIn(this)" data-placement="right" data-original-title="Yakınlaştır"><i class="fa fa-plus"></i></button>
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
-        </div>
-    </div>
+	<div class="btn-bar left top animated slideInLeft">
+		<div class="btn-container m-b-lg">
+			<button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
+			<button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomIn(this)" data-placement="right" data-original-title="Yakınlaştır"><i class="fa fa-plus"></i></button>
+			<button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
+			<button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
+			<button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
+		</div>
+	</div>
 
-    <div class="btn-bar right bottom animated slideInUp hide" style="bottom:5px !important;">
-        <div class="btn-container">
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.searchSelect(this)" data-placement="right"><i class="icon-search"></i></button>
-        </div>
-    </div>
+	<div class="btn-bar right bottom animated slideInUp hide" style="bottom:5px !important;">
+		<div class="btn-container">
+			<button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.searchSelect(this)" data-placement="right"><i class="icon-search"></i></button>
+		</div>
+	</div>
 
-    <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px;">
-        <div class="btn-container">
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorInfoSelect(this)" data-placement="top" data-original-title="Renklendirme Bilgisi"><i class="fa fa-info"></i></button>
-        </div>
-        <div id="ColorInfo" class="color-bar">
-            <table class="slider">
-                <tbody>
+	<div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px;">
+		<div class="btn-container">
+			<button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorInfoSelect(this)" data-placement="top" data-original-title="Renklendirme Bilgisi"><i class="fa fa-info"></i></button>
+		</div>
+		<div id="ColorInfo" class="color-bar">
+			<table class="slider">
+				<tbody>
 					<tr>
 						<td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;"><span onclick="page.onChangePersonFilter(1)"> 4 Saat içinde Konum Alındı <span id="infourhour"></span></span></td>
 						<td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;"><span onclick="page.onChangePersonFilter(2)">4 Saat İçinde Konum Alınamadı <span id="outfourhour"></span></span></td>
 					</tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+				</tbody>
+			</table>
+		</div>
+	</div>
 
-    <div class="btn-bar right top animated slideInRight " style="width:490px;right:-800px;">
-        <div class="btn-container m-b-lg">
-            <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
-            <button id="selectPersonel" class="btn btn-lg btn-circle btn-custom active" style="margin-top:0px;" onclick="page.fn.slideTab(this, 'PersonelList')"><i class="fa fa-users"></i></button>
+	<div class="btn-bar right top animated slideInRight " style="width:490px;right:-800px;">
+		<div class="btn-container m-b-lg">
+			<button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
+			<button id="selectPersonel" class="btn btn-lg btn-circle btn-custom active" style="margin-top:0px;" onclick="page.fn.slideTab(this, 'PersonelList')"><i class="fa fa-users"></i></button>
 
-        </div>
-        <div class="pan-container-2">
+		</div>
+		<div class="pan-container-2">
 
-            <div style="width:380px;" class="pan-head clearfix">
-                <h3 class="pan-head clearfix">PERSONEL LİSTESİ</h3>
-                <a class="btnDetail" data-original-title="Personel Ekle" id="plusbtn" data-task="Insert" data-modal="true" data-href="/UT/VWUT_LocationConfigUser/Insert" data-method="get"></a>
-
-
-                <div class="inputContainer">
-                    <i class="fa fa-search"></i>
-                    <input style="width: 89%; margin-bottom: 8px; background: #ffffff;" type="text" placeholder="Arama yapmak için yazınız.." data-content="FullName" onkeyup="page.search(this)" class="searchInput" autocomplete="off">
-                </div>
-
-            </div>
+			<div style="width:380px;" class="pan-head clearfix">
+				<h3 class="pan-head clearfix">PERSONEL LİSTESİ</h3>
+				<a class="btnDetail" data-original-title="Personel Ekle" id="plusbtn" data-task="Insert" data-modal="true" data-href="/UT/VWUT_LocationConfigUser/Insert" data-method="get"></a>
 
 
-            <div style="height: calc(100% - 112px); overflow-y: scroll; margin-top: 10px;" id="personAllTemp"></div>
-        </div>
-    </div>
+				<div class="inputContainer">
+					<i class="fa fa-search"></i>
+					<input style="width: 89%; margin-bottom: 8px; background: #ffffff;" type="text" placeholder="Arama yapmak için yazınız.." data-content="FullName" onkeyup="page.search(this)" class="searchInput" autocomplete="off">
+				</div>
+
+			</div>
+
+
+			<div style="height: calc(100% - 112px); overflow-y: scroll; margin-top: 10px;" id="personAllTemp"></div>
+		</div>
+	</div>
 </div>
 
 <script type="text/template" id="PersonelList">
-    <div class="card">
-        <div class="row">
-            <div class="col-md-3">
-                <img class="img-thumbnail img-circle" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-id="ProfilePhoto" src="/Content/Custom/img/na.png" />
-            </div>
-            <div class="col-md-9">
-                <a href="#" class="btn btn-xs btn-warning pull-right" data-id="btnbtn" title="Düzenle"><i class="fa fa-pencil"></i></a>
-                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-toggle="tooltip" title="Lokasyona Git"><i class="fa fa-map-marker"></i></a>
-                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" target="_blank" data-id="userDetail" title="Personel Detayı"><i class="fa fa-user"></i></a>
-                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" target="_blank" data-id="userId" title="Konum Detayı"><i class="fa fa-cog"></i></a>
+	<div class="card">
+		<div class="row" data-id="userInfo">
+			<div class="col-md-3">
+				<img class="img-thumbnail img-circle" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-id="ProfilePhoto" src="/Content/Custom/img/na.png" />
+			</div>
+			<div class="col-md-9">
+				<a href="#" class="btn btn-xs btn-warning pull-right" data-id="btnbtn" title="Düzenle"><i class="fa fa-pencil"></i></a>
+				<a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-toggle="tooltip" title="Lokasyona Git"><i class="fa fa-map-marker"></i></a>
+				<a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" target="_blank" data-id="userDetail" title="Personel Detayı"><i class="fa fa-user"></i></a>
+				<a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" target="_blank" data-id="userId" title="Konum Detayı"><i class="fa fa-thumb-tack"></i></a>
 
-                <h4 data-id="userId_Title"></h4>
-                <div style="color:#000" class="text-muted" data-id="title"></div>
-                <div style="color:#000" data-id="configName"></div>
-                <div class="durum" style="color:#000" data-id="isTrackingActive">Konum Takibi Kapalı</div>
+				<h4 data-id="userId_Title"></h4>
+				<div style="color:#000" class="text-muted" data-id="title"></div>
+				<div style="color:#000" data-id="configName"></div>
+				<div class="durum" style="color:#000" data-id="isTrackingActive">Konum Takibi Kapalı</div>
 
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 </script>
-

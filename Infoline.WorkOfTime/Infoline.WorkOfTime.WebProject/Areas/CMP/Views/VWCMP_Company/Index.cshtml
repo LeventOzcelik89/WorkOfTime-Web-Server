@@ -13,6 +13,15 @@
 				$(this).attr("href", $(this).attr("data-print") + "&filter=" + filter);
 			});
 		});
+
+
+	function invoiceAdressSplit(e) {
+
+		if (e != null && e != undefined && e != '') {
+
+			return e.substring(0, 35);
+		}
+	}
 </script>
 
 
@@ -69,7 +78,7 @@
 							@foreach (var item in Model.CMP_Types.OrderBy(a => a.typeName))
 							{
 								<li class="clearfix">
-									<a class="pull-left" href="#" data-grid="VWCMP_Company" data-category="5" data-query="(CMPTypes_Title~contains~'@item.typeName')">
+									<a class="pull-left" href="#" data-grid="VWCMP_Company" data-category="5" data-query="(CMPTypeIds~contains~'@item.id')">
 										@item.typeName
 									</a>
 								</li>
@@ -100,35 +109,35 @@
 			</div>
 			<div class="ibox-content">
 				@(Html.Akilli()
-                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Company>("VWCMP_Company")
-                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Company", new { area = "CMP" })).Sort(a => a.Add(c => c.name)).PageSize(25))
-                    .Filterable(a => a.Mode(GridFilterMode.Row))
-                    .Columns(x =>
-                    {
-                        x.Bound(y => y.searchField).Title("İşletme Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
-                        x.Bound(y => y.code).Title("Kodu").Hidden(true);
-                        x.Bound(y => y.name).Title("İsmi").Hidden(true);
-                        x.Bound(y => y.commercialTitle).Title("Fatura Ünvanı").Hidden(true);
-                        x.Bound(y => y.CMPTypes_Title).Title("Cari Tipi").Hidden(true);
-                        x.Bound(y => y.isActive_Title).Title("Cari Durumu").Hidden(true);
-                        x.Bound(y => y.openAddressLocationId_Title).Title("Ülke/İl/İlçe").Hidden(true);
-                        x.Bound(y => y.email).Title("E-Mail").Hidden(true);
-                        x.Bound(y => y.phone).Title("Telefon Numarası").Hidden(true);
-                        x.Bound(y => y.fax).Title("Faks Numarası").Hidden(true);
-                        x.Bound(y => y.mersisNo).Title("Mersis No").Hidden(true);
-                        x.Bound(y => y.taxNumber).Title("Vergi Numarası").Hidden(true);
-                        x.Bound(y => y.taxOffice).Title("Vergi Dairesi").Hidden(true);
-                        x.Bound(y => y.invoiceAddress).Title("Fatura Adresi").Hidden(true);
-                        x.Bound(y => y.openAddress).Title("Açık Adres").Hidden(true);
-                    })
-                    .Scrollable(x => x.Height(650))
-                    .Selectable(x => x.Mode(GridSelectionMode.Single))
-                    .ToolBar(x =>
-                    {
-                        x.Custom().Text("<i data-original-title='Firma (Cari) Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Company", new { area = "CMP" }));
-                        x.Custom().Text("<i data-original-title='Firma (Cari) Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Company", new { area = "CMP" }));
-                        x.Custom().Text("<i data-original-title='Firma (Cari) Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Company", new { area = "CMP" }));
-                    })
+					.Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Company>("VWCMP_Company")
+					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Company", new { area = "CMP" })).Sort(a => a.Add(c => c.name)).PageSize(25))
+					.Filterable(a => a.Mode(GridFilterMode.Row))
+					.Columns(x =>
+					{
+						x.Bound(y => y.searchField).Title("İşletme Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+						x.Bound(y => y.code).Title("Kodu").Hidden(true);
+						x.Bound(y => y.name).Title("İsmi").Hidden(true);
+						x.Bound(y => y.commercialTitle).Title("Fatura Ünvanı").Hidden(true);
+						x.Bound(y => y.CMPTypes_Title).Title("Cari Tipi").Hidden(true);
+						x.Bound(y => y.isActive_Title).Title("Cari Durumu").Hidden(true);
+						x.Bound(y => y.openAddressLocationId_Title).Title("Ülke/İl/İlçe").Hidden(true);
+						x.Bound(y => y.email).Title("E-Mail").Hidden(true);
+						x.Bound(y => y.phone).Title("Telefon Numarası").Hidden(true);
+						x.Bound(y => y.fax).Title("Faks Numarası").Hidden(true);
+						x.Bound(y => y.mersisNo).Title("Mersis No").Hidden(true);
+						x.Bound(y => y.taxNumber).Title("Vergi Numarası").Hidden(true);
+						x.Bound(y => y.taxOffice).Title("Vergi Dairesi").Hidden(true);
+						x.Bound(y => y.spesificInvoiceAdress).Title("Fatura Adresi").ClientTemplate("#=invoiceAdressSplit(data.invoiceAddress)#").Hidden(true);
+						x.Bound(y => y.spesificOpenAdress).Title("Açık Adres").ClientTemplate("#=invoiceAdressSplit(data.openAddress)#").Hidden(true);
+					})
+					.Scrollable(x => x.Height(650))
+					.Selectable(x => x.Mode(GridSelectionMode.Single))
+					.ToolBar(x =>
+					{
+						x.Custom().Text("<i data-original-title='Firma (Cari) Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Company", new { area = "CMP" }));
+						x.Custom().Text("<i data-original-title='Firma (Cari) Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Company", new { area = "CMP" }));
+						x.Custom().Text("<i data-original-title='Firma (Cari) Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Company", new { area = "CMP" }));
+					})
                 )
 			</div>
 		</div>

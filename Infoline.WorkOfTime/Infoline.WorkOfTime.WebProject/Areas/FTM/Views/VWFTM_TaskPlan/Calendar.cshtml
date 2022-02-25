@@ -3,6 +3,75 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<script type="text/javascript">
+	function onChangeGroup(e) {
+		if (this.value() == undefined) {
+			return;
+		}
+		var users = $.ajax({
+			type: "GET",
+			url: '/General/GetGroupUsers?id=' + this.value(),
+			success: function (response) {
+			},
+			async: false
+		}).responseJSON;
+		if (users.length > 0) {
+			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
+		}
+	}
+</script>
+
+<div class="row clearfix">
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div class="ibox-custom ">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+                                       Html.Akilli()
+                                       .DropDownList("group")
+                                       .OptionLabel("Lütfen Grub/Ekip Seçiniz..")
+                                       .DataValueField("id")
+                                       .DataTextField("name")
+                                       .Action(b => b.Action("DataSourceDropDown", "SH_Group", new { area = "SH" }))
+                                       .Events(x=> x.Change("onChangeGroup"))
+                                       .Sort(x => x.Add("name").Ascending())
+                                       .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-5">
+						<div class="form-group">
+							@(
+                                       Html.Akilli()
+                                       .MultiSelect("userIds")
+                                       .Placeholder("Lütfen Personel Seçiniz..")
+                                       .DataValueField("id")
+                                       .DataTextField("FullName")
+                                       .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                                       .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                       .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
+                                       .Sort(x => x.Add("FullName").Ascending())
+                                       .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-3 pull-right">
+						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
+					</div>
+				</div>
+
+			</div>
+
+			<br />
+		</div>
+	</div>
+</div>
+
 <div class="row">
     <div class="col-md-12">
         <div class="ibox m-b-none">
@@ -122,7 +191,9 @@
         },
         GetTasks: function () {
 
-            ReadData('/FTM/VWFTM_TaskPlan/CalendarDataSource', {}, function (res) {
+            var userIds = $("#userIds").val();
+
+			ReadData('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds}, function (res) {
 
                 _calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
                     data: res
