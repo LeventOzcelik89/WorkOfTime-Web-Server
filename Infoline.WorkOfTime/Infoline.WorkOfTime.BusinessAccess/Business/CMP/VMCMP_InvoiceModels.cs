@@ -29,6 +29,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<VWCMP_InvoiceAction> InvoiceActions { get; set; }
 		public List<VWCMP_InvoiceItem> InvoiceItems { get; set; }
 		public VWCMP_InvoiceTransform TransformFrom { get; set; }
+		public VWCMP_InvoiceTransform TransformTo { get; set; }
 		public VWPA_Transaction Transaction { get; set; } = new VWPA_Transaction();
 		public VWPA_Ledger Ledger { get; set; } = new VWPA_Ledger();
 		public VWPA_Account Account { get; set; } = new VWPA_Account();
@@ -69,6 +70,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.B_EntityDataCopyForMaterial(invoiceVW, true);
 					this.TransformFrom = db.GetVWCMP_InvoiceTransformByIsTransformedTo(this.id).FirstOrDefault();
 					this.Transactions = db.GetVWPA_TransactionByInvoiceId(this.id);
+					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).FirstOrDefault();
 					if (this.IsCopy == true)
 					{
 						this.status = (short)EnumCMP_InvoiceStatus.Odenecek;
