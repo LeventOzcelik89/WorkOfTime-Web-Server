@@ -287,7 +287,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			if (userIds.Count() > 1)
 			{
-				var userids = string.Join(",", userIds);
 				query += " AND assignUserId IN (";
 				var count = 0;
 				foreach (var item in userIds)
@@ -296,11 +295,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 					if(count == userIds.Count())
 					{
-						query += "'" + item + "'";
+						query += String.Format("'{0}'", item);
 					}
 					else
 					{
-						query += "'" + item + "',";
+						query += String.Format("'{0}',", item);
 					}
 				}
 
