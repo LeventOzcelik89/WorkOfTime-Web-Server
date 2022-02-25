@@ -82,9 +82,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 			var dbRow = db.GetUT_LocationConfigUserByUserId(item.userId.Value).FirstOrDefault();
 			if (dbRow != null)
 			{
-				item.changed = DateTime.Now;
-				item.changedby = userStatus.user.id;
-				dbresult = db.UpdateUT_LocationConfigUser(item);
+				dbRow.changed = DateTime.Now;
+				dbRow.changedby = userStatus.user.id;
+				dbresult = db.UpdateUT_LocationConfigUser(dbRow);
 				var result = new ResultStatusUI
 				{
 					Result = dbresult.result,
