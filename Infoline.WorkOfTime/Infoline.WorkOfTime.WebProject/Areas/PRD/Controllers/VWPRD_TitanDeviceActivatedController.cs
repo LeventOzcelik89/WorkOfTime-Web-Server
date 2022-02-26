@@ -91,18 +91,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
-        //[PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
-        //public JsonResult GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
-        //{
-        //    var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
-        //    return Json(data, JsonRequestBehavior.AllowGet);
-        //}
-        //[PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
-        //public JsonResult GetProductSellOutDistChartData(DateTime startDate, DateTime endDate)
-        //{
-        //    var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
-        //    return Json(data, JsonRequestBehavior.AllowGet);
-        //}
+
         [AllowEveryone]
         [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public JsonResult GetSellerReport(Guid distId)

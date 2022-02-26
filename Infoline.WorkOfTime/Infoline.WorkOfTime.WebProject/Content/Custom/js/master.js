@@ -2285,7 +2285,9 @@ $(document)
     })
     .on('keydown', 'form:not([data-submit="allow"])', function (e) {
         if (e.keyCode == 13) {
-            e.preventDefault();
+            if (e.target.type != "textarea") {
+                e.preventDefault();
+            }
         }
     })
     .on('keydown', '.bootstrap-tagsinput input[type=text]', function (e) {

@@ -79,14 +79,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             db = db ?? new WorkOfTimeDatabase();
             var data = new ChartData();
             var getAllDevices = db.GetVWPRD_TitanDeviceActivatedWithDates(startDate, endDate);
-            var getDates = getAllDevices.GroupBy(x => x.CreatedOfTitan.Value.Date).OrderBy(x => x.Key).Select(x => x.Key).ToList();
+            var getDates = getAllDevices.GroupBy(x => x.created.Value.Date).OrderBy(x => x.Key).Select(x => x.Key).ToList();
             data.Dates = getDates.Select(x => x.ToShortDateString()).ToList();
             var groupedProducts = getAllDevices.GroupBy(x => x.productId_Title).ToList();
             foreach (var devices in groupedProducts)
             {
                 var model = new ChartModel();
                 model.name = devices.Key;
-                var groupedDevices = devices.GroupBy(x => x.CreatedOfTitan.Value.Date);
+                var groupedDevices = devices.GroupBy(x => x.created.Value.Date);
                 var outcastedDates = getDates.Where(x => x.In(groupedDevices.Select(a => a.Key.Date).ToArray())).ToList();
                 var outcasteds = outcastedDates.Select(x => new CountModel { Date = x.Date, Count = 0 });
                 var existents = groupedDevices.Select(x => new CountModel { Date = x.Key, Count = x.Count() });
