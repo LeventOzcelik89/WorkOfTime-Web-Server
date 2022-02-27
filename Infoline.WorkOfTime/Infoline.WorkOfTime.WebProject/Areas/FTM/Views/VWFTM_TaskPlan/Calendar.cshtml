@@ -1,6 +1,6 @@
 ﻿@{
-    ViewBag.Title = "Görevler ve Planlanmış Görevler Yönetimi";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = "Görevler ve Planlanmış Görevler Yönetimi";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <script type="text/javascript">
@@ -19,7 +19,26 @@
 			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
 		}
 	}
+	function onChangeGroups(e) {
+		debugger;
+		if (this.value() == undefined) {
+			return;
+		}
+		var users = $.ajax({
+			type: "GET",
+			url: '/General/GetGroupUsers?id=' + this.value(),
+			success: function (response) {
+			},
+			async: false
+		}).responseJSON;
+		if (users.length > 0) {
+			$('#assignableUsers').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
+		}
+	}
 </script>
+
+
+
 
 <div class="row clearfix">
 	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -72,93 +91,71 @@
 	</div>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="ibox m-b-none">
-            <div class="ibox-title">
-                <div class="col-md-6">
-                    <h5>Görev Takvimi</h5>
-                </div>
-                <div class="col-md-6">
+<div class="ibox m-b-none" style="margin-top: 25px;">
+	<div class="ibox-title">
+		<div class="col-md-9">
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #e2f818" class="fa fa-circle"></i><span style="margin-left:1px;"> Personel Ataması Bekleniyor</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #23c6c8" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenilmeyi Bekleniyor</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #66df8b" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Başlandı</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #453cd1" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Devam Etmekte</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #04ffb2" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Yeniden Başlatıldı</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #ffbc00" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözüm Bildirildi</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #25ef0c" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözüm Onaylandı</span>
+			</span>
+		</div>
+		<div class="col-md-3">
 
-                    <div class="btn-group pull-right" style="margin-top: -5px;">
-                    </div>
+		</div>
+	</div>
+	<div class="ibox-content">
+		<div id="TaskCalendar"></div>
 
-                </div>
-            </div>
-            <div class="ibox-content">
-
-                <div id="TaskCalendar"></div>
-
-            </div>
-        </div>
-    </div>
+	</div>
 </div>
 
 
 <script id="eventTemplate2" type="text/x-kendo-template">
 
-    <div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #">
+	<div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #">
 
-    #=GetPriority(priority)#
+	#=GetStatusColor(lastOperationStatus)#
 
-    #=GetType(type)#
+	#=GetPriority(priority)#
 
-    #= (IsTemplate == true ? '' : GetOperation(lastOperationStatus)) #
+	#=GetType(type)#
 
-    #:title#
+	#= (IsTemplate == true ? '' : GetOperation(lastOperationStatus)) #
 
-    </div>
+	#:title#
+
+	</div>
 
 </script>
 
 <style type="text/css">
-    .type, .priority, .operation {
-        background-color: #ffffff;
-        padding: 2px;
-        float: left;
-        margin: -4px 2px 0px 0px;
-        font-weight: bold;
-        color: #000;
-    }
 
-    .event-scheduled {
-        background-color: #f08080;
-        height: 100%;
-    }
-
-    @@media (min-width: 992px) {
-        .modal-lg {
-            width: 1200px !important;
-        }
-    }
-
-    .modal-dialog .modal-body,
-    .modal-dialog .tab-pane,
-    .modal-dialog .ibox {
-        padding: 0px;
-    }
-
-    .modal-body form {
-        padding: 15px !important;
-    }
-
-    .k-event {
-        cursor: pointer;
-    }
+	.event-scheduled {
+		background-color: #f08080;
+		height: 100%;
+	}
 
 
-    element.style {
-    }
-
-    #insertRadio label {
-        width: 9.1% !important;
-    }
-
-    #insertRadio.akilliRadioGrup i.icon-shuffle {
-        font-size: 30px !important;
-    }
-
+	.k-event {
+		cursor: pointer;
+	}
 </style>
 
 <script type="text/javascript">
@@ -171,23 +168,43 @@
             priority: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))
         },
         init: function () {
-
-            $('#TaskCalendar').kendoScheduler({
-                date: new Date(),
-                localization: 'tr-TR',
-                editable: false,
-                eventTemplate: $("#eventTemplate2").html(),
-                views: [
-                    { type: 'day' },
-                    { type: 'week', selected: true },
-                    { type: 'month' }
-                ]
-            });
-
+            _calendar.CreateScheduler();
             this.elem = $('#TaskCalendar').data('kendoScheduler');
-
             this.GetTasks();
+        },
+		onChangeUser: function (e) {
+			debugger;
+			var item = this.dataItem();
 
+			if (item != null && item.id != "") {
+				$("#assignStaffButton").removeClass("hide");
+			}
+			else {
+				$("#assignStaffButton").addClass("hide");
+			}
+		},
+        CreateScheduler: function () {
+
+			$('#TaskCalendar').kendoScheduler({
+				date: new Date(),
+				localization: 'tr-TR',
+				editable: {
+					create: true,
+					move: false,
+					resize: false
+				},
+				add: function (e) {
+					Kendo_GetRequest('/FTM/VWFTM_Task/Insert', { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
+					e.preventDefault();
+					return false;
+				},
+				eventTemplate: $("#eventTemplate2").html(),
+				views: [
+					{ type: 'day' },
+					{ type: 'week', selected: true },
+					{ type: 'month' }
+				]
+			});
         },
         GetTasks: function () {
 
@@ -225,7 +242,49 @@
 
         return '<span data-toggle="tooltip" title="' + item.Value + '" class="type"><i class="' + item.Generic.icon + '"></i></span>';
 
-    }
+	}
+
+	function GetStatusColor(_key) {
+
+		var color = "";
+		var text = "";
+
+		if (_key < '@((int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi)') {
+			color = "#e2f818";
+			text = "Personel Ataması Bekleniyor";
+		}
+		else if (_key <= '@((int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi)' ) {
+
+			color = "#23c6c8";
+			text = "Görev Üstlenilmeyi Bekliyor";
+		}
+		else if (_key >= '@((int)EnumFTM_TaskOperationStatus.GorevBaslandi)' && _key < '@((int)EnumFTM_TaskOperationStatus.UrunDegisimi)') {
+			color = "#66df8b";
+			text = "Göreve Başlandı";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevDurduruldu)') {
+			color = "#bd5050";
+			text = "Görev Durduruldu";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)') {
+			color = "#453cd1";
+			text = "Görev Yeniden Başlatıldı";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumBildirildi)') {
+			color = "#ffbc00";
+			text = "Çözüm Bildirildi";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumOnaylandi)') {
+			color = "#25ef0c";
+			text = "Çözüm Onaylandı";
+		}
+		else {
+			color = "#0818d9";
+			text = "Görev Devam Ediyor";
+		}
+
+		return '<span data-toggle="tooltip" title="' + text + '" class="k-scheduler-mark" style="background-color: ' + color + ';font-size: 10px;margin-top: -7px;" data-original-title="' + text + '"></span>'
+	}
 
     function GetPriority(_key) {
 
@@ -287,6 +346,20 @@
         })
 
         ;
+
+	$("#DashBoardFilter").click(function () {
+		debugger;
+		var userIds = $("#userIds").val();
+
+		GetJsonDataFromUrl('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds }, function (res) {
+			_calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
+				data: res
+			}));
+		});
+	});
+
+
+
 
 </script>
 

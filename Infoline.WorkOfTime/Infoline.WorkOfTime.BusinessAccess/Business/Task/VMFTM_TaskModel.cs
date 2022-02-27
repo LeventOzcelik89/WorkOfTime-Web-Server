@@ -795,10 +795,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         public ResultStatus UpdateStaff(Guid? userId, DbTransaction _trans = null)
         {
+            var rs = new ResultStatus { result = true };
             this.db = this.db ?? new WorkOfTimeDatabase();
             this.trans = _trans ?? this.db.BeginTransaction();
+
+			if (this.assignableUsers != null && this.assignableUsers.Count() == 0)
+			{
+                rs = new ResultStatus { result = false, message = "Lütfen Üstlenebilecek Personel Seçiniz" };
+			}
+
             this.assignableUsers = this.assignableUsers ?? new List<Guid>();
-            var rs = new ResultStatus { result = true };
             var task = db.GetFTM_TaskById(this.id);
             if (task == null)
             {
