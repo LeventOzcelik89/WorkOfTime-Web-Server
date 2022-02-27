@@ -15,18 +15,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
     [EnumInfo(typeof(UT_Template), "status")]
     public enum EnumUT_TemplateStatus
     {
-        [Description("Pasif")]
+        [Description("Pasif"),Generic("icon","fa fa-circle","color","#3d4d5d")]
         passive = 0,
-        [Description("Aktif")]
+        [Description("Aktif"),Generic("icon","fa fa-circle","color","#1ab394")]
         active = 1,
     }
 
     [EnumInfo(typeof(UT_Template), "type")]
     public enum EnumUT_TemplateType
     {
-        [Description("Kaza Olay")]
+        [Description("Kaza Olay"),Generic("icon","fa fa-tasks")]
         accident = 0,
-        [Description("DÖF")]
+        [Description("DÖF"),Generic("icon","fa fa-th-list")]
         dof = 1,
     }
 
