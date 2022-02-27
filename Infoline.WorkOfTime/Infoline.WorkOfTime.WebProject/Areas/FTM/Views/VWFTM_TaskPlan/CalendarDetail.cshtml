@@ -300,10 +300,11 @@
 	$("#assignStaffButton").click(function (e) {
 		var userIds = $("#assignableUsers").data("kendoMultiSelect");
 		var taskId = e.currentTarget.dataset.taskid;
-
+		debugger;
 		var users = $.ajax({
 			type: "POST",
-			url: '/FTM/VWFTM_Task/UpdateStaff?id=' + taskId + '&assignableUsers=' + userIds.value(),
+			url: '/FTM/VWFTM_Task/UpdateStaff',
+			data: { id: taskId, assignableUsers: userIds.value()},
 			success: function (response) {
 				if (response.Result) {
 					MesajSuccess(response.FeedBack.message, "Personel Ataması Başarılı")
@@ -317,7 +318,7 @@
 								$.each(result.Object, function (index, value) {
 									$("#assignStaffDivId").addClass("hide");
 									$("#assignableUserDivId").removeClass("hide");
-									$("#assignableUserListId").html("<a href='#'> <img alt='image' data-toggle='tooltip' data-placement='top' data-original-title='" + value.userId_Title + "' onerror='ImageError(this,'/Content/Custom/img/na.png')' class='img-circle' src='" + (value.photo != null ? value.photo : '/Content/Custom/img/na.png')+"'> </a>");
+									$("#assignableUserListId").append("<a href='#'> <img alt='image' data-toggle='tooltip' data-placement='top' data-original-title='" + value.userId_Title + "' onerror='ImageError(this,'/Content/Custom/img/na.png')' class='img-circle' src='" + (value.photo != null ? value.photo : '/Content/Custom/img/na.png')+"'> </a>");
 								});
 							}
 						},
