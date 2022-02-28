@@ -303,11 +303,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					}
 				}
 
-				query += "))";
-				
+				query += ")";
+
+				count = 0;
 				foreach (var userId in userIds)
 				{
-					query += " OR (assignableUserIds LIKE '%" + userId + "%' )";
+					count++;
+
+					if (count == userIds.Count())
+					{
+						query += " OR (assignableUserIds LIKE '%" + userId + "%' ))";
+					}
+					else
+					{
+						query += " OR (assignableUserIds LIKE '%" + userId + "%' )";
+					}
 				}
 			}
 

@@ -13,19 +13,7 @@
 
 <div data-selector="modalContainer">
 
-	<div class="ibox-title">
-		<span class="text-muted small pull-right">
-			Görev Oluşturulma Tarihi : @String.Format("{0:dd.MM.yyyy HH:mm}", Model.created)
-		</span>
-		<h5>
-			Görev Detayları
-			@if (Model.assignUserId == null && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)))
-			{
-				<a class="btn btn-xs btn-warning m-l-md" data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Update","VWFTM_Task",new {area="FTM",id=Model.id })"><i class="fa fa-edit"></i> Düzenle </a>
-			}
-		</h5>
-	</div>
-
+	<span data-taskId="@Model.id"></span>
 	<div class="ibox-content clearfix">
 
 		<div class="col-lg-6" style="border-right: 1px solid #cfcfcf;">
@@ -45,13 +33,16 @@
 
 			<dl class="dl-horizontal">
 				<dt>Görev Açıklaması:</dt>
-				<dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description)</span></dd>
+				<dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description ?? "-")</span></dd>
 			</dl>
 			<dl class="dl-horizontal">
 				<dt>Son Operasyon:</dt>
 				<dd><span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@(Model.lastOperationStatus_Title)</u></strong></span></dd>
 			</dl>
-
+			<dl class="dl-horizontal">
+				<dt>Oluşturulma Tarihi</dt>
+				<dd>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</dd>
+			</dl>
 			<dl class="dl-horizontal">
 				<dt>Son Operasyon Tarihi :</dt>
 				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate) </dd>
@@ -78,7 +69,7 @@
 			<dl class="dl-horizontal">
 				<dt>Araç:</dt>
 				<dd>
-					<span>@(Model.plate)</span>
+					<span>@(Model.plate ?? "-")</span>
 					@if (Model.companyCarId.HasValue)
 					{
 						<a href="/CMP/VWCMP_CompanyCars/Detail?id=@Model.companyCarId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
@@ -220,68 +211,52 @@
 					</dd>
 				</dl>
 			}
-			else if (Model.taskUsers.Count() > 0)
-			{
-				<dl class="dl-horizontal">
-					<dt>Üstlenebilecekler:</dt>
-					<dd class="project-people">
-						@foreach (var user in Model.taskUsers)
-						{
-							<a href="#">
-								<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
-							</a>
-						}
-					</dd>
-				</dl>
-			}
 			else
 			{
-				<div id="assignStaffDivId">
-					<div class="col-md-12">
-						<div class="form-group">
-							@(
-									   Html.Akilli()
-                                       .DropDownList("groups")
-                                       .OptionLabel("Grub/Ekip Seçiniz..")
-                                       .DataValueField("id")
-                                       .DataTextField("name")
-                                       .Action(b => b.Action("DataSourceDropDown", "SH_Group", new { area = "SH" }))
-                                       .Events(x=> x.Change("onChangeGroups"))
-                                       .Sort(x => x.Add("name").Ascending())
-                                       .Execute()
-                                   )
-						</div>
-					</div>
-
-					<div class="col-md-12">
-						<div class="input-group">
-							@(
+				<div class="col-md-9 pull-right">
+					<div class="form-group">
+						@(
 									   Html.Akilli()
 									   .MultiSelect("assignableUsers")
 									   .Placeholder("Personel Seçiniz..")
 									   .DataValueField("id")
 									   .DataTextField("FullName")
 									   .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
-									   .Events(a => a.Change("_calendar.onChangeUser"))
+									   .Events(a => a.Close("_calendar.onChangeUserClose"))
 									   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
 									   .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
 									   .Sort(x => x.Add("FullName").Ascending())
 									   .Execute()
                                    )
-							<span class="input-group-addon">
-								<button class="btn pull-right  btn btn-primary" style="color:white;" type="submit" id="assignStaffButton" data-taskId="@Model.id" target="_blank"> Personel Ata </button>
-							</span>
-						</div>
 					</div>
 				</div>
 
 
-				<dl class="dl-horizontal hide" id="assignableUserDivId">
-					<dt>Üstlenebilecekler:</dt>
-					<dd class="project-people" id="assignableUserListId">
-					
-					</dd>
-				</dl>
+				if (Model.taskUsers.Count() > 0)
+				{
+					<dl class="dl-horizontal" id="assignableUserListDivId">
+						<dt>Üstlenebilecekler:</dt>
+						<dd class="project-people" id="assignableUserListId">
+							@foreach (var user in Model.taskUsers)
+							{
+								<a href="#">
+									<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+								</a>
+							}
+						</dd>
+					</dl>
+				}
+				else
+				{
+
+
+					<dl class="dl-horizontal hide" id="assignableUserListDivId">
+						<dt>Üstlenebilecekler:</dt>
+						<dd class="project-people" id="assignableUserListId">
+
+						</dd>
+					</dl>
+				}
 			}
 
 		</div>
@@ -289,51 +264,14 @@
 	</div>
 	<div class="ibox-content clearfix">
 		<div class="button-group">
-			<a href="/FTM/VWFTM_Task/Detail?id=@Model.id" class="btn btn-md btn-info pull-right" target="_blank">Detay</a>
+			<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Kapat</button>
+			<a href="/FTM/VWFTM_Task/Detail?id=@Model.id" class="btn btn-md btn-info pull-right" target="_blank"><i class="fa fa-info-circle"></i> Detay</a>
+			@if (Model.assignUserId == null && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)))
+			{
+				<a class="btn btn-md btn-warning pull-right" data-task="Insert" data-method="GET" data-modal="true" data-show="single" style="margin-right: 12px;" data-href="@Url.Action("Update","VWFTM_Task",new {area="FTM",id=Model.id })"><i class="fa fa-edit"></i> Düzenle </a>
+			}
 		</div>
 	</div>
 
 </div>
 
-
-<script type="text/javascript" data-selector="modalContainer">
-	$("#assignStaffButton").click(function (e) {
-		var userIds = $("#assignableUsers").data("kendoMultiSelect");
-		var taskId = e.currentTarget.dataset.taskid;
-		debugger;
-		var users = $.ajax({
-			type: "POST",
-			url: '/FTM/VWFTM_Task/UpdateStaff',
-			data: { id: taskId, assignableUsers: userIds.value()},
-			success: function (response) {
-				if (response.Result) {
-					MesajSuccess(response.FeedBack.message, "Personel Ataması Başarılı")
-
-					$.ajax({
-						type: "GET",
-						url: '/FTM/VWFTM_Task/TaskLoad?id=' + taskId,
-						success: function (result) {
-
-							if (result.Object != null) {
-								$.each(result.Object, function (index, value) {
-									$("#assignStaffDivId").addClass("hide");
-									$("#assignableUserDivId").removeClass("hide");
-									$("#assignableUserListId").append("<a href='#'> <img alt='image' data-toggle='tooltip' data-placement='top' data-original-title='" + value.userId_Title + "' onerror='ImageError(this,'/Content/Custom/img/na.png')' class='img-circle' src='" + (value.photo != null ? value.photo : '/Content/Custom/img/na.png')+"'> </a>");
-								});
-							}
-						},
-						async: false
-					}).responseJSON;
-
-				}
-				else {
-					MesajWarning(response.FeedBack.message, "Personel Atama İşlemi Başarısız")
-				}
-
-
-			},
-			async: false
-		}).responseJSON;
-
-	});
-</script>

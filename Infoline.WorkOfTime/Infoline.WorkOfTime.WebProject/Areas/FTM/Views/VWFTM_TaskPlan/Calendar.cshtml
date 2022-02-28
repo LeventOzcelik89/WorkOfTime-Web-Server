@@ -19,36 +19,16 @@
 			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
 		}
 	}
-	function onChangeGroups(e) {
-		debugger;
-		if (this.value() == undefined) {
-			return;
-		}
-		var users = $.ajax({
-			type: "GET",
-			url: '/General/GetGroupUsers?id=' + this.value(),
-			success: function (response) {
-			},
-			async: false
-		}).responseJSON;
-		if (users.length > 0) {
-			$('#assignableUsers').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
-		}
-	}
 </script>
 
+<div class="ibox m-b-none">
+	<div class="ibox-title" style="padding: 22px 15px 43px !important;">
 
-
-
-<div class="row clearfix">
-	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-		<div class="ibox-custom ">
-			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
-
-				<div class="row">
-					<div class="col-md-4">
-						<div class="form-group">
-							@(
+		<div class="col-md-6" style="margin-top: -11px;">
+			<div class="col-md-12">
+				<div class="col-md-5">
+					<div class="form-group">
+						@(
                                        Html.Akilli()
                                        .DropDownList("group")
                                        .OptionLabel("Lütfen Grub/Ekip Seçiniz..")
@@ -59,12 +39,11 @@
                                        .Sort(x => x.Add("name").Ascending())
                                        .Execute()
                                    )
-						</div>
 					</div>
-
-					<div class="col-md-5">
-						<div class="form-group">
-							@(
+				</div>
+				<div class="col-md-5">
+					<div class="form-group">
+						@(
                                        Html.Akilli()
                                        .MultiSelect("userIds")
                                        .Placeholder("Lütfen Personel Seçiniz..")
@@ -76,24 +55,15 @@
                                        .Sort(x => x.Add("FullName").Ascending())
                                        .Execute()
                                    )
-						</div>
-					</div>
-
-					<div class="col-md-3 pull-right">
-						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
 					</div>
 				</div>
-
+				<div class="col-md-2">
+					<button class="btn btn-md btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
+				</div>
 			</div>
 
-			<br />
 		</div>
-	</div>
-</div>
-
-<div class="ibox m-b-none" style="margin-top: 25px;">
-	<div class="ibox-title">
-		<div class="col-md-9">
+		<div class="col-md-6" style="margin-top: -11px;">
 			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
 				<i style="color: #e2f818" class="fa fa-circle"></i><span style="margin-left:1px;"> Personel Ataması Bekleniyor</span>
 			</span>
@@ -101,10 +71,10 @@
 				<i style="color: #23c6c8" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenilmeyi Bekleniyor</span>
 			</span>
 			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
-				<i style="color: #66df8b" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Başlandı</span>
+				<i style="color: #453cd1" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Devam Etmekte</span>
 			</span>
 			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
-				<i style="color: #453cd1" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Devam Etmekte</span>
+				<i style="color: #bd5050" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Durduruldu</span>
 			</span>
 			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
 				<i style="color: #04ffb2" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Yeniden Başlatıldı</span>
@@ -115,9 +85,6 @@
 			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
 				<i style="color: #25ef0c" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözüm Onaylandı</span>
 			</span>
-		</div>
-		<div class="col-md-3">
-
 		</div>
 	</div>
 	<div class="ibox-content">
@@ -172,39 +139,84 @@
             this.elem = $('#TaskCalendar').data('kendoScheduler');
             this.GetTasks();
         },
-		onChangeUser: function (e) {
-			debugger;
-			var item = this.dataItem();
+		onChangeUserClose: function (e) {
+			var userIds = $("#assignableUsers").data("kendoMultiSelect");
+			var taskId = $('[data-taskId]')[0].dataset.taskid
 
-			if (item != null && item.id != "") {
-				$("#assignStaffButton").removeClass("hide");
-			}
-			else {
-				$("#assignStaffButton").addClass("hide");
-			}
+				$("#assignableUserListId").html(null);
+
+				$.ajax({
+					type: "POST",
+					url: '/FTM/VWFTM_Task/UpdateStaff',
+					data: { id: taskId, assignableUsers: userIds.value() },
+					success: function (response) {
+						if (response.Result) {
+							MesajSuccess(response.FeedBack.message, "Personel Ataması Başarılı")
+							$.ajax({
+								type: "GET",
+								url: '/FTM/VWFTM_Task/TaskLoad?id=' + taskId,
+								success: function (result) {
+
+									debugger;
+									if (result.Object != null && result.Object.length > 0) {
+										$.each(result.Object, function (index, value) {
+											$("#assignStaffDivId").addClass("hide");
+											$("#assignableUserDivId").removeClass("hide");
+											$("#assignableUserListDivId").removeClass("hide");
+											$("#assignableUserListId").append("<a href='#'> <img alt='image' data-toggle='tooltip' data-placement='top' data-original-title='" + value.userId_Title + "' onerror='ImageError(this,'/Content/Custom/img/na.png')' class='img-circle' src='" + (value.photo != null ? value.photo : '/Content/Custom/img/na.png') + "'> </a>");
+										});
+									}
+									else {
+										$("#assignableUserListDivId").addClass("hide")
+									}
+								},
+								async: false
+							}).responseJSON;
+						}
+						else {
+							MesajWarning(response.FeedBack.message, "Personel Atama İşlemi Başarısız")
+						}
+					},
+					async: false
+				}).responseJSON;
+
+			
+
 		},
         CreateScheduler: function () {
 
 			$('#TaskCalendar').kendoScheduler({
 				date: new Date(),
 				localization: 'tr-TR',
+				height: 700,
 				editable: {
 					create: true,
 					move: false,
 					resize: false
 				},
+				eventTemplate: $("#eventTemplate2").html(),
 				add: function (e) {
 					Kendo_GetRequest('/FTM/VWFTM_Task/Insert', { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
 					e.preventDefault();
 					return false;
 				},
-				eventTemplate: $("#eventTemplate2").html(),
+				edit: function (e) {
+					debugger;
+					var buttonsContainer = e.container.find(".k-edit-buttons");
+					var cancelButton = buttonsContainer.find(".k-scheduler-update");
+					var removeButtonContainer = buttonsContainer.find(".k-icon k-si-close");
+					removeButtonContainer.remove();
+					cancelButton.text("");
+					buttonsContainer.text("");
+				},
 				views: [
 					{ type: 'day' },
-					{ type: 'week', selected: true },
-					{ type: 'month' }
+					{ type: 'week' },
+					{ type: 'month', selected: true }
 				]
 			});
+
+			this.elem = $('#TaskCalendar').data('kendoScheduler');
         },
         GetTasks: function () {
 
@@ -352,8 +364,12 @@
 		var userIds = $("#userIds").val();
 
 		GetJsonDataFromUrl('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds }, function (res) {
+			$("#TaskCalendar").html(null)
+			_calendar.CreateScheduler();
+			debugger;
+
 			_calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
-				data: res
+				data: res.objects
 			}));
 		});
 	});
