@@ -1,19 +1,300 @@
 ﻿@model VMFTM_TaskModel
 @{
-    ViewBag.Title = "Görev Detayı";
-    Layout = null;
+	ViewBag.Title = "Görev Detayı";
+	Layout = null;
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var type = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>().Where(a => Convert.ToInt32(a.Key) == Model.type).FirstOrDefault();
+
 }
+
+
+<script type="text/x-kendo-template" id="userMultiselectTemplate" data-selector="modalContainer">
+	<div class="clearfix" style="padding:8px 0;">
+		<img class="img-circle img-responsive pull-left" style="width:20px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
+		<div style="width:calc(100% - 70px);float:right;">
+			<div class="template-item">#:FullName#</div>
+			</div>
+		</div>
+	</div>
+</script>
 
 <title class="hide">@ViewBag.Title</title>
 
 <div data-selector="modalContainer">
 
-    @Html.Partial("~/Areas/FTM/Views/VWFTM_Task/_Partial_VWFTM_Task_Detail.cshtml", Model)
+	<span data-taskId="@Model.id"></span>
+	<div class="ibox-content clearfix">
 
-    <div class="ibox-content clearfix">
-        <div class="button-group">
-            <a href="/FTM/VWFTM_Task/Detail?id=@Model.id" class="btn btn-md btn-info pull-right" target="_blank">Detay</a>
-        </div>
-    </div>
+		<div class="col-lg-6" style="border-right: 1px solid #cfcfcf;">
+			<dl class="dl-horizontal">
+				<dt>Görev Kodu:</dt>
+				<dd>@Model.code</dd>
+			</dl>
+			<dl class="dl-horizontal">
+				<dt>Görev Tipi:</dt>
+				<dd><i class='@type.Generic["icon"]' style="font-size:14px;" data-toggle='tooltip' data-placement='bottom'></i>  @Model.type_Title </dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Görevi Oluşturan:</dt>
+				<dd>@Model.createdby_Title</dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Görev Açıklaması:</dt>
+				<dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description ?? "-")</span></dd>
+			</dl>
+			<dl class="dl-horizontal">
+				<dt>Son Operasyon:</dt>
+				<dd><span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@(Model.lastOperationStatus_Title)</u></strong></span></dd>
+			</dl>
+			<dl class="dl-horizontal">
+				<dt>Oluşturulma Tarihi</dt>
+				<dd>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</dd>
+			</dl>
+			<dl class="dl-horizontal">
+				<dt>Son Operasyon Tarihi :</dt>
+				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate) </dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Görev Öncelik Durumu: </dt>
+				<dd> @Model.priority_Title </dd>
+			</dl>
+
+
+			<dl class="dl-horizontal">
+				<dt>Görevli İşletmem:</dt>
+				<dd>
+					<span>@Model.company_Title </span>
+					@if (Model.companyId.HasValue)
+					{
+						<a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
+					}
+
+				</dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Araç:</dt>
+				<dd>
+					<span>@(Model.plate ?? "-")</span>
+					@if (Model.companyCarId.HasValue)
+					{
+						<a href="/CMP/VWCMP_CompanyCars/Detail?id=@Model.companyCarId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+					}
+				</dd>
+			</dl>
+
+			@if (Model.taskSubjectType_Title != null)
+			{
+				<dl class="dl-horizontal">
+					<dt>Görev Konuları:</dt>
+					<dd>
+						<span>@(Html.Raw(String.Join(" ",Model.taskSubjectType_Title.Split(',').Select(x =>"<span style='background-color: #ffffff; color: #9a9797; border: 1px solid;' class='badge badge-warning'>" + x + "</span>").ToArray()))) </span>
+					</dd>
+				</dl>
+			}
+
+			@if (!String.IsNullOrEmpty(Model.subjectId_LevelTitle))
+			{
+				<dl class="dl-horizontal clearfix">
+					<dt>Görev Seviye:</dt>
+					<dd><span>@Model.subjectId_LevelTitle</span></dd>
+				</dl>
+			}
+
+			@if (!String.IsNullOrEmpty(Model.scopeId_levelTitle))
+			{
+				<dl class="dl-horizontal clearfix">
+					<dt>Bölge Seviye:</dt>
+					<dd><span>@Model.scopeId_levelTitle</span></dd>
+				</dl>
+			}
+			@if (Model.planLater == 1)
+			{
+				<dl class="dl-horizontal clearfix">
+
+					<dd><span style="color:red"><b>Görev Planlanmış Başlangıç ve Bitişi Atanması Bekleniyor..</b></span></dd>
+				</dl>
+			}
+
+
+		</div>
+
+		<div class="col-lg-6">
+			@if (!string.IsNullOrEmpty(Model.SLAText))
+			{
+			<dl class="dl-horizontal">
+				<dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Başlangıç Tarihi:</dt>
+				<dd>
+					@String.Format("{0:dd.MM.yyyy HH:mm}", Model.penaltyStartDate)
+				</dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Toplam Ceza:</dt>
+				<dd>
+					@String.Format("{0:C2}", Model.amercementTotal)
+				</dd>
+			</dl>
+			}
+			<dl class="dl-horizontal">
+				@if (Model.taskPlanId_Title != null)
+				{
+				<dt>Bakım Planı :</dt>
+				<dd>@Model.taskPlanId_Title  <a data-href="/FTM/VWFTM_TaskPlan/TemplatePlanDetail?id=@Model.taskPlanId" data-modal="true" data-task="Insert" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+				}
+			</dl>
+
+
+
+			<dl class="dl-horizontal">
+				<dt>Planlanan Başlangıç :</dt>
+				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.planStartDate) </dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Planlanan Bitiş :</dt>
+				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.dueDate) </dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Geçen Süre:</dt>
+				<dd>@(Model.workingHour)</dd>
+			</dl>
+
+			@if (Model.taskStartDate != null)
+			{
+			<dl class="dl-horizontal">
+				<dt>Görev Başlangıç Tarihi :</dt>
+				<dd> <strong><u>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskStartDate) </u></strong></dd>
+			</dl>
+			<dl class="dl-horizontal">
+				<dt>Görev Bitiş Tarihi :</dt>
+				@if (Model.taskEndDate != null)
+					{
+				<dd> <strong><u>  @String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskEndDate) </u></strong></dd>
+					}
+					else
+					{
+				<dd> <strong><u> @(Model.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.GorevDurduruldu ? "Görev Durduruldu" : "Görev Devam Etmekte")  </u></strong></dd>
+					}
+			</dl>
+			}
+
+			<dl class="dl-horizontal">
+				<dt>Müşteri İşletme:</dt>
+				<dd><span>@(Model.customer_Title)</span> <a href="/CMP/VWCMP_Company/Detail?id=@Model.customerId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+
+			</dl>
+
+			@if (Model.customerStorageId.HasValue)
+			{
+			<dl class="dl-horizontal">
+				<dt>Şube/Depo/Kısım:</dt>
+				<dd><span>@(Model.customerStorage_Title)</span> <a href="/CMP/VWCMP_Storage/Detail?id=@Model.customerStorageId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+			</dl>
+			}
+
+			@if (Model.taskPlanId.HasValue)
+			{
+			<dl class="dl-horizontal">
+				<dt>Bakım Planı:</dt>
+				<dd><span>@(Model.taskPlanId_Title)</span> <a href="/FTM/VWFTM_TaskPlan/TaskDetail?id=@Model.taskPlanId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+			</dl>
+			}
+
+			@if (Model.fixtureId.HasValue)
+			{
+			<dl class="dl-horizontal">
+				<dt>Görevlendirilen Envanter:</dt>
+				<dd><span>@(Model.fixture_Title)</span> <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.fixtureId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+			</dl>
+			}
+
+			@{var assignInfo = Model.taskUsers.Where(a => a.status == true).FirstOrDefault(); }
+
+			@if (assignInfo != null)
+			{
+			<dl class="dl-horizontal">
+				<dt>Görevi Üstlenen:</dt>
+				<dd class="project-people">
+					<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@assignInfo.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(assignInfo.photo != null ? assignInfo.photo : "/Content/Custom/img/na.png")">
+				</dd>
+			</dl>
+			}
+			else
+			{
+
+			<dl class="dl-horizontal">
+				<dt>
+
+					Görevli Personeller
+					<hr />
+
+				</dt>
+			</dl>
+
+			<div class="col-md-11 pull-right">
+				<div class="form-group">
+					@(
+						 Html.Akilli()
+						 .MultiSelect("assignableUsersIds")
+						 .Placeholder("Personel Seçiniz..")
+						 .DataValueField("id")
+						 .DataTextField("FullName")
+						 .ItemTemplate("#=TemplateEngine('userMultiselectTemplate',data)#")
+						 .HtmlAttributes(new Dictionary<string, object>() { { "style", "border:0px !important" }, { "class", "form-control" } })
+						 .Events(a => a.Close("_calendar.onChangeUserClose"))
+						 .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+						 .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
+						 .TagMode(TagMode.Multiple)
+						 .Sort(x => x.Add("FullName").Ascending())
+						 .Execute()
+                         )
+				</div>
+			</div>
+
+
+			@*if (Model.taskUsers.Count() > 0)
+		{
+			<dl class="dl-horizontal" id="assignableUserListDivId">
+				<dt>Üstlenebilecekler:</dt>
+				<dd class="project-people" id="assignableUserListId">
+					@foreach (var user in Model.taskUsers)
+					{
+						<a href="#">
+							<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+						</a>
+					}
+				</dd>
+			</dl>
+		}
+		else
+		{
+			<dl class="dl-horizontal hide" id="assignableUserListDivId">
+				<dt>Üstlenebilecekler:</dt>
+				<dd class="project-people" id="assignableUserListId">
+
+				</dd>
+			</dl>
+		}*@
+			}
+
+		</div>
+
+	</div>
+	<div class="ibox-content clearfix">
+		<div class="button-group">
+			<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Kapat</button>
+			<a href="/FTM/VWFTM_Task/Detail?id=@Model.id" class="btn btn-md btn-info pull-right" target="_blank"><i class="fa fa-info-circle"></i> Detay</a>
+			@if (Model.assignUserId == null && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)))
+			{
+				<a class="btn btn-md btn-warning pull-right" data-task="Insert" data-method="GET" data-modal="true" data-show="single" style="margin-right: 12px;" data-href="@Url.Action("Update","VWFTM_Task",new {area="FTM",id=Model.id })"><i class="fa fa-edit"></i> Düzenle </a>
+			}
+		</div>
+	</div>
 
 </div>
+

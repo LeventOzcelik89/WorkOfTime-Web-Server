@@ -46,7 +46,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         {
             return View();
         }
-        [PageInfo("Tüm Cari Listesi", SHRoles.Personel, SHRoles.CRMBayiPersoneli,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Onay Listesi", SHRoles.IKYonetici)]
+        public ActionResult CompanyApproveIndex()
+        {
+            return View();
+        }
+        [PageInfo("Tüm Cari Listesi", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -60,7 +65,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             data.Total = db.GetVWCMP_CompanyCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayiler Adet Methodu"), AllowEveryone]
+        public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            var db = new WorkOfTimeDatabase();
+            var adet = db.GetVWCMP_CompanyCount(condition.Filter);
+            return adet;
+        }
+        [PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -101,7 +114,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var data = db.GetVWCMP_Company(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Firma&Cari Detay Sayfası", SHRoles.Personel,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Firma&Cari Detay Sayfası", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Detail(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -152,13 +165,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                 FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Update(VMCMP_CompanyModel item)
         {
             item.Load();
             return View(item);
         }
-        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMCMP_CompanyModel item, EnumCMP_CompanyType[] type)
         {
@@ -777,9 +790,62 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                     return "Herhangi bir işletmeye ait değilsiniz";
                 }
 
-                
+
             }
             return "";
+        }
+        [AllowEveryone]
+        [PageInfo("Şirket Onaylama")]
+        public JsonResult Confirm(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var findCompany = db.GetCMP_CompanyById(id);
+            if (findCompany == null)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Bayi Bulunamadı!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            if (findCompany.isActive == (int)EnumCMP_CompanyIsActive.Aktif)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Bayi Zaten Onaylanmış!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            var findCompanyPerson = db.GetINV_CompanyPersonByCompanyIdFirst(findCompany.id);
+            findCompany.isActive = (int)EnumCMP_CompanyIsActive.Aktif;
+            var result = db.UpdateCMP_Company(findCompany);
+            if (result.result && findCompanyPerson != null)
+            {
+                var findUser = db.GetSH_UserById(findCompanyPerson.IdUser.Value);
+                if (findUser != null)
+                {
+                    findUser.status = true;
+                    string url = TenantConfig.Tenant.GetWebUrl();
+                    var password = Guid.NewGuid().ToString().Substring(0, 8);
+                    findUser.password = db.GetMd5Hash(db.GetMd5Hash(password));
+                    var tenantName = TenantConfig.Tenant.TenantName;
+                    result &= db.UpdateSH_User(findUser);
+
+                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde oturum acabileceğiniz üyelik bilgileri aşagıdaki gibidir.</p>
+                        <p><strong>Bayi : <strong><span style='color: #ed5565;'>{6}</span></p>
+                        <p><strong>Kullanıcı Adı : <strong><span style='color: #ed5565;'>{3}</span><br> <small>E-mail veya TC-Kimklik numarası ile sisteme giriş yapabilirisiniz</small></p>
+                        <p><strong>Şifre : <strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p><strong>E-Posta : <strong><span style='color: #ed5565;'>{4}</span></p>
+                        <p> Web üzerinden giriş yapmak için lütfen <a href='{1}/Account/SignIn'> Buraya tıklayınız! </a></p>
+                        ", password, url, tenantName, findUser.email, findUser.email, "", findCompany.name + " (" + findCompany.code + ")");
+
+                    new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
+                              .Send((Int16)EmailSendTypes.ZorunluMailler, findUser.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
+                }
+                else
+                {
+                    result.message = "Şirkete Bağlı Kullanıcı Bulunamadı";
+                    result.result = false;
+                }
+
+            }
+            return Json(new ResultStatusUI
+            {
+                FeedBack = result.result ? new FeedBack().Success("Bayi Onaylandı. E-Posta Gönderildi") : new FeedBack().Warning("İşlem gerçekleştirilirken bir hata oluştu!"),
+                Result = result.result
+            }, JsonRequestBehavior.AllowGet);
         }
     }
 }

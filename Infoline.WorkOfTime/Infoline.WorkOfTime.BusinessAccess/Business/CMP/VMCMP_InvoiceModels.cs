@@ -30,6 +30,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<VWCMP_InvoiceItem> InvoiceItems { get; set; }
 		public VWCMP_InvoiceTransform TransformFrom { get; set; }
 		public VWCMP_InvoiceTransform TransformTo { get; set; }
+		public VWCMP_Request requests { get; set; }
+		public VWCMP_Tender tenders { get; set; }
+		public VWFTM_Task Task { get; set; }
+		public VWCMP_Invoice Tender { get; set; }
+		public VWPRJ_Project Projects { get; set; }
 		public VWPA_Transaction Transaction { get; set; } = new VWPA_Transaction();
 		public VWPA_Ledger Ledger { get; set; } = new VWPA_Ledger();
 		public VWPA_Account Account { get; set; } = new VWPA_Account();
@@ -51,6 +56,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
 				this.files = db.GetSYS_FilesByDataIdAll(this.id).ToArray();
 
+			
+
 				if (isTransform == true)
 				{
 					this.B_EntityDataCopyForMaterial(invoice, true);
@@ -71,11 +78,48 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.TransformFrom = db.GetVWCMP_InvoiceTransformByIsTransformedTo(this.id).FirstOrDefault();
 					this.Transactions = db.GetVWPA_TransactionByInvoiceId(this.id);
 					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).FirstOrDefault();
+					this.requests = db.GetVWCMP_RequestById(this.id);
+					this.tenders = db.GetVWCMP_TenderById(this.id);
 					if (this.IsCopy == true)
 					{
 						this.status = (short)EnumCMP_InvoiceStatus.Odenecek;
 					}
 				}
+				if(this.requests != null)
+                {
+					if (this.requests.taskId.HasValue)
+					{
+						Task = db.GetVWFTM_TaskById(this.requests.taskId.Value);
+
+						if (Task != null && Task.companyId.HasValue)
+						{
+							var project = db.GetPRJ_ProjectByCompanyIdIsActive(Task.companyId.Value);
+
+							if (project != null)
+							{
+								this.projectId = project.id;
+							}
+						}
+
+						if (invoice != null)
+						{
+							var tender = db.GetVWCMP_InvoiceByPid(this.requests.id);
+							if (tender != null)
+							{
+								Tender = db.GetVWCMP_InvoiceByPid(tender.id);
+							}
+						}
+
+					}
+
+                    if (this.requests.projectId.HasValue)
+                    {
+						this.Projects = db.GetVWPRJ_ProjectById(this.requests.projectId.Value);
+
+					}
+
+				}
+			
 			}
 			else
 			{

@@ -1,0 +1,85 @@
+﻿@{
+    ViewBag.Title = "Bayi Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+<script type="text/javascript">
+    function invoiceAdressSplit(e) {
+        if (e != null && e != undefined && e != '') {
+            return e.substring(0, 35);
+        }
+    }
+</script>
+<div class="col-sm-2">
+
+    <a class="btn btn-block btn-primary" style="margin-bottom:20px" data-task="Insert" data-method="GET" data-href="@Url.Action("SendCompanyCodeMail", "VWSH_User", new { area = "SH",IsMyStaff = true })"><i class="fa fa-mail-forward"></i> Bayi Kodu Gönder</a>
+
+    <ul class="folder-list m-b-md" style="padding: 0">
+        <li class="clearfix">
+            <a href="#" data-grid="VWCMP_Company" data-switch="radio" data-category="1" data-query="CMPTypeIds~contains~'03826FA5-1477-F537-F093-57A8C3BEDA5F'">
+                <i class="fa fa-list"></i>  Tümü
+                <span data-counturl="/CMP/VWCMP_Company/DataSourceCount?filter=CMPTypeIds~contains~'03826FA5-1477-F537-F093-57A8C3BEDA5F'" class="badge badge-success pull-right">0</span>
+            </a>
+            <a href="#" data-grid="VWCMP_Company" data-switch="radio" data-category="1" data-query="CMPTypeIds~contains~'03826FA5-1477-F537-F093-57A8C3BEDA5F'~and~isActive~eq~1">
+                <i class="fa fa-spinner text-warning"></i>  Onay Bekleyenler
+                <span data-counturl="/CMP/VWCMP_Company/DataSourceCount?filter=CMPTypeIds~contains~'03826FA5-1477-F537-F093-57A8C3BEDA5F'~and~isActive~eq~1" class="badge badge-warning pull-right">0</span>
+            </a>
+            <a href="#" data-grid="VWCMP_Company" data-switch="radio" data-category="1" data-query="CMPTypeIds~contains~'03826FA5-1477-F537-F093-57A8C3BEDA5F'~and~isActive~eq~0">
+                <i class="fa fa-check text-primary"></i>  Onaylananlar
+                <span data-counturl="/CMP/VWCMP_Company/DataSourceCount?filter=CMPTypeIds~contains~'03826FA5-1477-F537-F093-57A8C3BEDA5F'~and~isActive~eq~0" class="badge badge-primary pull-right">0</span>
+            </a>
+
+        </li>
+    </ul>
+</div>
+<div class="col-sm-10">
+    @(Html.Akilli()
+        .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Company>("VWCMP_Company")
+        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Company", new { area = "CMP" })).Sort(a => a.Add(c => c.name)).PageSize(25).Filter(a=>a.CMPTypes_Title.Contains("Bayi")))
+        .Selectable(x=>x.Mode(GridSelectionMode.Single))
+        .Filterable(a => a.Mode(GridFilterMode. Row))
+        .Columns(x =>
+        {
+            x.Bound(y => y.searchField).Title("Şirket Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+            x.Bound(y => y.code).Title("Kodu").Hidden(true);
+            x.Bound(y => y.name).Title("İsmi").Hidden(true);
+            x.Bound(y => y.commercialTitle).Title("Fatura Ünvanı").Hidden(true);
+            x.Bound(y => y.CMPTypes_Title).Title("Cari Tipi").Hidden(true);
+            x.Bound(y => y.isActive_Title).Title("Cari Durumu").Hidden(true);
+            x.Bound(y => y.openAddressLocationId_Title).Title("Ülke/İl/İlçe").Hidden(true);
+            x.Bound(y => y.email).Title("E-Mail").Hidden(true);
+            x.Bound(y => y.phone).Title("Telefon Numarası").Hidden(true);
+            x.Bound(y => y.fax).Title("Faks Numarası").Hidden(true);
+            x.Bound(y => y.mersisNo).Title("Mersis No").Hidden(true);
+            x.Bound(y => y.taxNumber).Title("Vergi Numarası").Hidden(true);
+            x.Bound(y => y.taxOffice).Title("Vergi Dairesi").Hidden(true);
+            x.Bound(y => y.spesificInvoiceAdress).Title("Fatura Adresi").ClientTemplate("#=invoiceAdressSplit(data.invoiceAddress)#").Hidden(true);
+            x.Bound(y => y.spesificOpenAdress).Title("Açık Adres").ClientTemplate("#=invoiceAdressSplit(data.openAddress)#").Hidden(true);
+        })
+        .Scrollable(x => x.Height(650))
+        .Selectable(x => x.Mode(GridSelectionMode.Single))
+        .ToolBar(x =>
+        {
+            x.Custom().Text("<i class='fa fa-check' data-original-title='Bayi Onayla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "id", "confirm" } }).Url(Url.Action("Confirm", "VWCMP_Company", new { area = "CMP" }));
+            x.Custom().Text("<i data-original-title='Bayi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Company", new { area = "CMP" }));
+            x.Custom().Text("<i data-original-title='Bayi Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" },{ "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Company", new { area = "CMP" }));
+            x.Custom().Text("<i data-original-title='Bayi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete","VWCMP_Company", new { area = "CMP" }));
+        })
+     )
+</div>
+<script type="text/javascript">
+    $("#VWCMP_Company").on("selected:grid", function () {
+        var data = $("#VWCMP_Company").data("handler");
+        var item = data.dataItem(data.select());
+        if (item == null) {
+            $("#confirm").hide();
+        }
+        debugger;
+        if (item.isActive == 0) {
+            $("#confirm").hide();
+        }
+        else {
+            $("#confirm").show();
+        }
+    });
+</script>

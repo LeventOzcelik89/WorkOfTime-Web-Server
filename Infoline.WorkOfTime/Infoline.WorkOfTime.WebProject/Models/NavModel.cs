@@ -165,10 +165,7 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Mesai Takip Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             personel.AddChild(new Menu("Detaylı Personel Raporları", "/SH/VWSH_UserReport"));
             personel.AddChild(new Menu("Organizasyon Şeması Yönetimi", "/INV/VWINV_CompanyDepartments"));
-            if (TenantConfig.Tenant.TenantCode==1194||TenantConfig.Tenant.TenantCode==1100)
-            {
-                personel.AddChild(new Menu("Bayi Personelleri", "/SH/VWSH_User/CompanyPersonIndex"));
-            }
+           
          
             ik.AddChild(personel);
 
@@ -348,6 +345,7 @@ namespace System.Web.Mvc
             satinalma.AddChild(new Menu("Satın Alma Talepleri", "/CMP/VWCMP_Request/Index"));
             satinalma.AddChild(new Menu("Satın Alma Teklifleri", "/CMP/VWCMP_Tender/IndexBuying"));
             satinalma.AddChild(new Menu("Alış Faturaları", "/CMP/VWCMP_Invoice/IndexBuying"));
+            satinalma.AddChild(new Menu("Alış Faturası Raporları", "/CMP/VWCMP_Invoice/IndexBuyingReport"));
             return satinalma;
         }
 
@@ -410,6 +408,11 @@ namespace System.Web.Mvc
             }
             menu.AddChild(new Menu("Şube/Depo/Kısım Haritası", "/CMP/VWCMP_Storage/Map"));
             menu.AddChild(new Menu("Müşteri Rehberi", "/SH/VWSH_User/ContactCustomerPersons"));
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
+            {
+                menu.AddChild(new Menu("Bayi Personelleri", "/SH/VWSH_User/CompanyPersonIndex"));
+                menu.AddChild(new Menu("Bayi Onay Listesi", "/CMP/VWCMP_Company/CompanyApproveIndex"));
+            }
             return menu;
         }
 

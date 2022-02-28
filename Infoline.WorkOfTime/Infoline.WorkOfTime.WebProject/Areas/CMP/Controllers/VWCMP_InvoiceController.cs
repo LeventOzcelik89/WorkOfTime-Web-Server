@@ -23,6 +23,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return View();
         }
 
+        [PageInfo("Alış Faturası Raporları", SHRoles.OnMuhasebe, SHRoles.MuhasebeAlis)]
+        public ActionResult IndexBuyingReport()
+        {
+            return View();
+        }
+
+
         [PageInfo("Faturalar Metodu", SHRoles.OnMuhasebe, SHRoles.MuhasebeSatis, SHRoles.MuhasebeAlis, SHRoles.SatisFatura, SHRoles.ProjeYonetici,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
@@ -87,6 +94,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             ViewBag.EnumProperties = EnumsProperties.EnumToArrayGeneric<EnumCMP_InvoiceActionType>().ToArray();
             return View(data);
         }
+
+        [PageInfo("Alış Faturası Detayı 2", SHRoles.OnMuhasebe, SHRoles.ProjeYonetici, SHRoles.MuhasebeAlis)]
+        public ActionResult DetailBuying2(Guid id)
+        {
+            var data = new VMCMP_InvoiceModels { id = id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis);
+            ViewBag.EnumProperties = EnumsProperties.EnumToArrayGeneric<EnumCMP_InvoiceActionType>().ToArray();
+            return View(data);
+        }
+
 
         [PageInfo("Satış Faturası Ekleme", SHRoles.OnMuhasebe, SHRoles.MuhasebeSatis, SHRoles.SatisFatura)]
         public ActionResult InsertSelling(VMCMP_InvoiceModels item, bool? transform = false)

@@ -1,6 +1,6 @@
 ﻿@{
-    ViewBag.Title = "Görevler ve Planlanmış Görevler Yönetimi";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = "Görevler ve Planlanmış Görevler Yönetimi";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <script type="text/javascript">
@@ -21,15 +21,150 @@
 	}
 </script>
 
-<div class="row clearfix">
-	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-		<div class="ibox-custom ">
-			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+<style type="text/css">
 
-				<div class="row">
-					<div class="col-md-4">
-						<div class="form-group">
-							@(
+	#CalendarContainer .calendar-header {
+		display: none;
+	}
+
+	.withTabs .customTabs:before {
+		content: 'YIL :';
+	}
+
+	.legendTable tr td {
+		padding: 4px;
+	}
+
+	.tab-content {
+		border: none !important;
+	}
+
+	.withTabs .tab-content .tab-pane {
+		padding: 0px;
+	}
+
+	.calendar {
+		padding: 0px !important;
+		margin: 20px 0px;
+	}
+
+	.popover {
+		max-width: 360px !important;
+		z-index: 2001;
+	}
+
+	.popover-content {
+		width: 320px;
+	}
+
+	.capt {
+		text-decoration: underline;
+		margin-bottom: 10px;
+		margin-top: 10px;
+	}
+
+	.popover .btn-group {
+		width: 100%;
+		margin-top: 10px;
+		border-top: 1px solid #ccc;
+		padding-top: 10px;
+		margin-left: -15px;
+		width: calc(30px + 100%);
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+
+		.popover .btn-group .btn {
+			float: right;
+		}
+
+	.popover-content h3 {
+		color: #f00;
+	}
+
+	[class^="levelLegend"] {
+		width: 30px;
+		height: 18px;
+		display: inline-block;
+		float: left;
+		margin-right: 6px;
+		margin-left: 6px;
+	}
+
+	.levelLegend1 {
+		background: #f818f1;
+		margin-left: 0px !important;
+	}
+
+	.levelLegend2 {
+		background-color: #e2f818;
+	}
+
+	.levelLegend3 {
+		background-color: #23c6c8;
+	}
+
+	.levelLegend4 {
+		background-color: #453cd1;
+	}
+
+	.levelLegend5 {
+		background-color: #d52525;
+	}
+
+	.levelLegend6 {
+		background-color: #04ffb2;
+	}
+
+	.levelLegend7 {
+		background-color: #ffbc00;
+	}
+
+	.levelLegend8 {
+		background-color: #25ef0c;
+	}
+
+	.legendTable {
+		margin-bottom: 4px;
+		clear: none;
+		border: 1px solid #EBEBEB;
+	}
+
+	.calPopover .close {
+		margin-top: -12px;
+		margin-right: -8px;
+	}
+
+	[data-target="type_Title"] .badge > i {
+		margin-right: 4px;
+	}
+
+	.detailList li > i, .detailList li > strong {
+		float: left;
+	}
+
+	.detailList li > i {
+		margin-right: 5px;
+	}
+
+	.detailList li {
+		text-align: right;
+	}
+
+	#insertRadio.akilliRadioGrup label {
+		width: 8.4% !important;
+	}
+</style>
+
+
+<div class="ibox m-b-none">
+	<div class="ibox-title" style="padding: 22px 15px 43px !important;">
+
+		<div class="col-md-8" style="margin-top: -11px;margin-left: 331px;">
+			<div class="col-md-12">
+				<div class="col-md-5">
+					<div class="form-group">
+						@(
                                        Html.Akilli()
                                        .DropDownList("group")
                                        .OptionLabel("Lütfen Grub/Ekip Seçiniz..")
@@ -40,12 +175,11 @@
                                        .Sort(x => x.Add("name").Ascending())
                                        .Execute()
                                    )
-						</div>
 					</div>
-
-					<div class="col-md-5">
-						<div class="form-group">
-							@(
+				</div>
+				<div class="col-md-5">
+					<div class="form-group">
+						@(
                                        Html.Akilli()
                                        .MultiSelect("userIds")
                                        .Placeholder("Lütfen Personel Seçiniz..")
@@ -57,108 +191,72 @@
                                        .Sort(x => x.Add("FullName").Ascending())
                                        .Execute()
                                    )
-						</div>
-					</div>
-
-					<div class="col-md-3 pull-right">
-						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
 					</div>
 				</div>
-
+				<div class="col-md-2">
+					<button class="btn btn-md btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
+				</div>
 			</div>
 
-			<br />
+		</div>
+		<div class="col-md-6" style="margin-top: -11px;">
+			
 		</div>
 	</div>
-</div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="ibox m-b-none">
-            <div class="ibox-title">
-                <div class="col-md-6">
-                    <h5>Görev Takvimi</h5>
-                </div>
-                <div class="col-md-6">
+	<div class="ibox-content">
+		<fieldset class="withTabs" id="CalendarContainer">
+			<legend>GÖREV TAKVİMİ</legend>
 
-                    <div class="btn-group pull-right" style="margin-top: -5px;">
-                    </div>
-
-                </div>
-            </div>
-            <div class="ibox-content">
-
-                <div id="TaskCalendar"></div>
-
-            </div>
-        </div>
-    </div>
+			<div id="TaskCalendar"></div>
+			<br />
+			<table class="legendTable">
+				<tbody>
+					<tr>
+						<td>Plana Bağlı <b>Görev</b> <span class="levelLegend1"></span></td>
+						<td>Personel Ataması <b>Bekleniyor</b> <span class="levelLegend2"></span></td>
+						<td>Görev Üstlenilmeyi <b>Bekleniyor</b> <span class="levelLegend3"></span></td>
+						<td>Görev <b>Devam Ediyor</b> <span class="levelLegend4"></span></td>
+						<td>Görev <b>Durduruldu</b> <span class="levelLegend5"></span></td>
+						<td>Görev <b>Yeniden Başlatıldı</b> <span class="levelLegend6"></span></td>
+						<td>Görev <b>Çözüm Bildirildi</b> <span class="levelLegend7"></span></td>
+						<td>Görev <b>Çözümü Onaylandı</b> <span class="levelLegend8"></span></td>
+					</tr>
+				</tbody>
+			</table>
+		</fieldset>
+	</div>
 </div>
 
 
 <script id="eventTemplate2" type="text/x-kendo-template">
 
-    <div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #">
+	#if(taskPlanId != null){#
+	<div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #" style="background-color:#=returnColor()#">
+	#}
+	else
+	{#
+	<div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #" style="background-color:#=GetColor(lastOperationStatus)#">
+	#}#
 
-    #=GetPriority(priority)#
-
-    #=GetType(type)#
-
-    #= (IsTemplate == true ? '' : GetOperation(lastOperationStatus)) #
-
-    #:title#
-
-    </div>
-
+	#=GetPriority(priority)#
+	#=GetType(type)#
+	#= (IsTemplate == true ? '' : GetOperation(lastOperationStatus)) #
+	#:title#
+	</div>
 </script>
 
 <style type="text/css">
-    .type, .priority, .operation {
-        background-color: #ffffff;
-        padding: 2px;
-        float: left;
-        margin: -4px 2px 0px 0px;
-        font-weight: bold;
-        color: #000;
-    }
 
-    .event-scheduled {
-        background-color: #f08080;
-        height: 100%;
-    }
-
-    @@media (min-width: 992px) {
-        .modal-lg {
-            width: 1200px !important;
-        }
-    }
-
-    .modal-dialog .modal-body,
-    .modal-dialog .tab-pane,
-    .modal-dialog .ibox {
-        padding: 0px;
-    }
-
-    .modal-body form {
-        padding: 15px !important;
-    }
-
-    .k-event {
-        cursor: pointer;
-    }
+	.event-scheduled {
+		background-color: #f08080;
+		height: 100%;
+	}
 
 
-    element.style {
-    }
-
-    #insertRadio label {
-        width: 9.1% !important;
-    }
-
-    #insertRadio.akilliRadioGrup i.icon-shuffle {
-        font-size: 30px !important;
-    }
-
+	.k-event {
+		cursor: pointer;
+	}
 </style>
 
 <script type="text/javascript">
@@ -171,22 +269,94 @@
             priority: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))
         },
         init: function () {
-
-            $('#TaskCalendar').kendoScheduler({
-                date: new Date(),
-                localization: 'tr-TR',
-                editable: false,
-                eventTemplate: $("#eventTemplate2").html(),
-                views: [
-                    { type: 'day' },
-                    { type: 'week', selected: true },
-                    { type: 'month' }
-                ]
-            });
-
+            _calendar.CreateScheduler();
             this.elem = $('#TaskCalendar').data('kendoScheduler');
+			this.GetTasks();
+        },
+		onChangeUserClose: function (e) {
+			var userIds = $("#assignableUsersIds").data("kendoMultiSelect");
+			var taskId = $('[data-taskId]')[0].dataset.taskid
 
-            this.GetTasks();
+			if (userIds == undefined) {
+				userIds = null;
+			}
+
+				$("#assignableUserListId").html(null);
+
+				$.ajax({
+					type: "POST",
+					url: '/FTM/VWFTM_Task/UpdateStaff',
+					data: { id: taskId, assignableUsers: userIds.value() },
+					success: function (response) {
+						if (response.Result) {
+							MesajSuccess(response.FeedBack.message, "Personel Ataması Başarılı")
+							$.ajax({
+								type: "GET",
+								url: '/FTM/VWFTM_Task/TaskLoad?id=' + taskId,
+								success: function (result) {
+
+
+									if (result.Object != null && result.Object.length > 0) {
+										$.each(result.Object, function (index, value) {
+											$("#assignStaffDivId").addClass("hide");
+											$("#assignableUserDivId").removeClass("hide");
+											$("#assignableUserListDivId").removeClass("hide");
+											$("#assignableUserListId").append("<a href='#'> <img alt='image' data-toggle='tooltip' data-placement='top' data-original-title='" + value.userId_Title + "' onerror='ImageError(this,'/Content/Custom/img/na.png')' class='img-circle' src='" + (value.photo != null ? value.photo : '/Content/Custom/img/na.png') + "'> </a>");
+										});
+									}
+									else {
+										$("#assignableUserListDivId").addClass("hide")
+									}
+								},
+								async: false
+							}).responseJSON;
+						}
+						else {
+							MesajWarning(response.FeedBack.message, "Personel Atama İşlemi Başarısız")
+						}
+					},
+					async: false
+				}).responseJSON;
+
+
+
+		},
+        CreateScheduler: function () {
+
+			$('#TaskCalendar').kendoScheduler({
+				date: new Date(),
+				localization: 'tr-TR',
+				scroll: true,
+				eventTemplate: $("#event-template").html(),
+				editable: {
+					create: true,
+					move: false,
+					resize: false,
+					confirmation: false
+				},
+				eventTemplate: $("#eventTemplate2").html(),
+				add: function (e) {
+					Kendo_GetRequest('/FTM/VWFTM_Task/Insert', { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
+					e.preventDefault();
+					return false;
+				},
+				edit: function (e) {
+					var buttonsContainer = e.container.find(".k-edit-buttons");
+					var cancelButton = buttonsContainer.find(".k-scheduler-update");
+					var removeButtonContainer = buttonsContainer.find(".k-icon k-si-close");
+					removeButtonContainer.remove();
+					cancelButton.text("");
+					buttonsContainer.text("");
+
+				},
+				views: [
+					{ type: 'day' },
+					{ type: 'week' },
+					{ type: 'month', selected: true }
+				]
+			});
+
+			this.elem = $('#TaskCalendar').data('kendoScheduler');
 
         },
         GetTasks: function () {
@@ -225,7 +395,94 @@
 
         return '<span data-toggle="tooltip" title="' + item.Value + '" class="type"><i class="' + item.Generic.icon + '"></i></span>';
 
-    }
+	}
+
+	function GetStatusColor(_key) {
+
+		var color = "";
+		var text = "";
+
+		if (_key < '@((int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi)') {
+			color = "#e2f818";
+			text = "Personel Ataması Bekleniyor";
+		}
+		else if (_key <= '@((int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi)' ) {
+
+			color = "#23c6c8";
+			text = "Görev Üstlenilmeyi Bekliyor";
+		}
+		else if (_key >= '@((int)EnumFTM_TaskOperationStatus.GorevBaslandi)' && _key < '@((int)EnumFTM_TaskOperationStatus.UrunDegisimi)') {
+			color = "#66df8b";
+			text = "Göreve Başlandı";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevDurduruldu)') {
+			color = "#bd5050";
+			text = "Görev Durduruldu";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)') {
+			color = "#453cd1";
+			text = "Görev Yeniden Başlatıldı";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumBildirildi)') {
+			color = "#ffbc00";
+			text = "Çözüm Bildirildi";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumOnaylandi)') {
+			color = "#25ef0c";
+			text = "Çözüm Onaylandı";
+		}
+		else {
+			color = "#0818d9";
+			text = "Görev Devam Ediyor";
+		}
+
+		return '<span data-toggle="tooltip" title="' + text + '" class="k-scheduler-mark" style="background-color: ' + color + ';font-size: 10px;margin-top: -7px;" data-original-title="' + text + '"></span>'
+	}
+
+	function GetColor(_key) {
+
+		var color = "";
+
+		if (_key < '@((int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi)') {
+			color = "#e2f818";
+		}
+		else if (_key <= '@((int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi)' ) {
+
+			color = "#23c6c8";
+		}
+		else if (_key >= '@((int)EnumFTM_TaskOperationStatus.GorevBaslandi)' && _key < '@((int)EnumFTM_TaskOperationStatus.UrunDegisimi)') {
+			color = "#66df8b";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevDurduruldu)') {
+			color = "#bd5050";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)') {
+			color = "#453cd1";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumBildirildi)') {
+			color = "#ffbc00";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumOnaylandi)') {
+			color = "#25ef0c";
+		}
+		else {
+			color = "#0818d9";
+		}
+
+		$('[class="k-icon k-si-close"]').remove()
+
+		return color;
+	}
+
+
+	function returnColor() {
+		var color = "";
+		color = "#f818f1";
+
+		$('[class="k-icon k-si-close"]').remove()
+
+		return color;
+	}
 
     function GetPriority(_key) {
 
@@ -235,7 +492,7 @@
             return '';
         }
 
-        return '<span data-toggle="tooltip" title="' + item.Value + '" class="priority" style="background-color: #' + item.Generic.color + '">' + '!' + '</span>';
+		return '<span data-toggle="tooltip" title="' + item.Value + '" class="priority" style="background-color: #' + item.Generic.color + '">' + 'ⓘ' + '</span>';
 
     }
 
@@ -251,42 +508,50 @@
 
     }
 
-    $(document)
+	$(document)
 
-        .on('click', '#TaskCalendar .k-event', function () {
+		.on('click', '#TaskCalendar .k-event', function () {
 
-            var uid = $(this).attr('data-uid');
+			var uid = $(this).attr('data-uid');
 
-            _calendar.ShowTask(uid);
+			_calendar.ShowTask(uid);
 
-        })
+		})
 
-        .on('shown:modal', function (e, dialog) {
+		.on('shown:modal', function (e, dialog) {
+		})
+
+		.on('ready', function () {
+			_calendar.init();
+		})
+
+		.on('success', '#MultipleForm', function (e, res) {
+
+			if (res.Result == true) {
+				setTimeout(function () {
+					_calendar.GetTasks();
+				}, 200);
+			}
+		})
+		.on("click", '[data-event="clear"]', function () {
+			_calendar.onChangeUserClose();
+		})
+		.on("click", '[class="k-icon k-i-close"]', function () {
+			_calendar.onChangeUserClose();
+		});
 
 
-        })
 
-        .on('ready', function () {
-
-            _calendar.init();
-
-        })
-
-        .on('success', '#MultipleForm', function (e,res) {
-
-            if (res.Result == true) {
-
-                setTimeout(function () {
-
-                    _calendar.GetTasks();
-
-                }, 200);
-
-            }
-
-        })
-
-        ;
+	$("#DashBoardFilter").click(function () {
+		var userIds = $("#userIds").val();
+		GetJsonDataFromUrl('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds }, function (res) {
+			$("#TaskCalendar").html(null)
+			_calendar.CreateScheduler();
+			_calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
+				data: res.objects
+			}));
+		});
+	});
 
 </script>
 

@@ -51,7 +51,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (emails.Count() > 0)
             {
-                return new ResultStatus { result = false, message = "Email Adresi Kullanılıyor" };
+                return new ResultStatus { result = false, message = "Girmiş olduğunuz email adresi sistemde kullanılıyor.Lütfen başka bir email ile işleminize devam edin." };
             }
 
             var company = db.GetCMP_CompanyById(this.CompanyId.Value);
@@ -59,7 +59,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (company.type == (int)EnumCMP_CompanyType.Benimisletmem)
             {
-                this.type = (int)EnumSH_UserType.MyPerson;
                 result &= user == null ? this.Insert() : this.Update(user);
             }
             else
@@ -111,6 +110,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (this.status == null)
                 {
                     this.status = true;
+                }
+                if (this.type == (int)EnumSH_UserType.CompanyPerson)
+                {
+                    this.status = false;
                 }
 
                 this.loginname = Guid.NewGuid().ToString().Substring(0, 8);
@@ -393,7 +396,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             rs &= db.BulkDeletePA_Ledger(relatedAccountLedgers, this.trans);
             rs &= db.BulkDeletePA_Transaction(transactions, this.trans);
             rs &= db.BulkDeletePA_Account(accounts, this.trans);
-            rs &= new ConfirmationRefresher().RefreshAll(this.id,trans);
+            rs &= new ConfirmationRefresher().RefreshAll(this.id, trans);
 
             if (rs.result == true)
             {
@@ -810,7 +813,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var tenantName = TenantConfig.Tenant.TenantName;
             var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName} | WorkOfTime sistemi üzerinde kayıt isteğiniz başarıyla alınmıştır. Süreciniz onaylandığı zaman sizi tekrar bilgilendireceğiz</p>";
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
-                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Personel Kayıt İsteği"), true);
         }
 
         private void SendFirstCustomerMailToIK(VWSH_User user, VWCMP_Company company)
@@ -825,7 +828,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                  $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={this.id}'> Buraya tıklayınız!</a></p>";
 
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
-                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Personel Kayıt İsteği"), true);
         }
     }
 

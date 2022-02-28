@@ -93,6 +93,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public INV_CompanyPerson GetINV_CompanyPersonByCompanyIdFirst(Guid companyId, DbTransaction tran = null)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<INV_CompanyPerson>().Where(a => a.CompanyId==companyId).Execute().FirstOrDefault();
+            }
+        }
+
     }
 
 }
