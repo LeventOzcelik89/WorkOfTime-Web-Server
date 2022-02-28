@@ -131,14 +131,11 @@
 				</dl>
 			}
 			<dl class="dl-horizontal">
-
 				@if (Model.taskPlanId_Title != null)
 				{
 					<dt>Bakım Planı :</dt>
 					<dd>@Model.taskPlanId_Title  <a data-href="/FTM/VWFTM_TaskPlan/TemplatePlanDetail?id=@Model.taskPlanId" data-modal="true" data-task="Insert" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
-
 				}
-
 			</dl>
 
 			<dl class="dl-horizontal">
@@ -150,8 +147,6 @@
 				<dt>Planlanan Bitiş :</dt>
 				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.dueDate) </dd>
 			</dl>
-
-
 
 			<dl class="dl-horizontal">
 				<dt>Geçen Süre:</dt>
@@ -216,18 +211,18 @@
 				<div class="col-md-9 pull-right">
 					<div class="form-group">
 						@(
-									   Html.Akilli()
-									   .MultiSelect("assignableUsers")
-									   .Placeholder("Personel Seçiniz..")
-									   .DataValueField("id")
-									   .DataTextField("FullName")
-									   .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
-									   .Events(a => a.Close("_calendar.onChangeUserClose"))
-									   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-									   .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
-									   .Sort(x => x.Add("FullName").Ascending())
-									   .Execute()
-                                   )
+						 Html.Akilli()
+						 .MultiSelect("assignableUser")
+						 .Placeholder("Personel Seçiniz..")
+						 .DataValueField("id")
+						 .DataTextField("FullName")
+						 .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+						 .Events(a => a.Close("_calendar.onChangeUserClose"))
+						 .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+						 .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
+						 .Sort(x => x.Add("FullName").Ascending())
+						 .Execute()
+                         )
 					</div>
 				</div>
 
@@ -248,8 +243,6 @@
 				}
 				else
 				{
-
-
 					<dl class="dl-horizontal hide" id="assignableUserListDivId">
 						<dt>Üstlenebilecekler:</dt>
 						<dd class="project-people" id="assignableUserListId">
@@ -266,10 +259,6 @@
 		<div class="button-group">
 			<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Kapat</button>
 			<a href="/FTM/VWFTM_Task/Detail?id=@Model.id" class="btn btn-md btn-info pull-right" target="_blank"><i class="fa fa-info-circle"></i> Detay</a>
-			@if (Model.assignUserId == null && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)))
-			{
-				<a class="btn btn-md btn-warning pull-right" data-task="Insert" data-method="GET" data-modal="true" data-show="single" style="margin-right: 12px;" data-href="@Url.Action("Update","VWFTM_Task",new {area="FTM",id=Model.id })"><i class="fa fa-edit"></i> Düzenle </a>
-			}
 		</div>
 	</div>
 

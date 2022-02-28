@@ -140,7 +140,7 @@
             this.GetTasks();
         },
 		onChangeUserClose: function (e) {
-			var userIds = $("#assignableUsers").data("kendoMultiSelect");
+			var userIds = $("#assignableUser").data("kendoMultiSelect");
 			var taskId = $('[data-taskId]')[0].dataset.taskid
 
 				$("#assignableUserListId").html(null);
@@ -157,7 +157,7 @@
 								url: '/FTM/VWFTM_Task/TaskLoad?id=' + taskId,
 								success: function (result) {
 
-									debugger;
+									
 									if (result.Object != null && result.Object.length > 0) {
 										$.each(result.Object, function (index, value) {
 											$("#assignStaffDivId").addClass("hide");
@@ -189,10 +189,15 @@
 				date: new Date(),
 				localization: 'tr-TR',
 				height: 700,
+				showWorkHours: true,
+				//majorTick: 60,
+				scroll: true,
+				eventTemplate: $("#event-template").html(),
 				editable: {
 					create: true,
 					move: false,
-					resize: false
+					resize: false,
+					confirmation: false
 				},
 				eventTemplate: $("#eventTemplate2").html(),
 				add: function (e) {
@@ -201,7 +206,6 @@
 					return false;
 				},
 				edit: function (e) {
-					debugger;
 					var buttonsContainer = e.container.find(".k-edit-buttons");
 					var cancelButton = buttonsContainer.find(".k-scheduler-update");
 					var removeButtonContainer = buttonsContainer.find(".k-icon k-si-close");
@@ -360,13 +364,13 @@
         ;
 
 	$("#DashBoardFilter").click(function () {
-		debugger;
+		
 		var userIds = $("#userIds").val();
 
 		GetJsonDataFromUrl('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds }, function (res) {
 			$("#TaskCalendar").html(null)
 			_calendar.CreateScheduler();
-			debugger;
+			
 
 			_calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
 				data: res.objects
