@@ -17,6 +17,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<VWFTM_TaskOperation> taskOperations { get; set; }
 		public List<VWFTM_TaskUser> taskUsers { get; set; }
 		public List<Guid> assignableUsers { get; set; }
+		public List<Guid> assignableUsersIds { get; set; }
 		public List<VWFTM_TaskUserHelper> taskUsersHelper { get; set; }
 		public List<FTM_TaskFollowUpUser> taskFollowUpUsers { get; set; } = new List<FTM_TaskFollowUpUser>();
 		public List<Guid> helperUsers { get; set; }

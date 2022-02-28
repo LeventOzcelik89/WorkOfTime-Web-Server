@@ -794,6 +794,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             }
             return "";
         }
+        [AllowEveryone]
         [PageInfo("Şirket Onaylama")]
         public JsonResult Confirm(Guid id)
         {
@@ -812,8 +813,33 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var result = db.UpdateCMP_Company(findCompany);
             if (result.result && findCompanyPerson != null)
             {
-                var user = new VMSH_UserModel { id = findCompanyPerson.id }.Load();
-                user.SendPasswordForCustomer();
+                var findUser = db.GetSH_UserById(findCompanyPerson.IdUser.Value);
+                if (findUser != null)
+                {
+                    findUser.status = true;
+                    string url = TenantConfig.Tenant.GetWebUrl();
+                    var password = Guid.NewGuid().ToString().Substring(0, 8);
+                    findUser.password = db.GetMd5Hash(db.GetMd5Hash(password));
+                    var tenantName = TenantConfig.Tenant.TenantName;
+                    result &= db.UpdateSH_User(findUser);
+
+                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde oturum acabileceğiniz üyelik bilgileri aşagıdaki gibidir.</p>
+                        <p><strong>Bayi : <strong><span style='color: #ed5565;'>{6}</span></p>
+                        <p><strong>Kullanıcı Adı : <strong><span style='color: #ed5565;'>{3}</span><br> <small>E-mail veya TC-Kimklik numarası ile sisteme giriş yapabilirisiniz</small></p>
+                        <p><strong>Şifre : <strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p><strong>E-Posta : <strong><span style='color: #ed5565;'>{4}</span></p>
+                        <p> Web üzerinden giriş yapmak için lütfen <a href='{1}/Account/SignIn'> Buraya tıklayınız! </a></p>
+                        ", password, url, tenantName, findUser.email, findUser.email, "", findCompany.name + " (" + findCompany.code + ")");
+
+                    new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
+                              .Send((Int16)EmailSendTypes.ZorunluMailler, findUser.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
+                }
+                else
+                {
+                    result.message = "Şirkete Bağlı Kullanıcı Bulunamadı";
+                    result.result = false;
+                }
+
             }
             return Json(new ResultStatusUI
             {

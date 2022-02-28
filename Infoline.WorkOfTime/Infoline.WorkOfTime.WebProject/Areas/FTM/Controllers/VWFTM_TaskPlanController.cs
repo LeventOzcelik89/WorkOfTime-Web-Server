@@ -282,6 +282,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		public ActionResult CalendarDetail(VMFTM_TaskModel request)
 		{
 			request.Load();
+			request.assignableUsersIds = request.assignableUsers;
 			return View(request);
 		}
 

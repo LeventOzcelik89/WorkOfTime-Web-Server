@@ -59,7 +59,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (company.type == (int)EnumCMP_CompanyType.Benimisletmem)
             {
-                this.type = (int)EnumSH_UserType.MyPerson;
                 result &= user == null ? this.Insert() : this.Update(user);
             }
             else
@@ -111,6 +110,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (this.status == null)
                 {
                     this.status = true;
+                }
+                if (this.type == (int)EnumSH_UserType.CompanyPerson)
+                {
+                    this.status = false;
                 }
 
                 this.loginname = Guid.NewGuid().ToString().Substring(0, 8);
@@ -393,7 +396,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             rs &= db.BulkDeletePA_Ledger(relatedAccountLedgers, this.trans);
             rs &= db.BulkDeletePA_Transaction(transactions, this.trans);
             rs &= db.BulkDeletePA_Account(accounts, this.trans);
-            rs &= new ConfirmationRefresher().RefreshAll(this.id,trans);
+            rs &= new ConfirmationRefresher().RefreshAll(this.id, trans);
 
             if (rs.result == true)
             {

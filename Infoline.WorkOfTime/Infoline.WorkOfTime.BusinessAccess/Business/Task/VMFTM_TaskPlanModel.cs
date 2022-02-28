@@ -283,7 +283,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public VMFTM_TaskPlanCalendarModel[] CalendarDataSource(List<Guid> userIds, PageSecurity userStatus)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
-			var query = "SELECT id,lastOperationDate,created,changed,closingDate,code,customer_Title,customerStorage_Title,fixture_Title,planStartDate,dueDate,taskPlanId_Title,priority_Title,plate,priority,lastOperationStatus,assignUserId,assignableUserIds,isComplete,taskPlanId_Title,type_Title,description,penaltyStartDate,amercementTotal,SLAText,assignableUserTitles,taskSubjectType_Title,planLater FROM VWFTM_Task WITH (NOLOCK) WHERE DATEFROMPARTS(YEAR(lastOperationDate), MONTH(lastOperationDate), DAY(lastOperationDate)) = DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), DAY(GETDATE()))  AND taskTemplateId IS NULL AND taskPlanId IS NULL";
+			var query = "SELECT id,lastOperationDate,created,changed,closingDate,code,taskPlanId,customer_Title,customerStorage_Title,fixture_Title,planStartDate,dueDate,priority_Title,plate,priority,lastOperationStatus,assignUserId,assignableUserIds,isComplete,taskPlanId_Title,type_Title,description,penaltyStartDate,amercementTotal,SLAText,assignableUserTitles,taskSubjectType_Title,planLater FROM VWFTM_Task WITH (NOLOCK) WHERE DATEFROMPARTS(YEAR(lastOperationDate), MONTH(lastOperationDate), DAY(lastOperationDate)) = DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), DAY(GETDATE()))";
 
 			if (userIds.Where(a=>a == Guid.Empty).Count() == 0)
 			{
