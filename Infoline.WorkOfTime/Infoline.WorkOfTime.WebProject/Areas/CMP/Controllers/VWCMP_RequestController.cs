@@ -77,7 +77,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			ViewBag.EnumProperties = EnumsProperties.EnumToArrayGeneric<EnumCMP_InvoiceActionType>().ToArray();
 			return View(data);
 		}
-
 		[PageInfo("Satın Alma Talebi Ekleme", SHRoles.SatinAlmaTalebi, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel)]
 		public ActionResult Insert(VMCMP_RequestModels item, bool? transform = false)
 		{
