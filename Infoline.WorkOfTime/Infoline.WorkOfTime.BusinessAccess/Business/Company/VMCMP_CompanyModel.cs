@@ -431,7 +431,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             this.CMP_TypeIds = new Guid[] { Guid.Parse("03826FA5-1477-F537-F093-57A8C3BEDA5F") };
             this.isActive = (int)EnumCMP_CompanyIsActive.Pasif;
-            this.type = (short)EnumCMP_CompanyType.Benimisletmem;
+            this.type = (short)EnumCMP_CompanyType.Diger;
 
             var result = this.Save(Guid.Parse("00000000-0000-0000-0000-000000000000"));
             var userModel = new VMSH_UserModel();
@@ -446,6 +446,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             userModel.companyCellPhoneCode = this.companyUser.companyCellPhoneCode;
             userModel.companyOfficePhone = this.companyUser.companyOfficePhone;
             userModel.companyOfficePhoneCode = this.companyUser.companyOfficePhoneCode;
+            userModel.type = (int)EnumSH_UserType.CompanyPerson;
+            userModel.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli) };
             result &= userModel.Save();
             if (result.result)
             {
