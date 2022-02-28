@@ -345,6 +345,7 @@ namespace System.Web.Mvc
             satinalma.AddChild(new Menu("Satın Alma Talepleri", "/CMP/VWCMP_Request/Index"));
             satinalma.AddChild(new Menu("Satın Alma Teklifleri", "/CMP/VWCMP_Tender/IndexBuying"));
             satinalma.AddChild(new Menu("Alış Faturaları", "/CMP/VWCMP_Invoice/IndexBuying"));
+            satinalma.AddChild(new Menu("Alış Faturası Raporları", "/CMP/VWCMP_Invoice/IndexBuyingReport"));
             return satinalma;
         }
 
