@@ -285,7 +285,7 @@
             {
                 //Kazakistan Kimlik noları ile uymadığı için zorunluluklar kaldırıldı.
 
-                maxlength = 20,
+                maxlength = 11,
                 //minlength = 11,
                 //pattern = "(([1-9]{1})([0-9]{9})([0,2,4,6,8]{1}))",
                 pattern = "[0-9]+",
