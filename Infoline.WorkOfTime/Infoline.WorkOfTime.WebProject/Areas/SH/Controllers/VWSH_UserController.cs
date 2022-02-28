@@ -990,7 +990,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return View();
         }
         [PageInfo("Şirket Personeli Onaylama", SHRoles.IKYonetici)]
-        public JsonResult Confirm(Guid id)
+        public ActionResult Confirm(Guid id)
+        {
+            var model = new VMSH_UserModel { id = id }.Load();
+            return View(model);
+        }
+        [PageInfo("Şirket Personeli Onaylama", SHRoles.IKYonetici)]
+        [HttpPost]
+        public JsonResult Confirm(Guid id,bool? isPost)
         {
             var db = new WorkOfTimeDatabase();
             var findUser = db.GetSH_UserById(id);

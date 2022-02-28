@@ -427,7 +427,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             company = db.GetCMP_CompanyByTaxNumberBayi(this.taxNumber);
             if (company != null)
             {
-                return new ResultStatus { message = "Vergi numarası sistemde bulunmaktadır.Lütfen başka bir vergi numarası ile işlemlerinize devam ediniz." };
+                return new ResultStatus { message = "Vergi numarası sistemde bulunmaktadır.Lütfen başka bir vergi numarası ile işlemlerinize devam ediniz.", result = false };
+            }
+            var email = db.GetSH_UserByEmail(this.companyUser.email);
+            if (email != null && email.Count() > 0)
+            {
+                return new ResultStatus { result = false, message = "Girmiş olduğunuz email adresi sistemde kullanılıyor.Lütfen başka bir email ile işleminize devam edin." };
             }
             this.CMP_TypeIds = new Guid[] { Guid.Parse("03826FA5-1477-F537-F093-57A8C3BEDA5F") };
             this.isActive = (int)EnumCMP_CompanyIsActive.Pasif;
@@ -458,7 +463,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     foreach (var item in Iks)
                     {
-                        SendFirstCustomerMailToIK(item, this.name,userModel);
+                        SendFirstCustomerMailToIK(item, this.name, userModel);
                     }
                 }
             }
