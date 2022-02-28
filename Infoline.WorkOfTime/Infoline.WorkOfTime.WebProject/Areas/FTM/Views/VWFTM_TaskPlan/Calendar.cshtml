@@ -21,6 +21,7 @@
 	}
 </script>
 
+
 <div class="ibox m-b-none">
 	<div class="ibox-title" style="padding: 22px 15px 43px !important;">
 
@@ -91,25 +92,42 @@
 		<div id="TaskCalendar"></div>
 
 	</div>
+	<div class="ibox-title">
+		<div class="col-md-12" style="margin-top: -11px;">
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #e2f818" class="fa fa-circle"></i><span style="margin-left:1px;"> Personel Ataması Bekleniyor</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #23c6c8" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenilmeyi Bekleniyor</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #453cd1" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Devam Etmekte</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #bd5050" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Durduruldu</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #04ffb2" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Yeniden Başlatıldı</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #ffbc00" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözüm Bildirildi</span>
+			</span>
+			<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+				<i style="color: #25ef0c" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözüm Onaylandı</span>
+			</span>
+		</div>
+	</div>
 </div>
 
 
 <script id="eventTemplate2" type="text/x-kendo-template">
-
-	<div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #">
-
-	#=GetStatusColor(lastOperationStatus)#
-
+	<div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #" style="background-color:#=GetColor(lastOperationStatus)#">
+	
 	#=GetPriority(priority)#
-
 	#=GetType(type)#
-
 	#= (IsTemplate == true ? '' : GetOperation(lastOperationStatus)) #
-
 	#:title#
-
 	</div>
-
 </script>
 
 <style type="text/css">
@@ -140,7 +158,7 @@
             this.GetTasks();
         },
 		onChangeUserClose: function (e) {
-			var userIds = $("#assignableUser").data("kendoMultiSelect");
+			var userIds = $("#assignableUsers").data("kendoMultiSelect");
 			var taskId = $('[data-taskId]')[0].dataset.taskid
 
 				$("#assignableUserListId").html(null);
@@ -157,7 +175,7 @@
 								url: '/FTM/VWFTM_Task/TaskLoad?id=' + taskId,
 								success: function (result) {
 
-									
+
 									if (result.Object != null && result.Object.length > 0) {
 										$.each(result.Object, function (index, value) {
 											$("#assignStaffDivId").addClass("hide");
@@ -180,7 +198,7 @@
 					async: false
 				}).responseJSON;
 
-			
+
 
 		},
         CreateScheduler: function () {
@@ -188,9 +206,6 @@
 			$('#TaskCalendar').kendoScheduler({
 				date: new Date(),
 				localization: 'tr-TR',
-				height: 700,
-				showWorkHours: true,
-				//majorTick: 60,
 				scroll: true,
 				eventTemplate: $("#event-template").html(),
 				editable: {
@@ -302,6 +317,39 @@
 		return '<span data-toggle="tooltip" title="' + text + '" class="k-scheduler-mark" style="background-color: ' + color + ';font-size: 10px;margin-top: -7px;" data-original-title="' + text + '"></span>'
 	}
 
+	function GetColor(_key) {
+
+		var color = "";
+
+		if (_key < '@((int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi)') {
+			color = "#e2f818";
+		}
+		else if (_key <= '@((int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi)' ) {
+
+			color = "#23c6c8";
+		}
+		else if (_key >= '@((int)EnumFTM_TaskOperationStatus.GorevBaslandi)' && _key < '@((int)EnumFTM_TaskOperationStatus.UrunDegisimi)') {
+			color = "#66df8b";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevDurduruldu)') {
+			color = "#bd5050";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)') {
+			color = "#453cd1";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumBildirildi)') {
+			color = "#ffbc00";
+		}
+		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumOnaylandi)') {
+			color = "#25ef0c";
+		}
+		else {
+			color = "#0818d9";
+		}
+
+		return color;
+	}
+
     function GetPriority(_key) {
 
         var item = $.Enumerable.From(_calendar.data.priority).Where(a => { return a.Key == _key; }).FirstOrDefault();
@@ -326,59 +374,60 @@
 
     }
 
-    $(document)
+	$(document)
 
-        .on('click', '#TaskCalendar .k-event', function () {
+		.on('click', '#TaskCalendar .k-event', function () {
 
-            var uid = $(this).attr('data-uid');
+			var uid = $(this).attr('data-uid');
 
-            _calendar.ShowTask(uid);
+			_calendar.ShowTask(uid);
 
-        })
+		})
 
-        .on('shown:modal', function (e, dialog) {
+		.on('shown:modal', function (e, dialog) {
 
 
-        })
+		})
 
-        .on('ready', function () {
+		.on('ready', function () {
 
-            _calendar.init();
+			_calendar.init();
 
-        })
+		})
 
-        .on('success', '#MultipleForm', function (e,res) {
+		.on('success', '#MultipleForm', function (e, res) {
 
-            if (res.Result == true) {
+			if (res.Result == true) {
 
-                setTimeout(function () {
+				setTimeout(function () {
 
-                    _calendar.GetTasks();
+					_calendar.GetTasks();
 
-                }, 200);
+				}, 200);
 
-            }
+			}
 
-        })
+		})
+		.on("click", '[data-event="clear"]', function () {
+			_calendar.onChangeUserClose();
+		})
+		.on("click", '[class="k-icon k-i-close"]', function () {
+			_calendar.onChangeUserClose();
+		});
 
-        ;
+
 
 	$("#DashBoardFilter").click(function () {
-		
-		var userIds = $("#userIds").val();
 
+		var userIds = $("#userIds").val();
 		GetJsonDataFromUrl('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds }, function (res) {
 			$("#TaskCalendar").html(null)
 			_calendar.CreateScheduler();
-			
-
 			_calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
 				data: res.objects
 			}));
 		});
 	});
-
-
 
 
 </script>

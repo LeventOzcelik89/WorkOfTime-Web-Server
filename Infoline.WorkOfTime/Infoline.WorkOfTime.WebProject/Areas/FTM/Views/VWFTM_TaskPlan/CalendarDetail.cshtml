@@ -8,6 +8,15 @@
 }
 
 
+<script type="text/x-kendo-template" id="userMultiselectTemplate" data-selector="modalContainer">
+	<div class="clearfix" style="padding:8px 0;">
+		<img class="img-circle img-responsive pull-left" style="width:20px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
+		<div style="width:calc(100% - 70px);float:right;">
+			<div class="template-item">#:FullName#</div>
+			</div>
+		</div>
+	</div>
+</script>
 
 <title class="hide">@ViewBag.Title</title>
 
@@ -208,18 +217,20 @@
 			}
 			else
 			{
-				<div class="col-md-9 pull-right">
+				<div class="col-md-11 pull-right">
 					<div class="form-group">
 						@(
 						 Html.Akilli()
-						 .MultiSelect("assignableUser")
+						 .MultiSelect("assignableUsers")
 						 .Placeholder("Personel Seçiniz..")
 						 .DataValueField("id")
 						 .DataTextField("FullName")
-						 .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+						 .ItemTemplate("#=TemplateEngine('userMultiselectTemplate',data)#")
+						 .HtmlAttributes(new Dictionary<string, object>() { { "style", "border:0px !important" }, { "class", "form-control" } })
 						 .Events(a => a.Close("_calendar.onChangeUserClose"))
 						 .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
 						 .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
+						 .TagMode(TagMode.Multiple)
 						 .Sort(x => x.Add("FullName").Ascending())
 						 .Execute()
                          )
@@ -227,7 +238,7 @@
 				</div>
 
 
-				if (Model.taskUsers.Count() > 0)
+				@*if (Model.taskUsers.Count() > 0)
 				{
 					<dl class="dl-horizontal" id="assignableUserListDivId">
 						<dt>Üstlenebilecekler:</dt>
@@ -249,7 +260,7 @@
 
 						</dd>
 					</dl>
-				}
+				}*@
 			}
 
 		</div>
@@ -259,6 +270,10 @@
 		<div class="button-group">
 			<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Kapat</button>
 			<a href="/FTM/VWFTM_Task/Detail?id=@Model.id" class="btn btn-md btn-info pull-right" target="_blank"><i class="fa fa-info-circle"></i> Detay</a>
+			@if (Model.assignUserId == null && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)))
+			{
+				<a class="btn btn-md btn-warning pull-right" data-task="Insert" data-method="GET" data-modal="true" data-show="single" style="margin-right: 12px;" data-href="@Url.Action("Update","VWFTM_Task",new {area="FTM",id=Model.id })"><i class="fa fa-edit"></i> Düzenle </a>
+			}
 		</div>
 	</div>
 

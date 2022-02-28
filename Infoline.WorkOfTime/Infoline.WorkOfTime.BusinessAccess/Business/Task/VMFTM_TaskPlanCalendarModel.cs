@@ -8,8 +8,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
 
         public bool IsTemplate { get; set; } = false;
+		public string color { get; set; }
 
-        public VMFTM_TaskPlanCalendarModel()
+		public VMFTM_TaskPlanCalendarModel()
         {
             if (!this.planStartDate.HasValue)
             {
@@ -20,6 +21,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.dueDate = new DateTime(2000, 1, 1);
             }
+
+            color = "#23c6c8";
         }
 
         public DateTime start
