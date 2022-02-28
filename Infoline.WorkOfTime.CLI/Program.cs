@@ -12,9 +12,9 @@ namespace Infoline.WorkOfTime.CLI
         static void Main(string[] args)
         {
             var sourceProjectPath = @"C:\Github\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server";
-            var destinationProjectPath = @"C:\Github\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server-Datacenter";
+            var destinationProjectPath = @"C:\Github\Infoline-Bilgi-Teknolojileri\Infoline-ColdChainMonitoring-Web-Server";
             var sourceProjectName = "Infoline.WorkOfTime";
-            var destinationProjectName = "Infoline.DataCenter";
+            var destinationProjectName = "Infoline.ColdChainMonitoring";
             var ext = new string[] { ".sln", ".csproj", ".cs", ".config", ".cshtml", ".asax" };
             var directories = Directory.GetDirectories(sourceProjectPath, "*", System.IO.SearchOption.AllDirectories).ToList();
             directories.Add(sourceProjectPath);
