@@ -646,6 +646,12 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             return View();
         }
 
+        [PageInfo("Aydınlatma Metni"), AllowEveryone]
+        public ActionResult Kvkk()
+        {
+            return View();
+        }
+
         [AllowEveryone]
         public ContentResult GetOperators()
         {
@@ -709,6 +715,61 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
                 FeedBack = dbresult.result
                     ? feedback.Success("Kayıt işlemi başarıyla tamamlandı.", false, Url.Action("SignIn", "Account"))
                     : feedback.Error(dbresult.message,dbresult.message)
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+
+        }
+        [AllowEveryone]
+        public ActionResult CustomerDealerSignUp(Guid? companyId)
+        {
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
+            {
+
+            }
+            else
+            {
+                return View("Index");
+            }
+
+            ViewBag.returnUrl = Request.QueryString["returnUrl"];
+            return View(new VMCMP_CompanyModel { });
+        }
+        [AllowEveryone]
+        [HttpPost]
+        public JsonResult CustomerDealerSignUp(VMCMP_CompanyModel model)
+        {
+            
+            var feedback = new FeedBack();
+            var captcha = Request.Form["g-recaptcha-response"];
+            const string secret = "6Lf7gT4eAAAAADzLH1NAl89XaEOlyv1FiYqWOFAD";
+            var restUrl = string.Format("https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}", secret, captcha);
+
+            CaptchaResult cResult = null;
+            var req = WebRequest.Create(restUrl);
+            var resp = req.GetResponse() as HttpWebResponse;
+
+            using (var reader = new StreamReader(resp.GetResponseStream()))
+            {
+                string resultObject = reader.ReadToEnd();
+                cResult = JsonConvert.DeserializeObject<CaptchaResult>(resultObject);
+            }
+
+            if (!cResult.Success)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning(cResult.ErrorCodes.Count() > 0 ? cResult.ErrorCodes.ToArray()[0] : "Doğrulama başarısız.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+            var dbresult = model.InsertCustomerDealer();
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result
+                    ? feedback.Success("Kayıt işlemi başarıyla tamamlandı.", false, Url.Action("SignIn", "Account"))
+                    : feedback.Error(dbresult.message, dbresult.message)
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);
