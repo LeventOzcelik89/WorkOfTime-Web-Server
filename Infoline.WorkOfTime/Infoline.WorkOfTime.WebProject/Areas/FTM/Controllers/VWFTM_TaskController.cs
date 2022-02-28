@@ -864,7 +864,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 		[PageInfo("Saha Görevi Düzenleme Metodu (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
-		[HttpPost, ValidateAntiForgeryToken]
+		[HttpPost, ValidateInput(false)]
 		public JsonResult UpdateStaff(VMFTM_TaskModel request, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -931,18 +931,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			};
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
+
 		[PageInfo("Personel Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
 		public ActionResult StaffReport()
 		{
 			return View();
 		}
-		[PageInfo("Görev Raporu", SHRoles.SahaGorevMusteri)]
-		public ActionResult Dashboard()
-		{
-			var model = new TaskSchedulerModel();
-			var res = model.GetTaskTemplatePlanList();
-			return View(res);
-		}
+
 		[PageInfo("Personel Görevleri", SHRoles.Personel)]
 		public ContentResult DataSourceForStaffReport(Guid[] assignableUsers, DateTime? planStartDate, DateTime? dueDate, Guid? customer, Guid? customerStorage)
 		{
@@ -961,7 +956,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			{
 				ftmTask = db.GetVWFTM_TaskByUserIdsAndDate(null, planStartDate.Value, dueDate.Value).Where(x => x.assignUserId.HasValue).ToArray();
 			}
-			if (ftmTask.Count() > 0)
+			if (ftmTask.Any())
 			{
 				if (customer.HasValue)
 				{
@@ -2055,6 +2050,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			}
 		}
 
+		[AllowEveryone]
+		[PageInfo("Saha Görevi Düzenle", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+		public JsonResult TaskLoad(VMFTM_TaskModel request)
+		{
+			var model = request.Load();
+			return Json(new ResultStatusUI { Object = model.taskUsers }, JsonRequestBehavior.AllowGet);
+		}
 
 		[AllowEveryone]
 		[PageInfo("Kullanıcının Bir Ay İçinde Bulunan İzinleri", SHRoles.Personel, SHRoles.SahaGorevMusteri)]

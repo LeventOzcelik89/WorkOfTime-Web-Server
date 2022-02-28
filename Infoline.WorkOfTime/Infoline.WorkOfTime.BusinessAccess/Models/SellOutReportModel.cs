@@ -15,4 +15,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public int SellingCount { get; set; }
 
     }
+
+    public class SellOutBasedProductModel
+    {
+        public string Name { get; set; }
+        public int SalesCount { get; set; }
+        public int ActivatedCount { get; set; }
+    }
+
 }
