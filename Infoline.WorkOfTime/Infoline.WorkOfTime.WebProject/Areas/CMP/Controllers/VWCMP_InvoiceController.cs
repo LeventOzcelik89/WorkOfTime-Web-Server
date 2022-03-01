@@ -132,6 +132,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 
             var dbresult = item.Save(userStatus.user.id, Request);
 
+      
+
+
+
+
+
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
