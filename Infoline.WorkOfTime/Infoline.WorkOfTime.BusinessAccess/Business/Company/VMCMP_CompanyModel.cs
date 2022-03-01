@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool? hasRelation { get; set; }
         public string CmpTypeSearch { get; set; }
         public string applicant { get; set; }
-        public SH_User companyUser { get; set; } = new SH_User();
+        public VWSH_User companyUser { get; set; } = new VWSH_User();
 
 
         public VMCMP_CompanyModel Load()
@@ -75,6 +75,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (company != null)
             {
+                var companyUser = db.GetINV_CompanyPersonByCompanyIdFirst(this.id);
+                if (companyUser != null)
+                {
+                    var user = db.GetSH_UserById(companyUser.IdUser.Value);
+                    if (user != null)
+                    {
+                        var userModel = new VMSH_UserModel { id = user.id }.Load();
+                        this.companyUser = userModel;
+                    }
+
+                }
                 this.B_EntityDataCopyForMaterial(company, true);
                 this.sector = db.GetCMP_SectorByCompanyId(this.id).Select(x => x.sectorId.Value).ToArray();
             }
@@ -451,6 +462,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             userModel.companyCellPhoneCode = this.companyUser.companyCellPhoneCode;
             userModel.companyOfficePhone = this.companyUser.companyOfficePhone;
             userModel.companyOfficePhoneCode = this.companyUser.companyOfficePhoneCode;
+            userModel.birthday = this.companyUser.birthday;
             userModel.type = (int)EnumSH_UserType.CompanyPerson;
             userModel.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli) };
             result &= userModel.Save();
