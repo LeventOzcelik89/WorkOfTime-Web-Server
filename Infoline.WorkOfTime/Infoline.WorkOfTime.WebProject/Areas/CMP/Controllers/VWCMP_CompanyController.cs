@@ -796,7 +796,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         }
         [AllowEveryone]
         [PageInfo("Şirket Onaylama")]
-        public JsonResult Confirm(Guid id)
+        public ActionResult Confirm(Guid id)
+        {
+            var model = new VMCMP_CompanyModel { id = id }.Load();
+            return View(model);
+        }
+        [AllowEveryone]
+        [PageInfo("Şirket Onaylama")]
+        [HttpPost]
+        public JsonResult Confirm(Guid id, bool? isPost)
         {
             var db = new WorkOfTimeDatabase();
             var findCompany = db.GetCMP_CompanyById(id);
