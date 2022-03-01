@@ -19,6 +19,10 @@
 			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
 		}
 	}
+
+	
+
+
 </script>
 
 <style type="text/css">
@@ -155,12 +159,12 @@
 		width: 8.4% !important;
 	}
 
-/*	.k-event, .k-task-complete {
+	.k-event, .k-task-complete {
 		border-color: #ffffff !important;
-		background: #ffffff 0 -257px none repeat-x !important;
-		color: #fff;
+/*		background: #ffffff 0 -257px none repeat-x !important;
+*/		color: #fff;
 	}
-*/</style>
+</style>
 
 
 <div class="ibox m-b-none">
@@ -335,7 +339,7 @@
 				editable: {
 					create: true,
 					move: true,
-					resize: true,
+					resize: false,
 					confirmation: false
 				},
 				eventTemplate: $("#eventTemplate2").html(),
@@ -353,16 +357,14 @@
 					buttonsContainer.text("");
 
 				},
-				move: function (e) {
-					debugger;
-					//Kendo_GetRequest('/FTM/VWFTM_Task/Update', { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
+				moveEnd: function (e) {
 					e.preventDefault();
+					_calendar.UpdateTask(e.event, e.slot);
 					return false;
 				},
-				resize: function (e) {
-					debugger;
-					//Kendo_GetRequest('/FTM/VWFTM_Task/Update', { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
+				resizeEnd: function (e) {
 					e.preventDefault();
+					_calendar.UpdateTask(e.event, e.slot);
 					return false;
 				},
 				views: [
@@ -387,7 +389,20 @@
 
             });
 
-        },
+		},
+		UpdateTask: function (event,slot) {
+			$.ajax({
+				type: "POST",
+				url: '/FTM/VWFTM_Task/Update',
+				data: { id: event._id, planStartDate: kendo.toString(slot.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(slot.end, 'yyyy-MM-dd HH:mm:00') },
+				success: function (response) {
+					$("#TaskCalendar").html(null)
+					_calendar.init();
+					MesajSuccess("Görevin Planlanan Başlangıç ve Bitiş Tarihleri Güncellenmiştir", "İşlem Başarılı")
+				},
+				async: false
+			}).responseJSON;
+		},
         ShowTask: function (uid) {
 
             var dataItem = _calendar.elem.occurrenceByUid(uid);

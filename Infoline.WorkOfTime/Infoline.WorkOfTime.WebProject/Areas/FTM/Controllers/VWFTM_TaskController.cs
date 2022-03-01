@@ -847,7 +847,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 		[PageInfo("Saha Görevi Düzenleme Metodu (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
-		[HttpPost, ValidateAntiForgeryToken]
+		[HttpPost]
 		public JsonResult Update(VMFTM_TaskModel request, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];

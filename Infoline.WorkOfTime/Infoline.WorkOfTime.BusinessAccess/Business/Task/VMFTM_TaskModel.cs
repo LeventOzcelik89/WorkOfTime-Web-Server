@@ -973,6 +973,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public void CustomerTaskMailSend()
 		{
 			db = db ?? new WorkOfTimeDatabase();
+			this.customerId = this.customerId.HasValue ? this.customerId.Value : Guid.NewGuid();
 			var wantedDocuments = db.GetVWCMP_CompanyFileSelectorByCustomerId(this.customerId.Value);
 			var documentList = new List<string>();
 			var emailSender = this.userMails?.Split(',').ToList();
