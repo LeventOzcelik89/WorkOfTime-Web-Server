@@ -1,10 +1,133 @@
-﻿@*@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
 @{
     ViewBag.Title = "Personel Detayı (" + Model.FullName + ")";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var accountIds = Model.VWPA_Accounts.Select(a => (Guid?)a.id).ToList();
     var userStatus = (PageSecurity)Session["userStatus"];
-    var permits = (System.Collections.Generic.List<KeyValue>)(ViewBag.permits);
-}*@
+}
+@using (Html.BeginForm("Confirm", "VWSH_User", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWSH_UserConfirm"},
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.HiddenFor(a => a.id)
+    <div class="panel-body">
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="name">Ad-Soyad</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextBoxFor(model => model.FullName, new Dictionary<string, object>() {
+                              {"class", "form-control"},
+                              { "readonly","readony"}
+                }).Validate(Validations.Required)
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="code">Ünvan</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextBoxFor(model => model.title, new Dictionary<string, object>() {
+                      {"class", "form-control"},
+                      { "readonly","readony"}
+                     }).Validate(Validations.Required)
+                </div>
+            </div>
 
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="code">Kullanıcı Adı</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextBoxFor(model => model.loginname, new Dictionary<string, object>() {
+                       {"class", "form-control"},
+                       { "readonly","readony"}
+                    }).Validate(Validations.Required)
+                </div>
+            </div>
+        </div>
 
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="companyOfficePhone">Sabit Telefon</label>
+                </div>
+                <div class="col-md-8">
+                    @(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>(){
+                                             { "style", "width: 100%"},
+                                             {"class", "form-control"},
+                                             { "readonly","readony"},
+                                             {"tabindex","7"},
+                                         })
+                .Mask("0 (000) 000 00 00")
+                .UnmaskOnPost(true).Validate(Validations.Required))
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="control-label">Email</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+                     {
+                         { "readonly","readony"},
+                         {"class","form-control"},{"tabindex","9"}
+                     }).Validate(Validations.EMail(true))
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="control-label">Şirket Cep Telefonu</label>
+                </div>
+                <div class="col-md-8">
+                    @(Html.Kendo().MaskedTextBoxFor(a => a.companyCellPhone).HtmlAttributes(new Dictionary<string, object>(){
+                                                    { "style", "width: 100%"},
+                                                    {"class", "form-control"},
+                                                    { "readonly","readony"},
+                                                    {"tabindex","7"},
+                                                })
+                             .Mask("0 (000) 000 00 00")
+                             .UnmaskOnPost(true).Validate(Validations.Required))
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="companyCellPhone">Şirket Ofis Telefonu</label>
+                </div>
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-12">
+                            @(Html.Kendo().MaskedTextBoxFor(a => a.companyOfficePhone).HtmlAttributes(new Dictionary<string, object>(){
+                                             { "style", "width: 100%"},
+                                             {"class", "form-control"},
+                                             { "readonly","readony"},
+                                             {"tabindex","7"},
+                                         })
+                             .Mask("0 (000) 000 00 00")
+                             .UnmaskOnPost(true).Validate(Validations.Required))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Onayla</button>
+    </div>
+}

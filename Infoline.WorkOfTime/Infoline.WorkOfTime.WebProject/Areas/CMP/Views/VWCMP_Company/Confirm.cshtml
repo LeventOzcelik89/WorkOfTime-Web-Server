@@ -1,9 +1,123 @@
-﻿@*@model Infoline.WorkOfTime.BusinessAccess.VMCMP_CompanyModel
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_CompanyModel
 @{
-    ViewBag.Path = Model.breadCrumps;
-    ViewBag.Title = Model.fullName;
+    ViewBag.Title = "Bayi Onay";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
-    var accountIds = Model.VWPA_Accounts.Select(a => (Guid?)a.id).ToList();
-}*@
+}
+@using (Html.BeginForm("Confirm", "VWCMP_Company", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWCMP_CompanyConfirm"},
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.HiddenFor(a => a.id)
+<div class="panel-body">
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="name">Bayi İsmi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.name, new Dictionary<string, object>() {
+                          {"class", "form-control"},
+                          { "readonly","readony"}
+            }).Validate(Validations.Required)
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="code">Kodu</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.code, new Dictionary<string, object>() {
+                  {"class", "form-control"},
+                  { "readonly","readony"}
+                 }).Validate(Validations.Required)
+            </div>
+        </div>
 
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="code">Vergi Numarası</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.taxNumber, new Dictionary<string, object>() {
+                   {"class", "form-control"},
+                   { "readonly","readony"}
+                }).Validate(Validations.Required)
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="companyOfficePhone">İşletme Türü</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.taxType).Value(EnumCMP_CompanyTaxType.TuzelKisi).Readonly(true))
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <label class="control-label">Email</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+                 {
+                     { "readonly","readony"},
+                     {"class","form-control"},{"tabindex","9"}
+                 }).Validate(Validations.EMail(true))
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <label class="control-label">Telefon Numarası</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>(){
+                                             { "style", "width: 100%"},
+                                             {"class", "form-control"},
+                                             { "readonly","readony"},
+                                             {"tabindex","7"},
+                                         })
+                            .Mask("0 (000) 000 00 00")
+                            .UnmaskOnPost(true).Validate(Validations.Required))
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="companyCellPhone">Adres</label>
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-12">
+                        @Html.TextAreaFor(model => model.openAddress, new Dictionary<string, object>()
+                           {
+                               {"class", "form-control"},
+                              { "readonly","readony"}
+                           }).Validate(Validations.TextEverywhere(true, 0, 500))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Onayla</button>
+    </div>
+}
