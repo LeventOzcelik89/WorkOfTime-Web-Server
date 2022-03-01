@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public VMCMP_InvoiceModels Load(bool? isTransform, int? direction)
 		{
 			db = db ?? new WorkOfTimeDatabase();
-			var invoice = db.GetVWCMP_InvoiceById(this.id);
+			var invoice = db.GetCMP_InvoiceById(this.id);
 			var invoiceVW = db.GetVWCMP_InvoiceById(this.id);
 
 			if (invoice != null)
