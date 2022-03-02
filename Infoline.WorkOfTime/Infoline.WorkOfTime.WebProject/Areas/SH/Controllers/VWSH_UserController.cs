@@ -676,7 +676,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                             certificateModel.Id = item.id;
                             certificateModel.PersonName = item.FullName;
                             certificateModel.CertificateName = personCertificate.CertificateType_Title;
-                            certificateModel.CertificateEndDate = dueDateFormat.ToString("dd/MM/yyyy");
+                            //certificateModel.CertificateEndDate = dueDateFormat.ToString("dd/MM/yyyy");
+                            certificateModel.CertificateEndDate = dueDateFormat;
                             if (personCertificate.ExpirationDate.HasValue && personCertificate.ExpirationDate.Value < dueDate.Value && filterButtonId.HasValue && filterButtonId == 0)
                             {
                                 certificateModel.CertificateStatus = "Süresi Dolmuş";

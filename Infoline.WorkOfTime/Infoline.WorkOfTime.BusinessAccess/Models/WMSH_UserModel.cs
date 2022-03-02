@@ -862,7 +862,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string CertificateName { get; set; }
         public string CertificateTimeText { get; set; }
         public string CertificateStatus { get; set; }
-        public string CertificateEndDate { get; set; }
+        public DateTime CertificateEndDate { get; set; }
     }
     public enum EnumSH_CompanySignUpType
     {
