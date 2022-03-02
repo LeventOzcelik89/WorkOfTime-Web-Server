@@ -44,5 +44,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PA_Account>().Where(a => a.dataId == DataId && a.isDefault == true).Execute().ToArray();
             }
         }
+
+        public VWPA_Account GetPA_AccountByDataIdAndType(Guid dataId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWPA_Account>().Where(a => a.dataId == dataId && a.type == (int)EnumPA_AccountType.Banka).OrderByDesc(a=>a.created).Execute().FirstOrDefault();
+            }
+        }
     }
 }

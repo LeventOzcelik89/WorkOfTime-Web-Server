@@ -1,25 +1,36 @@
-﻿@{
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_CompanyModel
+@{
     ViewBag.Title = "Şirketlerim";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
     var data = ViewBag.data;
+    var accountData = ViewBag.dataAccount;
+    var companyData = Model.CompanyModel(userStatus);
+    var account = Model.AccountModel(userStatus);
 }
-<div class="row">
-    <div class="col-sm-12">
-
-        @if (!string.IsNullOrEmpty(data))
-        {
-            <div class="alert alert-danger">
-                <h4 class="text-center"><b>Bayinize Ait Eksik Bilgiler Var!</b></h4>
-                <h5 class="text-center">Lütfen ödeme alabilmek için ödeme bilgileri ve cari bilgilerinizi eksiksiz doldurun!</h5>
-                <p class="text-center">@data</p>
-            </div>
-        }
-
-
-
+@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+{
+    <div class="row">
+        <div class="col-sm-12 col-xl-12 col-md-12 col-lg-12">
+            @if (!string.IsNullOrEmpty(data))
+            {
+                <div class="alert alert-danger">
+                    <h4 class="text-center"><b>Bayinize Ait Eksik Bilgiler Var!</b></h4>
+                    <p class="text-center">@data Eksik alanları tamamlamak için <a style="cursor:pointer" data-modal="true" data-task="Insert" data-href="@Url.Action("Update", "VWCMP_Company", new { area = "CMP", id = companyData.id })">lütfen tıklayınız.</a></p>
+                </div>
+            }
+        </div>
+        <div class="col-sm-12 col-xl-12 col-md-12 col-lg-12">
+            @if (account == null)
+            {
+                <div class="alert alert-danger">
+                    <h4 class="text-center"><b>Bayinize Ait Eksik Banka Bilgileri Var!</b></h4>
+                    <p class="text-center">@accountData Eksik alanları tamamlamak için <a style="cursor:pointer" data-modal="true" data-task="Insert" data-href="@Url.Action("Insert", "VWPA_Account", new { area = "PA", dataTable = "CustomerUser", dataId = companyData.id, type = (int)EnumPA_AccountType.Banka })">lütfen tıklayınız.</a></p>
+                </div>
+            }
+        </div>
     </div>
-</div>
+}
 <div class="row">
     <div class="col-md-12">
         <div class="ibox ">
@@ -51,9 +62,8 @@
                     .Selectable(x => x.Mode(GridSelectionMode.Single))
                     .ToolBar(x =>
                     {
-                        x.Custom().Text("<i data-original-title='Ödeme Hesap Ekle' class='fa fa-money'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPA_Account", new { area = "PA", dataTable = "CustomerUser", dataId = userStatus.user.CompanyId }));
                         x.Custom().Text("<i data-original-title='İşletme Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Company", new { area = "CMP" }));
-                        x.Custom().Text("<i data-original-title='İşletme Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Company", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='İşletme Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("DetailDealar", "VWCMP_Company", new { area = "CMP" }));
 
                     })
                 )
