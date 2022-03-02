@@ -49,79 +49,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			db = db ?? new WorkOfTimeDatabase();
 			var invoice = db.GetCMP_InvoiceById(this.id);
 			var invoiceVW = db.GetVWCMP_InvoiceById(this.id);
-			var tenders = db.GetVWCMP_TenderById(this.id);
-			if (tenders != null && invoice == null)
-			{
-				this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
-				this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
-				this.files = db.GetSYS_FilesByDataIdAll(this.id).ToArray();
-
-
-
-				if (isTransform == true)
-				{
-					this.B_EntityDataCopyForMaterial(tenders, true);
-					this.description = "";
-					this.rowNumber = null;
-					this.type = (int)EnumCMP_InvoiceType.IrsaliyesizFatura;
-					this.status = (int)EnumCMP_InvoiceStatus.Odenecek;
-
-					foreach (var item in this.InvoiceItems)
-					{
-						item.id = Guid.NewGuid();
-						item.description = "";
-					}
-				}
-				else
-				{
-					this.B_EntityDataCopyForMaterial(invoiceVW, true);
-					this.TransformFrom = db.GetVWCMP_InvoiceTransformByIsTransformedTo(this.id).FirstOrDefault();
-					this.Transactions = db.GetVWPA_TransactionByInvoiceId(this.id);
-					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).FirstOrDefault();
-					this.requests = db.GetVWCMP_RequestById(this.id);
-					this.tenders = db.GetVWCMP_TenderById(this.id);
-					if (this.IsCopy == true)
-					{
-						this.status = (short)EnumCMP_InvoiceStatus.Odenecek;
-					}
-				}
-				if (this.requests != null)
-				{
-					if (this.requests.taskId.HasValue)
-					{
-						Task = db.GetVWFTM_TaskById(this.requests.taskId.Value);
-
-						if (Task != null && Task.companyId.HasValue)
-						{
-							var project = db.GetPRJ_ProjectByCompanyIdIsActive(Task.companyId.Value);
-
-							if (project != null)
-							{
-								this.projectId = project.id;
-							}
-						}
-
-						if (invoice != null)
-						{
-							var tender = db.GetVWCMP_InvoiceByPid(this.requests.id);
-							if (tender != null)
-							{
-								Tender = db.GetVWCMP_InvoiceByPid(tender.id);
-							}
-						}
-
-					}
-
-					if (this.requests.projectId.HasValue)
-					{
-						this.Projects = db.GetVWPRJ_ProjectById(this.requests.projectId.Value);
-
-					}
-
-				}
-
-			}
-
+		
 			if (invoice != null)
 			{
 				this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
@@ -151,7 +79,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.Transactions = db.GetVWPA_TransactionByInvoiceId(this.id);
 					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).FirstOrDefault();
 					this.requests = db.GetVWCMP_RequestById(this.id);
-					this.tenders = db.GetVWCMP_TenderById(this.id);
+					this.tenders = db.GetVWCMP_TenderById(this.id);	
+	
 					if (this.IsCopy == true)
 					{
 						this.status = (short)EnumCMP_InvoiceStatus.Odenecek;
@@ -230,15 +159,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var rs = new ResultStatus { result = true };
 			var invoice = db.GetCMP_InvoiceById(this.id);
 
-
-
-			//var tenders = db.GetVWCMP_TenderById(this.id);
-			//if (tenders.status == (short)EnumCMP_TenderStatus.YoneticiOnay)
-			//{
-			//	tenders.status = (short)EnumCMP_TenderStatus.TeklifFatura;
-			//}
-			//db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(tenders), false, _trans);
-
+			var requestCodeId = invoice.id;
 
 
 
@@ -288,15 +209,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				new FileUploadSave(request, this.id).SaveAs();
 
-
-
 			}
-
-		
-
-
-
-
 
 			if (trans == null)
 			{
@@ -345,11 +258,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.discount = this.discount != null ? this.discount : 0;
 			this.stopaj = this.stopaj != null ? this.stopaj : 0;
 			this.tevkifat = this.tevkifat != null ? this.tevkifat : 0;
-			if(this.status == (short)EnumCMP_TenderStatus.YoneticiOnay)
-            {
-				this.status = (short)EnumCMP_TenderStatus.TeklifFatura;
-			}
-
 
 			var dbresult = db.InsertCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), _trans);
 			dbresult &= db.InsertCMP_InvoiceAction(action, _trans);
@@ -366,12 +274,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					dbresult &= this.InsertWaybill(products, _trans);
 				}
 			}
-
-		
-		
-			
-
-			
+	
 			var companyId = this.direction == (int)EnumCMP_InvoiceDirectionType.Alis ? this.supplierId.Value : this.customerId.Value;
 			var companyAccount = db.GetVWPA_AccountByDataIdDataTable(companyId, "CMP_Company");
 
@@ -418,11 +321,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				dbresult &= db.InsertPRJ_ProjectInvoice(projectInvoice, _trans);
 			}
-
-
-		
-
-
 
 			if (trans == null)
 			{
