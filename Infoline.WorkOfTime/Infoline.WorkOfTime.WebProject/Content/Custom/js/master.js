@@ -1511,33 +1511,39 @@ function DropDownSetValue(dropdown, value) {
     if (!dropdown) {
         return;
     }
+    if (value != null) {
+        var data = [{ "field": "id:" + value.replace(new RegExp('-', 'g'), '_') + "", "dir": "asc" }];
+        var baseData = $.Enumerable.From(dropdown.dataSource.sort()).Where(function (a) { return a.field.indexOf('id:') != 0 }).ToArray();
+        $.each(baseData, function (i, item) {
+            data.push(item);
+        });
 
-    var data = [{ "field": "id:" + value.replace(new RegExp('-', 'g'), '_') + "", "dir": "asc" }];
-    var baseData = $.Enumerable.From(dropdown.dataSource.sort()).Where(function (a) { return a.field.indexOf('id:') != 0 }).ToArray();
 
-    $.each(baseData, function (i, item) {
-        data.push(item);
-    });
+        if (dropdown.dataSource.sort() != null) {
+            dropdown.dataSource.sort().splice(0, dropdown.dataSource.sort().length);
+        }
 
-    if (dropdown.dataSource.sort() != null) {
-        dropdown.dataSource.sort().splice(0, dropdown.dataSource.sort().length);
-    }
+        if (dropdown.dataSource.sort() != null) {
+            $.each(data, function (i, item) {
+                dropdown.dataSource.sort().push(item);
+            });
+        }
 
-    if (dropdown.dataSource.sort() != null) {
-        $.each(data, function (i, item) {
-            dropdown.dataSource.sort().push(item);
+
+        dropdown.dataSource.read();
+
+        if (dropdown.hasOwnProperty("dataSource") == false) return;
+
+        dropdown.one("dataBound", function () {
+            dropdown.value(value);
+            dropdown.trigger("change");
         });
     }
+   
+  
 
+   
 
-    dropdown.dataSource.read();
-
-    if (dropdown.hasOwnProperty("dataSource") == false) return;
-
-    dropdown.one("dataBound", function () {
-        dropdown.value(value);
-        dropdown.trigger("change");
-    });
 }
 
 //Favoriler Başlangıç
@@ -2405,8 +2411,6 @@ $(document)
         }
     })
     .on("click", '[data-print="qrcode"]', function (e) {
-
-        debugger;
 
         var qrId = $(this).attr("data-target");
         var qrCode = $('#' + qrId);
