@@ -30,11 +30,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return View();
         }
         [PageInfo("Şirket Bilgileri", SHRoles.HakEdisBayiPersoneli)]
-        public ActionResult IndexCompany()
+        public ActionResult IndexCompany(VMCMP_CompanyModel model)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
-            ViewBag.data = CheckUserCompanyHasNullAreas(userStatus);
-            return View();
+            ViewBag.data = model.CheckUserCompanyGeneralInfo(userStatus);
+            ViewBag.dataAccount = model.CheckUserCompanyAccountInfo(userStatus);
+            return View(model);
         }
         [PageInfo("Müşterileri Firmalarım", SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
         public ActionResult IndexMyCustomer()
@@ -183,7 +184,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 Result = dbresult.result,
                 Object = item.id,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message,false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -750,50 +751,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             query.Filter &= filter;
             return query;
         }
-        public string CheckUserCompanyHasNullAreas(PageSecurity userStatus = null)
-        {
-            userStatus = userStatus ?? (PageSecurity)Session["userStatus"];
 
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
-            {
-
-                var db = new WorkOfTimeDatabase();
-                if (userStatus.user.CompanyId.HasValue)
-                {
-                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
-
-                    if (company == null)
-                    {
-                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
-                    }
-
-                    var account = db.GetPA_AccountByDataId(company.id);
-                    if (account.Count() == 0)
-                    {
-
-                        new FeedBack().Custom("Lütfen Ödeme Alabilmek İçin Banka Bilgileriniz Doldurun", Url.Action("Insert", "VWPA_Account", new { dataTable = "CustomerUser", dataId = company.id, area = "PA" }), "Ödeme Alabilmek İçin Banka Bilgilerinizi Doldurun!", "warning", 10, true, 1);
-                        return "Lütfen Ödeme Alabilmek İçin Banka Bilgileriniz Doldurun";
-                    }
-                    if (string.IsNullOrEmpty(company.taxNumber)
-                        || string.IsNullOrEmpty(company.email)
-                        || string.IsNullOrEmpty(company.phone)
-                        || string.IsNullOrEmpty(company.invoiceAddress)
-                        )
-                    {
-                        new FeedBack().Custom("Vergi Numarası, E-Posta, Telefon Numarası ve Fatura Adresi alanlarını doldurun", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
-                        return "Lütfen E-Posta, Telefon Numarası, Fatura Adresi ve Vergi Numarası alanlarını doldurun";
-                    }
-                }
-                else
-                {
-                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
-                    return "Herhangi bir işletmeye ait değilsiniz";
-                }
-
-
-            }
-            return "";
-        }
         [AllowEveryone]
         [PageInfo("Şirket Onaylama")]
         public ActionResult Confirm(Guid id)

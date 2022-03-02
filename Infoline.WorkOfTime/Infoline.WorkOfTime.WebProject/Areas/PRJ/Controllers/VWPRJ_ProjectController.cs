@@ -31,7 +31,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRJ.Controllers
             return View(dataGrid);
         }
 
-        [PageInfo("Projeler methodu", SHRoles.Personel)]
+        [PageInfo("Projeler methodu", SHRoles.Personel,SHRoles.HakEdisBayiPersoneli)]
         public JsonResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -46,7 +46,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRJ.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Projeler Miktar DataSource", SHRoles.Personel)]
+        [PageInfo("Projeler Miktar DataSource", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -55,7 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRJ.Controllers
             return count;
         }
 
-        [PageInfo("Projeler Veri Methodu", SHRoles.Personel)]
+        [PageInfo("Projeler Veri Methodu", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var db = new WorkOfTimeDatabase();

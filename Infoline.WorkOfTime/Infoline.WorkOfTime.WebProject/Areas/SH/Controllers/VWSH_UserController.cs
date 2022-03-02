@@ -174,7 +174,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var dbresult = item.Save();
             if (dbresult.result == true && item.sendMail == true)
             {
-                dbresult&= item.SendPasswordForCustomer();
+                dbresult &= item.SendPasswordForCustomer();
             }
             return Json(new ResultStatusUI(dbresult), JsonRequestBehavior.AllowGet);
         }
@@ -984,26 +984,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Json(new ResultStatusUI { FeedBack = new FeedBack().Success("Bayi Kodu Gönderildi"), Result = true }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Şirket Personel Listesi", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personelleri Listesi", SHRoles.IKYonetici)]
         public ActionResult CompanyPersonIndex()
         {
             return View();
         }
-        [PageInfo("Şirket Personeli Onaylama", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personeli Onaylama Metodu", SHRoles.IKYonetici)]
         public ActionResult Confirm(Guid id)
         {
             var model = new VMSH_UserModel { id = id }.Load();
             return View(model);
         }
-        [PageInfo("Şirket Personeli Onaylama", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personeli Onaylama Metodu", SHRoles.IKYonetici)]
         [HttpPost]
-        public JsonResult Confirm(Guid id,bool? isPost)
+        public JsonResult Confirm(Guid id, bool? isPost)
         {
             var db = new WorkOfTimeDatabase();
             var findUser = db.GetSH_UserById(id);
             if (findUser == null)
             {
-                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Böyle Bir Kullanıcı Yok!"), Result = false }, JsonRequestBehavior.AllowGet);
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Kullanıcı Bulunamadı."), Result = false }, JsonRequestBehavior.AllowGet);
             }
             if (findUser.type != (short)EnumSH_UserType.CompanyPerson)
             {
@@ -1034,7 +1034,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             model.VWPA_Accounts = db.GetVWPA_AccountsByDataIdDataTable(model.id, "SH_User");
             return View(model);
         }
-
+        [PageInfo("Bayi Personeli Reddetme Metodu",SHRoles.IKYonetici)]
+        public JsonResult Reject(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var findUser = db.GetSH_UserById(id);
+            if (findUser == null)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Kullanıcı Bulunamadı."), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName}|WorkOfTime sistemi üzerinde üyelik talebiniz reddedilmiştir.</p><p style='text-align:center'></p>" +
+                $"<p>Tekrar üyelik talebi isteği göndermek için <a href='{url}/Account/CustomerSignUp'> Buraya tıklayınız!</a></p>";
+            new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Talebi Reddedildi", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, findUser.email, string.Format("{0} | {1}", tenantName, "Üyelik Talebi Reddedildi"), true);
+            var userModel = new VMSH_UserModel { id = id }.Load();
+            return Json(new ResultStatusUI(userModel.Delete()), JsonRequestBehavior.AllowGet);
+        }
     }
 }
 

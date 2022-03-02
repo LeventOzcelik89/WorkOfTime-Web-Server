@@ -3,6 +3,7 @@
     var title = Model.type == (int)EnumPA_AccountType.Banka ? "Banka" : "Kasa";
     ViewBag.Title = title + " Hesabını Güncelle";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 
 <script type="text/javascript" data-selector="modalContainer">
@@ -84,14 +85,28 @@
         </div>
     </div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="priority">Hesap Tipi</label>
+    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="priority">Hesap Tipi</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPA_AccountType.Kasa))
+            </div>
         </div>
-        <div class="col-md-8">
-            @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPA_AccountType.Kasa))
+    }
+    else
+    {
+        <div class="form-group hide">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="priority">Hesap Tipi</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPA_AccountType.Banka))
+            </div>
         </div>
-    </div>
+    }
 
     <div id="bankType" style="display:none;">
 
