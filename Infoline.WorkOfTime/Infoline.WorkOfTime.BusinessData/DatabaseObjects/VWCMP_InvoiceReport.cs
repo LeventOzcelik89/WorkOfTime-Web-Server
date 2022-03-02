@@ -15,8 +15,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? totalAmount { get; set;}
         public double? totalTaxAsTL { get; set;}
         public double? totalSubAmountAsTL { get; set;}
-        public Guid? projectId { get; set;}
         public string coderequest { get; set;}
+        public Guid? projectId { get; set;}
         public short? direction { get; set;}
         public short? status { get; set;}
         public short? type { get; set;}
