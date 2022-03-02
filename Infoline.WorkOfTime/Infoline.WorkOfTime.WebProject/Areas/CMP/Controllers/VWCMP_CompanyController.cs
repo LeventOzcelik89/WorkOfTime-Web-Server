@@ -130,6 +130,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             model.breadCrumps = crump + string.Join("", crum) + "<ol>";
             return View(model);
         }
+        [PageInfo("Bayi Detay Sayfası", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
+        public ActionResult DetailDealar(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var model = new VMCMP_CompanyModel { id = id }.Load();
+            model.VWPA_Accounts = db.GetVWPA_AccountsByDataIdDataTable(id, "CMP_Company");
+            var _presentation = db.GetCRM_PresentationByCompanyId(id);
+            var _crmContact = db.GetCRM_ContactByPresentationIds(_presentation.Select(c => c.id).ToArray());
+            ViewBag.PresentationIds = _presentation.Select(c => c.id).ToArray();
+            ViewBag.ContactIds = _crmContact.Select(c => c.id).ToArray();
+            var crump = "<ol class=\"breadcrumb\">";
+            var crum = BreadCrumps(true, id, model.name).Substring(1).Split('#').Reverse();
+            model.breadCrumps = crump + string.Join("", crum) + "<ol>";
+            return View(model);
+        }
         [PageInfo("Firma&Cari Ekleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult Insert(VMCMP_CompanyModel data)
         {
