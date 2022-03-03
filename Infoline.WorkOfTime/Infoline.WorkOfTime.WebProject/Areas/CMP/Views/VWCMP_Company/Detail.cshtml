@@ -52,6 +52,22 @@
 				},
 				optionLabel: "Görev Önceliği Seçiniz"
 			})
+    }
+    function modules(data) {
+        if (data.fileGroupModule == "SH_User"){
+    return "Personel Evrakları"  
+        }
+        else
+    return "Şirket Evrakları"    
+		
+    }
+    function modulesHeader(data) {
+        if (data.value == "SH_User") {
+           return "Modül Adı: Personel Evrakları"  
+        }
+        else
+            return "Modül Adı: Şirket Evrakları"
+		
 	}
 	  function FilterMenuInventoryLastStatus(element) {
         element.kendoDropDownList({
@@ -115,6 +131,19 @@
 	#if(lastOperationStatus_Title != null){#
 	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
 	#}#
+</script>
+
+<script type="text/x-kendo-template" id="modulesTemplate" data-selector="modalContainer">
+
+
+
+    #if(DataTable=="SH_User"){#
+    #return "Personel Evrakları"#
+    #}else if(DataTable=="CMP_Company"){#
+    #return "Şirket Evrakları"#
+    #}#
+
+
 </script>
 <script type="text/javascript">
     function taskPriorityResult(data) {
@@ -968,9 +997,10 @@
                 .Filter(a => a.customerId == Model.id).PageSize(25))
                 .Columns(x =>
                 {
-                    x.Bound(y => y.fileGroupModule).Title("Modül Adı");
+                    x.Bound(y => y.fileGroupModule).Title("Modül Adı").ClientTemplate("#=modules(data)#").ClientGroupHeaderTemplate("#=modulesHeader(data)#");
                     x.Bound(y => y.fileGroupName).Title("Dosya Adı");
                 })
+                
                 .Scrollable(x => x.Height(350))
                 .Selectable(x => x.Mode(GridSelectionMode.Single))
                 .ToolBar(x =>
