@@ -14,16 +14,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
     {
 
         [PageInfo("Hakediş Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
-        public ActionResult Index()
+        public ActionResult Index(VMCMP_CompanyModel model)
         {
-            CheckUserCompanyHasNullAreas();
-            return View();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            ViewBag.data = model.CheckUserCompanyGeneralInfo(userStatus);
+            ViewBag.dataAccount = model.CheckUserCompanyAccountInfo(userStatus);
+            return View(model);
 
         }
         [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.HakEdisBayiPersoneli)]
-        public ActionResult ClaimReport()
+        public ActionResult ClaimReport(VMCMP_CompanyModel model)
         {
-            return View();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            ViewBag.data = model.CheckUserCompanyGeneralInfo(userStatus);
+            ViewBag.dataAccount = model.CheckUserCompanyAccountInfo(userStatus);
+            return View(model);
         }
         [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.CRMBayiPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult ClaimReportDataSource(Guid companyId, int year, int month)

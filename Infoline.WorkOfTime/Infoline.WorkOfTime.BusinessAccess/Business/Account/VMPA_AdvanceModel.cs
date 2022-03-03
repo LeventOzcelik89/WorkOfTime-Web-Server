@@ -324,7 +324,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         }
                         text += "<p>Ödemeniz beklenmektedir.</p>";
                         text += "<p>Bilgilerinize.</p>";
-                        new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Onayı ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Onayı", true);
+                        new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Onayı ", text).Send((Int16)EmailSendTypes.AvansÖdeme, user.email, "Avans Onayı", true);
                     }
                 }
             }

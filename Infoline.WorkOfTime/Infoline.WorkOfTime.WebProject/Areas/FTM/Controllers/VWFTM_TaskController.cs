@@ -82,7 +82,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View();
 		}
 
-		[AllowEveryone]
 		[PageInfo("Yeni İş Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevYonetici)]
 		public ActionResult WorkReport()
 		{

@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool? hasRelation { get; set; }
         public string CmpTypeSearch { get; set; }
         public string applicant { get; set; }
-        public SH_User companyUser { get; set; } = new SH_User();
+        public VWSH_User companyUser { get; set; } = new VWSH_User();
 
 
         public VMCMP_CompanyModel Load()
@@ -75,6 +75,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (company != null)
             {
+                var companyUser = db.GetINV_CompanyPersonByCompanyIdFirst(this.id);
+                if (companyUser != null)
+                {
+                    var user = db.GetSH_UserById(companyUser.IdUser.Value);
+                    if (user != null)
+                    {
+                        var userModel = new VMSH_UserModel { id = user.id }.Load();
+                        this.companyUser = userModel;
+                    }
+
+                }
                 this.B_EntityDataCopyForMaterial(company, true);
                 this.sector = db.GetCMP_SectorByCompanyId(this.id).Select(x => x.sectorId.Value).ToArray();
             }
@@ -451,6 +462,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             userModel.companyCellPhoneCode = this.companyUser.companyCellPhoneCode;
             userModel.companyOfficePhone = this.companyUser.companyOfficePhone;
             userModel.companyOfficePhoneCode = this.companyUser.companyOfficePhoneCode;
+            userModel.birthday = this.companyUser.birthday;
             userModel.type = (int)EnumSH_UserType.CompanyPerson;
             userModel.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli) };
             result &= userModel.Save();
@@ -576,6 +588,104 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
 
             return dbresult;
+        }
+        public VMCMP_CompanyModel CompanyModel(PageSecurity userStatus)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+                    if (company!=null)
+                    {
+                        var model = new VMCMP_CompanyModel { id = company.id }.Load();
+                        return model;
+                    }
+                }
+            }
+            return new VMCMP_CompanyModel();
+        }
+        public VWPA_Account AccountModel(PageSecurity userStatus)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+                    if (company != null)
+                    {
+                        var account = db.GetPA_AccountByDataIdAndType(company.id);
+                        if (account != null)
+                        {
+                            return account;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        public string CheckUserCompanyGeneralInfo(PageSecurity userStatus = null)
+        {
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+
+                    if (company == null)
+                    {
+                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
+                    }
+                    if (string.IsNullOrEmpty(company.taxNumber) || string.IsNullOrEmpty(company.email) || string.IsNullOrEmpty(company.phone) || string.IsNullOrEmpty(company.invoiceAddress) || string.IsNullOrEmpty(company.commercialTitle) || string.IsNullOrEmpty(company.name) || string.IsNullOrEmpty(company.taxOffice))
+                    {
+                        return "Bayi bilgilerinizde eksik alanlar bulunmaktadır.";
+                    }
+                }
+                else
+                {
+                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
+                    return "Herhangi bir işletmeye ait değilsiniz";
+                }
+
+
+            }
+            return "";
+        }
+        public string CheckUserCompanyAccountInfo(PageSecurity userStatus = null)
+        {
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+
+                    if (company == null)
+                    {
+                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
+                    }
+                    var account = db.GetPA_AccountByDataIdAndType(company.id);
+                    if (account == null)
+                    {
+                        return "Banka hesap bilgilerinde eksik alanlar bulunmaktadır.";
+                    }
+                }
+                else
+                {
+                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
+                    return "Herhangi bir işletmeye ait değilsiniz";
+                }
+
+
+            }
+            return "";
         }
     }
 }
