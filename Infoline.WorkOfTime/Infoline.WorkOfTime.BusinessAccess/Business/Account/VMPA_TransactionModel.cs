@@ -247,7 +247,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var dbresult = new ResultStatus { result = true };
             if (this.type == (int)EnumPA_TransactionType.Masraf)
             {
-                
+
                 if (this.dataTable == "CRM_Presentation")
                 {
                     var currency = db.GetUT_CurrencyById(this.currencyId.Value);
@@ -549,7 +549,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<p>Ödemeniz beklenmektedir.</p>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafÖdeme, user.email, "Masraf Onayı", true);
-                        notify.NotificationSend(user.id, this.createdby, createdUser.FullName + " kişisi masraf talebinde bulunmuştur", "", $"/PA/VWPA_Transaction/DetailExpense?id={this.id}");
+                        var s = db.GetVWSYS_BlockMailByIdForPayType(user.id);
+                        if (s == null)
+                        {
+                            notify.NotificationSend(user.id, this.createdby, createdUser.FullName + " kişisi masraf talebinde bulunmuştur", "", $"/PA/VWPA_Transaction/DetailExpense?id={this.id}");
+                        }
                     }
                 }
             }
@@ -793,10 +797,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                 text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                                 text += "<p>Bilgilerinize.</p>";
-                             
-                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafÖdeme, user.email, "Masraf Onayı", true);
+
+                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);                            
                                 notification.NotificationSend(user.id, this.createdby, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur", $"/PA/VWPA_Transaction/DetailExpenseConfirmation?id={this.id}");
-                              
                             }
                         }
                     }
@@ -824,7 +827,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                 text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                                 text += "<p>Bilgilerinize.</p>";
-                                
+
                                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
                                 notification.NotificationSend(user.id, this.createdby, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur", $"/PA/VWPA_Transaction/DetailExpenseConfirmation?id={this.id}", "");
                             }
