@@ -200,7 +200,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				headers.headerFilters.Filters.Add(new HeadersTransactionItem
 				{
 					title = "Onay Bekleyenler",
-					filter = "{'Filter':{'Operand1':{'Operand1':'direction','Operator':'Equal','Operand2':'0'},'Operand2':{'Operand1':{'Operand1':'type','Operator':'Equal','Operand2':'8'},'Operand2':{'Operand1':'confirmationUserIds','Operator':'Like','Operand2':'%" + userId + "%'},'Operator':'And'},'Operator':'And'}}",
+					filter = "{'Filter':{'Operand1':{'Operand1':'direction','Operator':'Equal','Operand2':'0'},'Operand2':{'Operand1':{'Operand1':'type','Operator':'Equal','Operand2':'8'},'Operand2':{'Operand1':{'Operand1':'confirmationUserIds','Operator':'Like','Operand2':'%"+userId.ToString()+"%'},'Operand2':{'Operand1':{'Operand1':'confirmationStatus','Operator':'Equal','Operand2':1},'Operator':'Or','Operand2':{'Operand1':'confirmationStatus','Operator':'IsNull','Operand2':null}},'Operator':'And'},'Operator':'And'},'Operator':'And'}}",
 					count = db.Table<VWPA_Transaction>().Where(a => (a.confirmationStatus == 1 || a.confirmationStatus == null) && ((a.direction == 0 && a.type == 8) && a.confirmationUserIds.Contains(userId.ToString()))).Count(),
 					isActive = true
 				});
