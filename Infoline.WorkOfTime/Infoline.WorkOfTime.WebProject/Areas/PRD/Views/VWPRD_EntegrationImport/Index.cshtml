@@ -1,8 +1,35 @@
 ﻿@{
     ViewBag.Title = "Hakediş Listesi";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var data = ViewBag.data;
+    var accountData = ViewBag.dataAccount;
+    var companyData = Model.CompanyModel(userStatus);
+    var account = Model.AccountModel(userStatus);
 }
-
+@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+{
+    <div class="row">
+        <div class="col-sm-12 col-xl-12 col-md-12 col-lg-12">
+            @if (!string.IsNullOrEmpty(data))
+            {
+                <div class="alert alert-danger">
+                    <h4 class="text-center"><b>Bayinize Ait Eksik Bilgiler Var!</b></h4>
+                    <p class="text-center">@data Eksik alanları tamamlamak için <a style="cursor:pointer" data-modal="true" data-task="Insert" data-href="@Url.Action("Update", "VWCMP_Company", new { area = "CMP",id = companyData.id })">lütfen tıklayınız.</a></p>
+                </div>
+            }
+        </div>
+        <div class="col-sm-12 col-xl-12 col-md-12 col-lg-12">
+            @if (account == null)
+            {
+                <div class="alert alert-danger">
+                    <h4 class="text-center"><b>Bayinize Ait Eksik Banka Bilgileri Var!</b></h4>
+                    <p class="text-center">@accountData Eksik alanları tamamlamak için <a style="cursor:pointer" data-modal="true" data-task="Insert" data-href="@Url.Action("Insert", "VWPA_Account", new { area = "PA",dataTable = "CustomerUser" , dataId = companyData.id, type = (int)EnumPA_AccountType.Banka })">lütfen tıklayınız.</a></p>
+                </div>
+            }
+        </div>
+    </div>
+}
 <div class="row">
     <div class="col-sm-2">
         <div class="ibox">

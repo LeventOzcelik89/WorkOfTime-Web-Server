@@ -95,6 +95,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     return new ResultStatus { result = false, message = "IBAN Numarası Daha Önce Kayıt Edilmiş. Lütfen Başka Bir İban Numarası ile Deneyiniz." };
                 }
+                if (this.iban ==null )
+                {
+                    return new ResultStatus { result = false, message = "Iban Numarası Zorunlu Alandır." };
+                }
+                if (this.name == null)
+                {
+                    return new ResultStatus { result = false, message = "Hesap Adı Zorunlu Alandır." };
+                }
+                if (this.bankId == null)
+                {
+                    return new ResultStatus { result = false, message = "Banka Seçimi Zorunlu Alandır." };
+                }
             }
 
             if (account == null)

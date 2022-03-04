@@ -128,6 +128,14 @@ namespace Infoline.WorkOfTime.Controllers
             var result = EnumsProperties.EnumToArrayValues<EnumPRD_InventoryActionType>().Where(a => a.Key.toInt32() == 0 || a.Key.toInt32() == 1 || a.Key.toInt32() == 2 || a.Key.toInt32() == 3 || a.Key.toInt32() == 4 | a.Key.toInt32() == 5).Select(c => new { Id = c.Key, Name = c.Value }).OrderBy(a => a.Name).ToList();
             return Json(result, JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult FilterMenuProjectName()
+        {
+            var db = new WorkOfTimeDatabase();
+            var result = db.GetVWPRJ_Project().Select(a => new { Name = a.ProjectName });
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult FavoritesAdd(string data, bool? status, string search, string Description)
         {
             var db = new WorkOfTimeDatabase();

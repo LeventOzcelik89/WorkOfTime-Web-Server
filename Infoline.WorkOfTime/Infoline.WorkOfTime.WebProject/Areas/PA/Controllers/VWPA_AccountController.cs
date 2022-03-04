@@ -76,7 +76,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
             {
                 Result = dbresult.result,
                 Object = item.id,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message, false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
 

@@ -49,7 +49,16 @@ namespace System.Web.Mvc
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());
                     _root.Add(GetSatinAlma());
-                    _root.Add(GetStokSevkiyat());
+                    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)) && TenantConfig.Tenant.TenantCode != 1194)
+                    {
+                        _root.Add(GetStokSevkiyat());
+                    }
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+                    {
+                        _root.Add(new Menu("Şirketlerim", "/CMP/VWCMP_Company/IndexCompany","fa fa-building"));
+                        _root.Add(new Menu("Hakediş Raporu", "/PRD/VWPRD_EntegrationImport/ClaimReport","fa fa-file"));
+                        _root.Add(new Menu("Hakediş Bildirimleri", "/PRD/VWPRD_EntegrationImport/Index", "fa fa-bell"));
+                    }
                     _root.Add(GetProduction());
                     _root.Add(GetService());
                     _root.Add(GetProje());
@@ -65,8 +74,11 @@ namespace System.Web.Mvc
                     _root.Add(GetIsletmeCariler());
                     _root.Add(GetMuhasabeYonetimi());
                     _root.Add(GetYardimDestekYonetimi());
-                    _root.Add(GetYonetim());
-                    _root.Add(GetExternalLinks());
+                    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)) && TenantConfig.Tenant.TenantCode != 1194)
+                    {
+                        _root.Add(GetYonetim());
+                        _root.Add(GetExternalLinks());
+                    }
                 }
             }
 
@@ -165,11 +177,8 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Mesai Takip Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             personel.AddChild(new Menu("Detaylı Personel Raporları", "/SH/VWSH_UserReport"));
             personel.AddChild(new Menu("Organizasyon Şeması Yönetimi", "/INV/VWINV_CompanyDepartments"));
-            if (TenantConfig.Tenant.TenantCode==1194||TenantConfig.Tenant.TenantCode==1100)
-            {
-                personel.AddChild(new Menu("Bayi Personelleri", "/SH/VWSH_User/CompanyPersonIndex"));
-            }
-         
+
+
             ik.AddChild(personel);
 
             var izinislemleri = new Menu("İzin İşlemleri");
@@ -228,7 +237,7 @@ namespace System.Web.Mvc
             var menu = new Menu("İş Sağlığı ve Güvenliği", "#", "icon-medkit");
             menu.AddChild(new Menu("Kaza ve Olay Bildirimleri", "/SH/VWSH_WorkAccident/Index"));
             menu.AddChild(new Menu("Düzenleyici Önleyici Faaliyetler", "/SH/VWSH_CorrectiveActivity/Index"));
-            
+
 
             return menu;
         }
@@ -287,7 +296,7 @@ namespace System.Web.Mvc
 
         private Menu GetService()
         {
-            var service= new Menu("Teknik Servis Yönetimi", "#", "fa icon-tools");
+            var service = new Menu("Teknik Servis Yönetimi", "#", "fa icon-tools");
             service.AddChild(new Menu("Teknik Servis Kayıtları", "/SV/VWSV_Service"));
             service.AddChild(new Menu("Cihaz Problemleri", "/SV/VWSV_Problem"));
             //service.AddChild(new Menu("Değişen Cihazlar", "/SV/VWSV_ChangedDevice"));
@@ -318,7 +327,7 @@ namespace System.Web.Mvc
             sahayonetimi.AddChild(new Menu("Bakım Envanterleri", "/PRD/VWPRD_Inventory/IndexMaintance"));
             sahayonetimi.AddChild(new Menu("Görev Formları", "/FTM/VWFTM_TaskForm"));
             sahayonetimi.AddChild(new Menu("Görev Takvimi", "/FTM/VWFTM_TaskPlan/Calendar"));
-           
+
             var gorevRaporlari = new Menu("Görev Raporları");
             gorevRaporlari.AddChild(new Menu("Operasyon Raporu", "/FTM/VWFTM_Task/OperationReport"));
             gorevRaporlari.AddChild(new Menu("Dashboard", "/FTM/VWFTM_Task/WeeklyReport"));
@@ -348,6 +357,7 @@ namespace System.Web.Mvc
             satinalma.AddChild(new Menu("Satın Alma Talepleri", "/CMP/VWCMP_Request/Index"));
             satinalma.AddChild(new Menu("Satın Alma Teklifleri", "/CMP/VWCMP_Tender/IndexBuying"));
             satinalma.AddChild(new Menu("Alış Faturaları", "/CMP/VWCMP_Invoice/IndexBuying"));
+            satinalma.AddChild(new Menu("Alış Faturası Raporları", "/CMP/VWCMP_Invoice/IndexBuyingReport"));
             return satinalma;
         }
 
@@ -380,13 +390,13 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Şirketlerim", "/CMP/VWCMP_Company/IndexCompany"));
             menu.AddChild(new Menu("Hakediş Raporu", "/PRD/VWPRD_EntegrationImport/ClaimReport"));
             menu.AddChild(new Menu("Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/IndexMy"));
-   
+
             menu.AddChild(new Menu("Cari Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/Index"));
             menu.AddChild(new Menu("Araç Listesi", "/CMP/VWCMP_CompanyCars/Index"));
 
             menu.AddChild(new Menu("Prim Tanımlamaları", "/PRD/VWPRD_ProductBounty/Index"));
             menu.AddChild(new Menu("Hakediş Bildirimleri", "/PRD/VWPRD_EntegrationImport/Index"));
-           
+
 
             return menu;
         }
@@ -410,6 +420,11 @@ namespace System.Web.Mvc
             }
             menu.AddChild(new Menu("Şube/Depo/Kısım Haritası", "/CMP/VWCMP_Storage/Map"));
             menu.AddChild(new Menu("Müşteri Rehberi", "/SH/VWSH_User/ContactCustomerPersons"));
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
+            {
+                menu.AddChild(new Menu("Bayi Personelleri", "/SH/VWSH_User/CompanyPersonIndex"));
+                menu.AddChild(new Menu("Bayi Onay Listesi", "/CMP/VWCMP_Company/CompanyApproveIndex"));
+            }
             return menu;
         }
 

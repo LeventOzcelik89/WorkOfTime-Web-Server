@@ -12,18 +12,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         public VWCMP_Company CMPCompany { get; set; }
         public string breadCrumps { get; set; }
-        public List<Guid?> PidIds { get; set; } =new List<Guid?> ();
-        public void GetAllChildsIds(Guid id) {
+        public List<Guid?> PidIds { get; set; } = new List<Guid?>();
+        public void GetAllChildsIds(Guid id)
+        {
             var db = new WorkOfTimeDatabase();
             var findStorage = db.GetCMP_StorageFromPidById(id);
-            if (findStorage.Length>0)
+            if (findStorage.Length > 0)
             {
-                this.PidIds.AddRange(findStorage.Select(x=>(Guid?)x.id));
+                this.PidIds.AddRange(findStorage.Select(x => (Guid?)x.id));
                 foreach (var item in findStorage)
                 {
                     GetAllChildsIds(item.id);
                 }
-            }       
+            }
         }
     }
 
@@ -58,6 +59,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public CMP_Types[] CMP_Types { get; set; }
         public bool? hasRelation { get; set; }
         public string CmpTypeSearch { get; set; }
+        public string applicant { get; set; }
+        public VWSH_User companyUser { get; set; } = new VWSH_User();
 
 
         public VMCMP_CompanyModel Load()
@@ -72,6 +75,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (company != null)
             {
+                var companyUser = db.GetINV_CompanyPersonByCompanyIdFirst(this.id);
+                if (companyUser != null)
+                {
+                    var user = db.GetSH_UserById(companyUser.IdUser.Value);
+                    if (user != null)
+                    {
+                        var userModel = new VMSH_UserModel { id = user.id }.Load();
+                        this.companyUser = userModel;
+                    }
+
+                }
                 this.B_EntityDataCopyForMaterial(company, true);
                 this.sector = db.GetCMP_SectorByCompanyId(this.id).Select(x => x.sectorId.Value).ToArray();
             }
@@ -82,26 +96,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else
             {
                 var searched = db.GetCMP_TypesLike(CmpTypeSearch);
-                if (searched!=null)
+                if (searched != null)
                 {
                     this.CMP_TypeIds = searched.Select(x => x.id).ToArray();
                 }
                 else
                 {
                     var id = Guid.NewGuid();
-                    db.InsertCMP_Types(new BusinessData.CMP_Types { 
-                        id=id,
-                        createdby=Guid.Empty,
-                        typeName=CmpTypeSearch
+                    db.InsertCMP_Types(new BusinessData.CMP_Types
+                    {
+                        id = id,
+                        createdby = Guid.Empty,
+                        typeName = CmpTypeSearch
                     });
-                    this.CMP_TypeIds = new Guid[] { id};
+                    this.CMP_TypeIds = new Guid[] { id };
                 }
-             
+
             }
 
             this.code = this.code ?? BusinessExtensions.B_GetIdCode();
             this.type = this.type ?? (Int32)EnumCMP_CompanyType.Diger;
-       
+
             return this;
         }
 
@@ -403,6 +418,95 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             return new ResultStatus { result = rs.result, message = errors };
         }
+        public ResultStatus InsertCustomerDealer()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            VWCMP_Company company = null;
+            if (this.code == null)
+            {
+                return new ResultStatus { message = "Bayi kodu boş geçilemez." };
+            }
+            company = db.GetCMP_CompanyByCodeBayi(this.code);
+            if (company != null)
+            {
+                return new ResultStatus { message = "Bayi kodu sistemde bulunmaktadır.Lütfen başka bir kod ile işlemlerinize devam ediniz." };
+            }
+            if (this.taxNumber == null)
+            {
+                return new ResultStatus { message = "Vergi Numarası Boş Geçilemez.", result = false };
+            }
+            company = db.GetCMP_CompanyByTaxNumberBayi(this.taxNumber);
+            if (company != null)
+            {
+                return new ResultStatus { message = "Vergi numarası sistemde bulunmaktadır.Lütfen başka bir vergi numarası ile işlemlerinize devam ediniz.", result = false };
+            }
+            var email = db.GetSH_UserByEmail(this.companyUser.email);
+            if (email != null && email.Count() > 0)
+            {
+                return new ResultStatus { result = false, message = "Girmiş olduğunuz email adresi sistemde kullanılıyor.Lütfen başka bir email ile işleminize devam edin." };
+            }
+            this.CMP_TypeIds = new Guid[] { Guid.Parse("03826FA5-1477-F537-F093-57A8C3BEDA5F") };
+            this.isActive = (int)EnumCMP_CompanyIsActive.Pasif;
+            this.type = (short)EnumCMP_CompanyType.Diger;
+
+            var result = this.Save(Guid.Parse("00000000-0000-0000-0000-000000000000"));
+            var userModel = new VMSH_UserModel();
+            userModel.CompanyId = this.id;
+            userModel.loginname = this.companyUser.loginname;
+            userModel.title = this.companyUser.title;
+            userModel.firstname = this.companyUser.firstname;
+            userModel.lastname = this.companyUser.lastname;
+            userModel.phone = this.companyUser.phone;
+            userModel.email = this.companyUser.email;
+            userModel.companyCellPhone = this.companyUser.companyCellPhone;
+            userModel.companyCellPhoneCode = this.companyUser.companyCellPhoneCode;
+            userModel.companyOfficePhone = this.companyUser.companyOfficePhone;
+            userModel.companyOfficePhoneCode = this.companyUser.companyOfficePhoneCode;
+            userModel.birthday = this.companyUser.birthday;
+            userModel.type = (int)EnumSH_UserType.CompanyPerson;
+            userModel.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli) };
+            result &= userModel.Save();
+            if (result.result)
+            {
+
+                SendFirstCustomerMail(userModel);
+                var Iks = db.GetVWSH_UserByRoleId(SHRoles.IKYonetici);
+                if (Iks != null && Iks.Count() > 0)
+                {
+                    foreach (var item in Iks)
+                    {
+                        SendFirstCustomerMailToIK(item, this.name, userModel);
+                    }
+                }
+            }
+            return result;
+        }
+        private void SendFirstCustomerMail(VWSH_User user)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName} |  WorkOfTime sistemi üzerinde kayıt isteğiniz başarıyla alınmıştır. Süreciniz onaylandığı zaman sizi tekrar bilgilendireceğiz</p>";
+            new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
+        }
+
+        private void SendFirstCustomerMailToIK(VWSH_User user, string companyName, VWSH_User companyUser)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Sayın {user.FullName},</h3></br> <p>{tenantName} | WorkOfTime sistemi üzerinde bayi üyelik başvurusu yapmıştır.</p> <p>" +
+                 $"<b>{this.companyUser.firstname} {this.companyUser.firstname}</b></p>" +
+                $"<b>{companyName}</b></p>" +
+                 $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={companyUser.id}'> Buraya tıklayınız!</a></p>";
+
+            new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
+        }
+
 
         public ResultStatus Delete(DbTransaction trans = null)
         {
@@ -484,6 +588,104 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
 
             return dbresult;
+        }
+        public VMCMP_CompanyModel CompanyModel(PageSecurity userStatus)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+                    if (company!=null)
+                    {
+                        var model = new VMCMP_CompanyModel { id = company.id }.Load();
+                        return model;
+                    }
+                }
+            }
+            return new VMCMP_CompanyModel();
+        }
+        public VWPA_Account AccountModel(PageSecurity userStatus)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+                    if (company != null)
+                    {
+                        var account = db.GetPA_AccountByDataIdAndType(company.id);
+                        if (account != null)
+                        {
+                            return account;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        public string CheckUserCompanyGeneralInfo(PageSecurity userStatus = null)
+        {
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+
+                    if (company == null)
+                    {
+                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
+                    }
+                    if (string.IsNullOrEmpty(company.taxNumber) || string.IsNullOrEmpty(company.email) || string.IsNullOrEmpty(company.phone) || string.IsNullOrEmpty(company.invoiceAddress) || string.IsNullOrEmpty(company.commercialTitle) || string.IsNullOrEmpty(company.name) || string.IsNullOrEmpty(company.taxOffice))
+                    {
+                        return "Bayi bilgilerinizde eksik alanlar bulunmaktadır.";
+                    }
+                }
+                else
+                {
+                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
+                    return "Herhangi bir işletmeye ait değilsiniz";
+                }
+
+
+            }
+            return "";
+        }
+        public string CheckUserCompanyAccountInfo(PageSecurity userStatus = null)
+        {
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+
+                    if (company == null)
+                    {
+                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
+                    }
+                    var account = db.GetPA_AccountByDataIdAndType(company.id);
+                    if (account == null)
+                    {
+                        return "Banka hesap bilgilerinde eksik alanlar bulunmaktadır.";
+                    }
+                }
+                else
+                {
+                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
+                    return "Herhangi bir işletmeye ait değilsiniz";
+                }
+
+
+            }
+            return "";
         }
     }
 }

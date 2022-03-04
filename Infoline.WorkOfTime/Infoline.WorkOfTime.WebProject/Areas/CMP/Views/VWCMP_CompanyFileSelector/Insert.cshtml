@@ -3,8 +3,15 @@
     ViewBag.Title = "Kayıt Ekleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<script data-selector="modalContainer">
-   
+<script type="text/javascript">
+
+
+    function setBoolInTurkish(data) {
+        if (data) return "Evet";
+        return "Hayır";
+    };
+
+
 </script>
 @using (Html.BeginForm("Insert", "VWCMP_CompanyFileSelector", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
@@ -16,13 +23,40 @@
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model=>model.customerId)
-<div class="form-group">
-    <div class="col-md-4">
-        <label class="control-label label-md" for="customerId">Modül Seçiniz</label>
-    </div>
-    <div class="col-md-8">
-        @(Html.Kendo().DropDownListFor(model => model.fileGroupModule).HtmlAttributes(new Dictionary<string, object>()
+    @Html.HiddenFor(model => model.customerId)
+
+
+<script type="text/x-kendo-template" id="moduleDropdownTemplate" data-selector="modalContainer">
+
+
+
+    #if(DataTable=="SH_User"){#
+    #return "Personel Evrakları"#
+    #}else if(DataTable=="CMP_Company"){#
+    #return "Şirket Evrakları"#
+    #}#
+
+
+</script>
+<script type="text/x-kendo-template" id="moduleDropdownValueTemplate" data-selector="modalContainer">
+
+
+
+    #if(DataTable=="SH_User"){#
+    #return "Personel Evrakları"#
+    #}else if(DataTable=="CMP_Company"){#
+    #return "Şirket Evrakları"#
+    #}#
+
+</script>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="customerId">Modül Seçiniz</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DropDownListFor(model => model.fileGroupModule).HtmlAttributes(new Dictionary<string, object>()
             {
                 {"style", "width:100%"},
                 {"class", "form-control"},
@@ -31,6 +65,8 @@
             .Filter(FilterType.Contains)
             .DataTextField("DataTable")
             .DataValueField("DataTable")
+            .Template("#=TemplateEngine('moduleDropdownTemplate',data)#")
+            .ValueTemplate("#=TemplateEngine('moduleDropdownValueTemplate',data)#")
             .DataSource(s =>
             {
                 s.Read(r =>
@@ -41,14 +77,14 @@
              .Validate(Validations.Required)
              .Execute()
              )
+        </div>
     </div>
-</div>
-<div class="form-group">
-    <div class="col-md-4">
-        <label class="control-label label-md" for="customerId">Dosya Seçiniz</label>
-    </div>
-    <div class="col-md-8">
-        @(Html.Akilli()
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="customerId">Dosya Seçiniz</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
      .MultiSelectFor(x => x.FileNames)
      .Placeholder("Lütfen Dosya Seçiniz..")
      .DataTextField("FileGroup")
@@ -60,8 +96,8 @@
      .CascadeFromField("DataTable")
      .Execute()
             )
+        </div>
     </div>
-</div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
         <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>

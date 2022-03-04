@@ -30,11 +30,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return View();
         }
         [PageInfo("Şirket Bilgileri", SHRoles.HakEdisBayiPersoneli)]
-        public ActionResult IndexCompany()
+        public ActionResult IndexCompany(VMCMP_CompanyModel model)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
-            ViewBag.data = CheckUserCompanyHasNullAreas(userStatus);
-            return View();
+            ViewBag.data = model.CheckUserCompanyGeneralInfo(userStatus);
+            ViewBag.dataAccount = model.CheckUserCompanyAccountInfo(userStatus);
+            return View(model);
         }
         [PageInfo("Müşterileri Firmalarım", SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
         public ActionResult IndexMyCustomer()
@@ -46,7 +47,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         {
             return View();
         }
-        [PageInfo("Tüm Cari Listesi", SHRoles.Personel, SHRoles.CRMBayiPersoneli,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Onay Listesi", SHRoles.IKYonetici)]
+        public ActionResult CompanyApproveIndex()
+        {
+            return View();
+        }
+        [PageInfo("Tüm Cari Listesi", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -60,7 +66,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             data.Total = db.GetVWCMP_CompanyCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayiler Adet Methodu"), AllowEveryone]
+        public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            var db = new WorkOfTimeDatabase();
+            var adet = db.GetVWCMP_CompanyCount(condition.Filter);
+            return adet;
+        }
+        [PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -101,8 +115,23 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var data = db.GetVWCMP_Company(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Firma&Cari Detay Sayfası", SHRoles.Personel,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Firma&Cari Detay Sayfası", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Detail(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var model = new VMCMP_CompanyModel { id = id }.Load();
+            model.VWPA_Accounts = db.GetVWPA_AccountsByDataIdDataTable(id, "CMP_Company");
+            var _presentation = db.GetCRM_PresentationByCompanyId(id);
+            var _crmContact = db.GetCRM_ContactByPresentationIds(_presentation.Select(c => c.id).ToArray());
+            ViewBag.PresentationIds = _presentation.Select(c => c.id).ToArray();
+            ViewBag.ContactIds = _crmContact.Select(c => c.id).ToArray();
+            var crump = "<ol class=\"breadcrumb\">";
+            var crum = BreadCrumps(true, id, model.name).Substring(1).Split('#').Reverse();
+            model.breadCrumps = crump + string.Join("", crum) + "<ol>";
+            return View(model);
+        }
+        [PageInfo("Bayi Detay Sayfası", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
+        public ActionResult DetailDealar(Guid id)
         {
             var db = new WorkOfTimeDatabase();
             var model = new VMCMP_CompanyModel { id = id }.Load();
@@ -152,13 +181,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                 FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Update(VMCMP_CompanyModel item)
         {
             item.Load();
             return View(item);
         }
-        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMCMP_CompanyModel item, EnumCMP_CompanyType[] type)
         {
@@ -170,7 +199,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 Result = dbresult.result,
                 Object = item.id,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message,false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -737,49 +766,67 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             query.Filter &= filter;
             return query;
         }
-        public string CheckUserCompanyHasNullAreas(PageSecurity userStatus = null)
+
+        [AllowEveryone]
+        [PageInfo("Şirket Onaylama")]
+        public ActionResult Confirm(Guid id)
         {
-            userStatus = userStatus ?? (PageSecurity)Session["userStatus"];
-
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            var model = new VMCMP_CompanyModel { id = id }.Load();
+            return View(model);
+        }
+        [AllowEveryone]
+        [PageInfo("Şirket Onaylama")]
+        [HttpPost]
+        public JsonResult Confirm(Guid id, bool? isPost)
+        {
+            var db = new WorkOfTimeDatabase();
+            var findCompany = db.GetCMP_CompanyById(id);
+            if (findCompany == null)
             {
-
-                var db = new WorkOfTimeDatabase();
-                if (userStatus.user.CompanyId.HasValue)
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Bayi Bulunamadı!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            if (findCompany.isActive == (int)EnumCMP_CompanyIsActive.Aktif)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Bayi Zaten Onaylanmış!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            var findCompanyPerson = db.GetINV_CompanyPersonByCompanyIdFirst(findCompany.id);
+            findCompany.isActive = (int)EnumCMP_CompanyIsActive.Aktif;
+            var result = db.UpdateCMP_Company(findCompany);
+            if (result.result && findCompanyPerson != null)
+            {
+                var findUser = db.GetSH_UserById(findCompanyPerson.IdUser.Value);
+                if (findUser != null)
                 {
-                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+                    findUser.status = true;
+                    string url = TenantConfig.Tenant.GetWebUrl();
+                    var password = Guid.NewGuid().ToString().Substring(0, 8);
+                    findUser.password = db.GetMd5Hash(db.GetMd5Hash(password));
+                    var tenantName = TenantConfig.Tenant.TenantName;
+                    result &= db.UpdateSH_User(findUser);
 
-                    if (company == null)
-                    {
-                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
-                    }
+                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde oturum acabileceğiniz üyelik bilgileri aşagıdaki gibidir.</p>
+                        <p><strong>Bayi : <strong><span style='color: #ed5565;'>{6}</span></p>
+                        <p><strong>Kullanıcı Adı : <strong><span style='color: #ed5565;'>{3}</span><br> <small>E-mail veya TC-Kimklik numarası ile sisteme giriş yapabilirisiniz</small></p>
+                        <p><strong>Şifre : <strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p><strong>E-Posta : <strong><span style='color: #ed5565;'>{4}</span></p>
+                        <p> Web üzerinden giriş yapmak için lütfen <a href='{1}/Account/SignIn'> Buraya tıklayınız! </a></p>
+                        ", password, url, tenantName, findUser.email, findUser.email, "", findCompany.name + " (" + findCompany.code + ")");
 
-                    var account = db.GetPA_AccountByDataId(company.id);
-                    if (account.Count() == 0)
-                    {
-
-                        new FeedBack().Custom("Lütfen Ödeme Alabilmek İçin Banka Bilgileriniz Doldurun", Url.Action("Insert", "VWPA_Account", new { dataTable = "CustomerUser", dataId = company.id, area = "PA" }), "Ödeme Alabilmek İçin Banka Bilgilerinizi Doldurun!", "warning", 10, true, 1);
-                        return "Lütfen Ödeme Alabilmek İçin Banka Bilgileriniz Doldurun";
-                    }
-                    if (string.IsNullOrEmpty(company.taxNumber)
-                        || string.IsNullOrEmpty(company.email)
-                        || string.IsNullOrEmpty(company.phone)
-                        || string.IsNullOrEmpty(company.invoiceAddress)
-                        )
-                    {
-                        new FeedBack().Custom("Vergi Numarası, E-Posta, Telefon Numarası ve Fatura Adresi alanlarını doldurun", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
-                        return "Lütfen E-Posta, Telefon Numarası, Fatura Adresi ve Vergi Numarası alanlarını doldurun";
-                    }
+                    new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
+                              .Send((Int16)EmailSendTypes.ZorunluMailler, findUser.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
                 }
                 else
                 {
-                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
-                    return "Herhangi bir işletmeye ait değilsiniz";
+                    result.message = "Şirkete Bağlı Kullanıcı Bulunamadı";
+                    result.result = false;
                 }
 
-                
             }
-            return "";
+            return Json(new ResultStatusUI
+            {
+                FeedBack = result.result ? new FeedBack().Success("Bayi Onaylandı. E-Posta Gönderildi") : new FeedBack().Warning("İşlem gerçekleştirilirken bir hata oluştu!"),
+                Result = result.result
+            }, JsonRequestBehavior.AllowGet);
         }
     }
 }

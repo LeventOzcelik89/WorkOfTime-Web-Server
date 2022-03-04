@@ -15,6 +15,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         public Guid DistributorId { get; set; }
         public string DistributorName { get; set; }
+        public string productName { get; set; }
         public string CustomerOperatorName { get; set; }
         public DateTime FileNameDate  {get; set; }
         public int activatedCount { get; set; }
@@ -60,8 +61,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 StringBuilder cc = new StringBuilder();
                 cc.AppendLine("select c.DistributorId, c.DistributorName, CustomerOperatorName, f.FileNameDate,");
                 cc.AppendLine("SUM(CASE WHEN p.id is null THEN 0 ELSE 1 END) as activatedCount,");
-                cc.AppendLine("count(*) as salesCount,");
-                cc.AppendLine("(count(*)-SUM(CASE WHEN p.id is null THEN 0 ELSE 1 END)) as notActivatedCount");
+                cc.AppendLine("SUM(CASE WHEN c.id is null THEN 0 ELSE 1 END) as salesCount,");
+                cc.AppendLine("(SUM(CASE WHEN c.id is null THEN 0 ELSE 1 END)-SUM(CASE WHEN p.id is null THEN 0 ELSE 1 END)) as notActivatedCount");
                 cc.AppendLine("from PRD_TitanDeviceActivated as p");
                 cc.AppendLine("RIGHT JOIN PRD_EntegrationAction as c on c.Imei = p.IMEI1");
                 cc.AppendLine("LEFT JOIN PRD_EntegrationFiles as  f on f.id = c.EntegrationFileId");
