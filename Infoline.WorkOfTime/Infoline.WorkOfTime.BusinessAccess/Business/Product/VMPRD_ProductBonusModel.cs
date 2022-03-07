@@ -33,11 +33,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private ResultStatus Validator()
         {
             var result = new ResultStatus { result = true };
-            if (this.ProductItems.Count() == 0)
+            foreach (var item in this.ProductItems)
             {
-                result.message = "Ürün birim fiyat alanı boş geçilemez";
-                result.result = false;
-                return result;
+                if (item.unitPrice == 0)
+                {
+                    result.message = "Ürün birim fiyatı 0 olamaz.";
+                    result.result = false;
+                    return result;
+                }
+                if (item.productId==null)
+                {
+                    result.message = "Ürün alanı boş geçilemez.";
+                    result.result = false;
+                    return result;
+                }
             }
             if (this.ruleName == null)
             {

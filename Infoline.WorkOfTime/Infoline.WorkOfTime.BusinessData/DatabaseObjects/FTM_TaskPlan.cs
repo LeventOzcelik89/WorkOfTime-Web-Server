@@ -46,5 +46,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// FTM_Task tablosu id alanı ile eşleşir.
         /// </summary>
         public Guid? templateId { get; set;}
+        public int? monthFrequency { get; set;}
+        public int? dayFrequency { get; set;}
     }
 }
