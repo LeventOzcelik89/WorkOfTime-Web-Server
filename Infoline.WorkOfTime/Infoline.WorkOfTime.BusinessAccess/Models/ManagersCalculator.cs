@@ -69,9 +69,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var res = new List<VWINV_CompanyPersonDepartments>();
             var departmentUsers = DepartmentsPersons
-                .Where(a => a.IdUser == userId &&
-                a.IsBasePosition == true &&
-                (a.EndDate == null || a.EndDate >= DateTime.Now))
+                .Where(a => (a.IdUser == userId && a.OrganizationType == (int)EnumINV_CompanyDepartmentsType.Organization && a.IsBasePosition == true) &&
+                    ((a.StartDate <= DateTime.Now && a.EndDate >= DateTime.Now) || (a.StartDate <= DateTime.Now && a.EndDate == null)))
                 .ToArray();
 
             if (departmentUsers.Count() == 0)

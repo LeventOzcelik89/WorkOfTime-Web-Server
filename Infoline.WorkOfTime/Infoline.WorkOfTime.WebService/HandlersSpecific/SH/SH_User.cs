@@ -107,20 +107,20 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var db = new WorkOfTimeDatabase();
                 var upDown = context.Request["upDown"];
                 var childPersons = new ManagersCalculator().GetAllChilds(CallContext.Current.UserId);
-                var usermanagers = db.GetVWINV_CompanyPersonDepartmentsByUserIdAndEndDateNullIsBaseTrue(CallContext.Current.UserId);
+                var usermanagers = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(CallContext.Current.UserId, (int)EnumINV_CompanyDepartmentsType.Organization);
 
-                if (usermanagers == null)
+                if (usermanagers.Count()==0)
                 {
                     RenderResponse(context, new ResultStatus { result = false, message = "Departman bulunamadı." });
                 }
-
+                var managers = usermanagers.FirstOrDefault();
                 var managerList = new List<Guid?>();
-                managerList.Add(usermanagers.Manager1);
-                managerList.Add(usermanagers.Manager2);
-                managerList.Add(usermanagers.Manager3);
-                managerList.Add(usermanagers.Manager4);
-                managerList.Add(usermanagers.Manager5);
-                managerList.Add(usermanagers.Manager6);
+                managerList.Add(managers.Manager1);
+                managerList.Add(managers.Manager2);
+                managerList.Add(managers.Manager3);
+                managerList.Add(managers.Manager4);
+                managerList.Add(managers.Manager5);
+                managerList.Add(managers.Manager6);
                 var childUserList = new List<VWSH_UserOrderType>();
                 var chsay = 0;
                 if (Convert.ToBoolean(upDown))
