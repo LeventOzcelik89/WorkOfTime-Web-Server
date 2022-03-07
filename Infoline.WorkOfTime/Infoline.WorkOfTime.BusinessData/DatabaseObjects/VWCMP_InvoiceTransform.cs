@@ -5,6 +5,7 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWCMP_InvoiceTransform : InfolineTable
     {
+        public Guid invoiceId { get; set;}
         public string SerialNumberTo_Title { get; set;}
         public string SerialNumberFrom_Title { get; set;}
         public Guid? invoiceIdFrom { get; set;}
