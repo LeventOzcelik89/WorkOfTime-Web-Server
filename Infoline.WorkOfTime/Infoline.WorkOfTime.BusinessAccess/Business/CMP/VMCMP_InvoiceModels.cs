@@ -159,13 +159,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var rs = new ResultStatus { result = true };
 			var invoice = db.GetCMP_InvoiceById(this.id);
 
-			var requestCodeId = invoice.id;
-
-
 
 			if (invoice != null)
 			{
 				isNull = false;
+				var requestCodeId = invoice.id;
 			}
 
 			if (this.customerAdress == null || this.supplierAdress == null) { return new ResultStatus { result = false, message = "Fatura kesmek istediğiniz işletmelerin fatura adresleri zorunludur." }; }

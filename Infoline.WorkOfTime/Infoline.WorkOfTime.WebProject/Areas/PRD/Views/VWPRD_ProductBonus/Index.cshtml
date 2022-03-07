@@ -1,0 +1,26 @@
+﻿@{
+    ViewBag.Title = "Prim Kural Tanımları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        @(Html.Akilli()
+          .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductBonus>("VWPRD_ProductBonus")
+          .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductBonus", new { area = "PRD" })).PageSize(25))
+            .Scrollable(a => a.Height(600))
+          .Columns(x =>
+          {
+              x.Bound(y => y.code).Title("Kural Kodu").Width(100);
+              x.Bound(y => y.ruleName).Title("Kural Adı").Width(200);
+          })
+          .Scrollable(x=>x.Height(700))
+          .ToolBar(x =>
+          {
+              x.Custom().Text("<i data-original-title='Prim Kuralı Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductBonus", new { area = "PRD" }));
+              x.Custom().Text("<i data-original-title='Prim Kuralı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" },{ "data-default", "" } }).Url(Url.Action("Update", "VWPRD_ProductBonus", new { area = "PRD" }));
+              x.Custom().Text("<i data-original-title='Prim Kuralı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductBonus", new { area = "PRD" }));
+          }))
+    </div>
+</div>
