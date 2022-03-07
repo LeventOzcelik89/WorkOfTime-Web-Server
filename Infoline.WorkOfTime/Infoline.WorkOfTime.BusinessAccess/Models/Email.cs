@@ -40,11 +40,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
         #region Masraflar
         [Generic("group", "Masraf", "name", "Masraf Onay Mailleri", "title", "Masraflar ile ilgili tüm onay/bilgilendirme maillerinin tarafıma gönderilmesi")]
         MasrafOnay = 40,
+        [Generic("group", "Masraf", "name", "Masraf Ödeme Mailleri", "title", "Masraflar ile ilgili ödeme maillerinin tarafıma gönderilmesi")]
+        MasrafÖdeme = 50,
         #endregion
         //60-80 arası tüm avans ile ilgili mail durumları
         #region Avanslar 
         [Generic("group", "Avans", "name", "Avans Onay Mailleri", "title", "Avanslar ile ilgili tüm onay/bilgilendirme maillerinin tarafıma gönderilmesi")]
         AvansOnay = 60,
+        [Generic("group", "Avans", "name", "Avans Ödeme Mailleri", "title", "Avanslar ile ilgili tüm ödeme maillerinin tarafıma gönderilmesi")]
+        AvansÖdeme = 70,
 
         #endregion
         //80-100 arası tüm değerlendirme ile ilgili mail durumları

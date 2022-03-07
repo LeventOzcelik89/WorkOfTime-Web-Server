@@ -49,7 +49,7 @@ namespace System.Web.Mvc
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());
                     _root.Add(GetSatinAlma());
-                    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)) && TenantConfig.Tenant.TenantCode != 1194)
+                    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
                     {
                         _root.Add(GetStokSevkiyat());
                     }

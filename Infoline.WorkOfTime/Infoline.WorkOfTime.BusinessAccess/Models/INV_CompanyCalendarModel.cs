@@ -323,19 +323,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             List<VWFTM_Task> tasks = new List<VWFTM_Task>();
 
-            var followingTasks = db.GetVWFTM_TaskFollowUpUserByUserId(userId).Where(x=>x.taskId.HasValue).Select(x=>x.taskId.Value).ToArray();
+            var followingTasks = db.GetVWFTM_TaskFollowUpUserByUserId(userId).Where(x => x.taskId.HasValue).Select(x => x.taskId.Value).ToArray();
 
             var roles = db.GetSH_UserRoleByUserId(userId);
 
-            var userRolesManager = roles.Where(a => a.roleid == new Guid(SHRoles.SahaGorevOperator) || a.roleid == new Guid(SHRoles.SahaGorevYonetici)).ToArray();
             var userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.SahaGorevPersonel)).ToArray();
 
-
-            if (userRolesManager.Count() > 0)
-            {
-                tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, true, followingTasks).ToList();
-            }
-            else if (userRoles.Count() > 0)
+            if (userRoles.Count() > 0)
             {
                 tasks = db.GetVWFTM_TaskByCalendar(userId, start, end, false, followingTasks).ToList();
             }

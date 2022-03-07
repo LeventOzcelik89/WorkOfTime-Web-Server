@@ -904,7 +904,7 @@ $(document)
         }
     })
     .on("keyup", '[data-calculate="keyup"]', function (e) {
-        debugger;
+   
         e.preventDefault();
         var newValue = e.target.value;
         if (newValue[newValue.length - 1] == ",") {

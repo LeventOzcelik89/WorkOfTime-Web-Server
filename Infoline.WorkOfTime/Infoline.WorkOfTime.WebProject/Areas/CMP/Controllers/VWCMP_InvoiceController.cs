@@ -110,15 +110,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return View(data);
         }
 
-        [PageInfo("Alış Faturası Detayı 2", SHRoles.OnMuhasebe, SHRoles.ProjeYonetici, SHRoles.MuhasebeAlis)]
-        public ActionResult DetailBuying2(Guid id)
-        {
-            var data = new VMCMP_InvoiceModels { id = id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis);
-            ViewBag.EnumProperties = EnumsProperties.EnumToArrayGeneric<EnumCMP_InvoiceActionType>().ToArray();
-            return View(data);
-        }
-
-
         [PageInfo("Satış Faturası Ekleme", SHRoles.OnMuhasebe, SHRoles.MuhasebeSatis, SHRoles.SatisFatura)]
         public ActionResult InsertSelling(VMCMP_InvoiceModels item, bool? transform = false)
         {
