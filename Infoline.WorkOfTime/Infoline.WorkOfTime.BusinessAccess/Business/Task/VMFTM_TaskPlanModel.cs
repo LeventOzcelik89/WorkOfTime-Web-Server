@@ -1,4 +1,6 @@
 ﻿using Infoline.Framework.Database;
+using Infoline.Helper;
+using Infoline.WorkOfTime.BusinessAccess.RecurringDateModel;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -13,12 +15,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public WorkOfTimeDatabase db { get; set; }
 		private DbTransaction trans { get; set; }
 		private bool loadedTasks { get; set; } = false;
-
 		public List<string> _Times { get; set; }
 		public List<string> _TimesData { get; set; } = new List<string>();
-
 		public List<string> _WeekDays { get; set; }
 		public List<string> _WeekDaysData { get; set; } = new List<string>();
+		public List<string> _MonthFrequency { get; set; } = new List<string>();
+		public List<string> _MonthFrequenciesData { get; set; } = new List<string>();
+		public List<string> _DayFrequency { get; set; } = new List<string>();
+		public List<string> _DayFrequenciesData { get; set; } = new List<string>();
 
 		public VWFTM_TaskTemplate TaskTemplate { get; set; }
 
@@ -30,7 +34,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			if (task != null)
 			{
-
 				this.B_EntityDataCopyForMaterial(task, true);
 
 				if (!String.IsNullOrEmpty(this.weekDays))
@@ -46,6 +49,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (this.templateId != null)
 				{
 					this.TaskTemplate = db.GetVWFTM_TaskTemplateById(this.templateId.Value);
+				}
+
+
+				if (this.dayFrequency.HasValue)
+				{
+					var dayFrequencyEnum = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanDayFrequency>().Where(a=>a.Key == this.dayFrequency.Value.ToString()).Select(b=>b.Value).FirstOrDefault();
+					this._DayFrequency.Add(dayFrequencyEnum);
+				}
+
+
+				if (this.monthFrequency.HasValue)
+				{
+					var monthFrequencyEnum = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanMonthFrequency>().Where(a => a.Key == this.monthFrequency.Value.ToString()).Select(b => b.Value).FirstOrDefault();
+					this._MonthFrequency.Add(monthFrequencyEnum);
 				}
 
 			}
@@ -66,6 +83,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			_WeekDaysData.Add("Pazar");
 
 
+			_MonthFrequenciesData.Add("İlk");
+			_MonthFrequenciesData.Add("İkinci");
+			_MonthFrequenciesData.Add("Üçüncü");
+			_MonthFrequenciesData.Add("Dördüncü");
+			_MonthFrequenciesData.Add("Son");
+
+			_DayFrequenciesData.Add("Gün");
+			_DayFrequenciesData.Add("Hafta Sonu");
+			_DayFrequenciesData.Add("Hafta Sonu Son Günü");
+			_DayFrequenciesData.Add("Pazar");
+			_DayFrequenciesData.Add("Pazartesi");
+			_DayFrequenciesData.Add("Salı");
+			_DayFrequenciesData.Add("Çarşamba");
+			_DayFrequenciesData.Add("Perşembe");
+			_DayFrequenciesData.Add("Cuma");
+			_DayFrequenciesData.Add("Cumartesi");
 
 			return this;
 
@@ -86,6 +119,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.weekDays = String.Join(",", this._WeekDays);
 			}
+
+
+			if (this._DayFrequency != null)
+			{
+				var dayFrequencyKey = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanDayFrequency>().Where(a => a.Value == this._DayFrequency.FirstOrDefault()).Select(b => b.Key).FirstOrDefault();
+
+				if (dayFrequencyKey != null)
+				{
+					this.dayFrequency = Convert.ToInt32(dayFrequencyKey);
+				}
+
+			}
+
+			if (this._MonthFrequency != null)
+			{
+				var monthFrequencyKey = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanMonthFrequency>().Where(a => a.Value == this._MonthFrequency.FirstOrDefault()).Select(b => b.Key).FirstOrDefault();
+
+				if (monthFrequencyKey != null)
+				{
+					this.monthFrequency = Convert.ToInt32(monthFrequencyKey);
+				}
+			}
+
+
 
 			var dbRes = new ResultStatus { result = true };
 			var plan = db.GetFTM_TaskPlanById(this.id);
@@ -285,15 +342,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var query = "SELECT id,lastOperationDate,created,changed,closingDate,code,taskPlanId,customer_Title,customerStorage_Title,fixture_Title,planStartDate,dueDate,priority_Title,plate,priority,lastOperationStatus,assignUserId,assignableUserIds,isComplete,taskPlanId_Title,type_Title,description,penaltyStartDate,amercementTotal,SLAText,assignableUserTitles,taskSubjectType_Title,planLater FROM VWFTM_Task WITH (NOLOCK) WHERE DATEFROMPARTS(YEAR(lastOperationDate), MONTH(lastOperationDate), DAY(lastOperationDate)) = DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), DAY(GETDATE()))";
 
-			if (userIds.Where(a=>a == Guid.Empty).Count() == 0)
+			if (userIds.Where(a => a == Guid.Empty).Count() == 0)
 			{
 				query += " AND (assignUserId IN (";
 				var count = 0;
 				foreach (var item in userIds)
 				{
-					count ++;
+					count++;
 
-					if(count == userIds.Count())
+					if (count == userIds.Count())
 					{
 						query += String.Format("'{0}'", item);
 					}
@@ -553,6 +610,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			lastDate = lastDate ?? DateTime.Now;
 
 			this.loadedTasks = true;
+			RecurrenceValues values = null;
 
 			var res = new List<VWFTM_Task>();
 			var taskTimes = new List<DateTime>();
@@ -574,7 +632,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			while (start <= end)
 			{
-
 				switch ((EnumFTM_TaskPlansFrequency)this.frequency)
 				{
 
@@ -634,12 +691,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 							break;
 						}
-
 					default:
+						start = start.AddMonths(this.frequencyInterval.Value);
 						break;
 
 				}
+			}
 
+
+			if (this.frequency == (int)EnumFTM_TaskPlansFrequency.Tekrarlanan)
+			{
+				MonthlyRecurrenceSettings mo;
+				mo = new MonthlyRecurrenceSettings(this.frequencyStartDate.Value, this.frequencyEndDate.Value);
+				mo.AdjustmentValue = int.Parse("0");
+				values = mo.GetValues((MonthlySpecificDatePartOne)this.monthFrequency, (MonthlySpecificDatePartTwo)this.dayFrequency, this.frequencyInterval.Value);
+				taskTimes.AddRange(values.Values);
 			}
 
 			var tasks = taskTimes
@@ -675,5 +741,4 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		}
 
 	}
-
 }

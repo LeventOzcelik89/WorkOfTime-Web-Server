@@ -16,6 +16,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string weekDays { get; set;}
         public string monthDays { get; set;}
         public Guid? templateId { get; set;}
+        public int? monthFrequency { get; set;}
+        public int? dayFrequency { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public int? task_Count { get; set;}

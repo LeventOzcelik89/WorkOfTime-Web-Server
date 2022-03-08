@@ -135,6 +135,17 @@ namespace Infoline.WorkOfTime.Controllers
             var result = db.GetVWPRJ_Project().Select(a => new { Name = a.ProjectName });
             return Json(result, JsonRequestBehavior.AllowGet);
         }
+        public JsonResult FilterMenuTaskPlanDayFrequency()
+        {
+            var result = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanDayFrequency>().Select(c => new { Id = c.Key, Name = c.Value }).ToList();
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult FilterMenuTaskPlanTaskMonthFrequency()
+        {
+            var result = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanMonthFrequency>().Select(c => new { Id = c.Key, Name = c.Value }).ToList();
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
 
         public JsonResult FavoritesAdd(string data, bool? status, string search, string Description)
         {
