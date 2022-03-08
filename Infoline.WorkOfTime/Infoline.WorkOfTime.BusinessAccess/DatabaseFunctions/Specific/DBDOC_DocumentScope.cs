@@ -21,6 +21,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<DOC_DocumentScope>().Where(a => a.documentId == id).Execute().ToArray();
             }
         }
-
+        public DOC_DocumentScope[] GetDOC_DocumentScopeByOrganizationId(Guid organizationId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<DOC_DocumentScope>().Where(a => a.organizationUnitId == organizationId).Execute().ToArray();
+            }
+        }
     }
 }

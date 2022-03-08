@@ -207,9 +207,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 					FeedBack = feedback.Warning("Departmanda çalışan personeller bulunmaktadır bu işlemi gerçekleştiremezsiniz.")
 				}, JsonRequestBehavior.AllowGet);
 			}
-
-
-			var dbresult = db.DeleteINV_CompanyDepartments(departman);
+			var documentScope = db.GetDOC_DocumentScopeByOrganizationId(departman.id);
+			var dbresult = db.BulkDeleteDOC_DocumentScope(documentScope);
+			dbresult &= db.DeleteINV_CompanyDepartments(departman);
 
 			var result = new ResultStatusUI
 			{

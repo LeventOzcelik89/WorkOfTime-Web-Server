@@ -126,23 +126,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
 
             var department = Departments.Where(a => a.id == Departmentid).FirstOrDefault();
-            var departmentParent = Departments.Where(a => a.id == department.PID && a.Type == department.Type && a.ProjectId == department.ProjectId).FirstOrDefault();
-
-            if (departmentParent != null)
+            if (department!=null)
             {
-                var departmentParentTwo = Departments.Where(x => x.id == departmentParent.PID && x.Type == departmentParent.Type).FirstOrDefault();
-                var departmentParentPerson = DepartmentsPersons.Where(a => a.DepartmentId == departmentParent.id);
-                var departmentParentPersonManager = departmentParentPerson.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
-                All.AddRange(departmentParentPersonManager);
+                var departmentParent = Departments.Where(a => a.id == department.PID && a.Type == department.Type && a.ProjectId == department.ProjectId).FirstOrDefault();
 
-                if (departmentParentTwo != null)
+                if (departmentParent != null)
                 {
-                    var departmentParentPersonTwo = DepartmentsPersons.Where(a => a.DepartmentId == departmentParentTwo.id);
-                    var departmentParentPersonManagerTwo = departmentParentPersonTwo.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
-                    All.AddRange(departmentParentPersonManagerTwo);
-                }
+                    var departmentParentTwo = Departments.Where(x => x.id == departmentParent.PID && x.Type == departmentParent.Type).FirstOrDefault();
+                    var departmentParentPerson = DepartmentsPersons.Where(a => a.DepartmentId == departmentParent.id);
+                    var departmentParentPersonManager = departmentParentPerson.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
+                    All.AddRange(departmentParentPersonManager);
 
-                GetManagers(All, department.PID);
+                    if (departmentParentTwo != null)
+                    {
+                        var departmentParentPersonTwo = DepartmentsPersons.Where(a => a.DepartmentId == departmentParentTwo.id);
+                        var departmentParentPersonManagerTwo = departmentParentPersonTwo.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
+                        All.AddRange(departmentParentPersonManagerTwo);
+                    }
+
+                    GetManagers(All, department.PID);
+                }
             }
         }
 
