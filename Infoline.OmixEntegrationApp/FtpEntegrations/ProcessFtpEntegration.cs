@@ -15,12 +15,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
         }
         public void Run()
         {
-            Log.Error("test");
+           
             var taskMobitel = new Task(() =>
             {
                 new FtpMobitel().ExportFilesToDatabase(); ;
             });
             Tasks.Add(taskMobitel);
+
+
 
             var taskGenpa = new Task(() =>
             {
@@ -28,17 +30,23 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
             });
             Tasks.Add(taskGenpa);
 
+
+
             var taskKvk = new Task(() =>
             {
                 new FtpKvk().ExportFilesToDatabase(); ;
             });
             Tasks.Add(taskKvk);
 
+
+
             var taskPort = new Task(() =>
             {
                 new FtpPort().ExportFilesToDatabase(); ;
             });
             Tasks.Add(taskPort);
+
+
 
             foreach (var task in Tasks)
             {

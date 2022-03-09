@@ -51,7 +51,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-150);
+            var processDate = DateTime.Now.AddDays(-670);
             var entegrationFileList = GetFilesInFtp(processDate);
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
@@ -122,7 +122,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
-                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName == (file.FileName)))
                     continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
