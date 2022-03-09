@@ -8,6 +8,46 @@
     var stockTable = Model.StockTable != null ? Model.StockTable : "";
 }
 
+<script type="text/javascript" data-selector="modalContainer">
+	function stockActionFunc(data) {
+		var span = '<span data-placement="left" data-toggle="tooltip" title="İşlem Yapmış Olduğunuz Miktar"';
+		if (data.totalQuantity < 0) {
+			span += ' style="color:red">';
+		}
+		else {
+			span += ' style="color:green">';
+		}
+
+		span += kendo.toString(data.totalQuantity, 'n2');
+		span += " ";
+		span += data.alternativeUnitId_Title;
+
+		span += "</span>";
+
+
+		if (data.alternativeUnitId_Title != data.unitId_Title) {
+			span += " - ";
+			span += '<span data-placement="right" data-toggle="tooltip" title="Varsayılan Birim Karşılığı"';
+			if (data.quantity < 0) {
+				span += ' style="color:red">';
+			}
+			else {
+				span += ' style="color:green">';
+			}
+
+			span += kendo.toString(data.quantity, 'n2');
+			span += " ";
+			span += data.unitId_Title;
+
+			span += "</span>";
+		}
+
+		return span;
+
+	}
+
+</script>
+
     <style type="text/css" data-selector="modalContainer">
       .modal-lg {
          width: 95%;
@@ -32,8 +72,7 @@
 				x.Bound(y => y.dataCompanyId_Title).Title("Cari").Width(310);
 				x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım  - Pesonel").Width(300);
 				x.Bound(y => y.productId_Title).Title("Ürün").Width(300);
-				x.Bound(y => y.totalQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity!=null ? totalQuantity : '', 'n2')# #:unitId_Title!=null ? unitId_Title:''#</span> ").Width(150).Format("{0:N2}");
-				//x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(alternativeQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(alternativeQuantity!=null ? alternativeQuantity : '', 'n2')# #:alternativeUnitId_Title!=null ? alternativeUnitId_Title:''#</span> ").Width(150).Format("{0:N2}");
+				x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("#=stockActionFunc(data)#").Width(250);
 				x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
 				x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
 				x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(120).Format("{0:N2} TL");
@@ -62,8 +101,7 @@
 				x.Bound(y => y.stockId_Title).Title("Personel").Width(300);
 				x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım").Width(300);
 				x.Bound(y => y.productId_Title).Title("Ürün").Width(300);
-				x.Bound(y => y.totalQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity!=null ? totalQuantity : '', 'n2')# #:unitId_Title!=null ? unitId_Title:''#</span> ").Width(150).Format("{0:N2}");
-				//x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity!=null ? totalQuantity : '', 'n2')# #:unitId_Title!=null ? unitId_Title:''#</span> ").Width(150).Format("{0:N2}");
+				x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("#=stockActionFunc(data)#").Width(250);
 				x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
 				x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
 				x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(120).Format("{0:N2} TL");

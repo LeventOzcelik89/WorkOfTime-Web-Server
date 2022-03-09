@@ -12,15 +12,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 	public class VWPRD_ProductUnitController : Controller
 	{
 		[PageInfo("Ürüne Birim Tanımla", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
-		public ActionResult Insert(PRD_ProductUnit data)
+		public ActionResult Insert(VWPRD_ProductUnitModel data)
 		{
-			data.isDefault = data.isDefault ?? (int)EnumPRD_ProductUnitIsDefault.Hayir;
-			return View(data);
+			return View(data.Load());
 		}
 
 		[HttpPost]
 		[PageInfo("Ürüne Birim Tanımla", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
-		public JsonResult Insert(PRD_ProductUnit data, bool? isPost)
+		public JsonResult Insert(VWPRD_ProductUnitModel data, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -34,15 +33,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 				{
 					return Json(new ResultStatusUI
 					{
-						FeedBack =  feedback.Warning("Varsayılan bir ürün birimi zaten mevcuttur."),
+						FeedBack = feedback.Warning("Varsayılan bir ürün birimi zaten mevcuttur."),
 					}, JsonRequestBehavior.AllowGet);
 				}
 			}
 
 			data.createdby = userStatus.user.id;
 			data.created = DateTime.Now;
-
-			dbresult &= db.InsertPRD_ProductUnit(data);
+			dbresult &= db.InsertPRD_ProductUnit(new PRD_ProductUnit().EntityDataCopyForMaterial(data));
 
 			return Json(new ResultStatusUI
 			{
@@ -52,42 +50,35 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[PageInfo("Ürüne Birimi Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
-		public ActionResult Update(Guid id)
+		public ActionResult Update(VWPRD_ProductUnitModel data)
 		{
-			var db = new WorkOfTimeDatabase();
-			var data = db.GetPRD_ProductUnitById(id);
-			return View(data);
+			return View(data.Load());
 		}
 
 		[PageInfo("Ürüne Birimi Güncelleme Methodu", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(PRD_ProductUnit item)
+		public JsonResult Update(VWPRD_ProductUnitModel item, bool? isPost)
 		{
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-
-
 			item.changed = DateTime.Now;
 			item.changedby = userStatus.user.id;
 
-			var dbresult = db.UpdatePRD_ProductUnit(item);
+			var dbresult = db.UpdatePRD_ProductUnit(new PRD_ProductUnit().EntityDataCopyForMaterial(item));
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
 				FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
 			};
-
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
 
 		[PageInfo("Ürün Birimi Detay", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
-		public ActionResult Detail(Guid id)
+		public ActionResult Detail(VWPRD_ProductUnitModel data)
 		{
-			var db = new WorkOfTimeDatabase();
-			var data = db.GetPRD_ProductUnitById(id);
-			return View(data);
+			return View(data.Load());
 		}
 
 
