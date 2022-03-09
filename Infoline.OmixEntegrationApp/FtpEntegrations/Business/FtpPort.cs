@@ -139,6 +139,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId)
         {
+            var db = GetDbConnection();
             var sellThrs = new List<PRD_EntegrationAction>();
             var datetimeNow = DateTime.Now;
             try
@@ -226,7 +227,15 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.ProductId = inventory?.productId;
                         item.InventoryId = inventory?.id;
                         item.CustomerOperatorId = company;
-                        sellThrs.Add(item);
+                        var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
+                        if (existRetitive != null)
+                        {
+                            message =  item.Imei + " Imei Numarası Sistemde Mevcuttur.";
+                        }
+                        else
+                        {
+                            sellThrs.Add(item);
+                        }
                         if (!string.IsNullOrEmpty(message))
                         {
                             NotificationLogger.SaveError(DateTime.Now, message, item);

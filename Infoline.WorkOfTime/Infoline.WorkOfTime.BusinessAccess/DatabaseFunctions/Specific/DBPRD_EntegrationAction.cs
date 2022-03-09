@@ -13,12 +13,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 {
     partial class WorkOfTimeDatabase
     {
-        public PRD_EntegrationFiles[] GetPRD_EntegrationFilesByCreatedDate(DateTime createDateInFtp, string distName, DbTransaction tran = null)
+        public PRD_EntegrationAction GetPRD_EntegrationActionByRepetitive(string imei, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
 
             {
-                return db.Table<PRD_EntegrationFiles>().Where(a => a.CreateDateInFtp >= createDateInFtp && a.DistributorName == distName).Execute().ToArray();
+                return db.Table<PRD_EntegrationAction>().Where(a => a.Imei == imei && a.Quantity == 1).Execute().OrderByDescending(a=>a.created).FirstOrDefault();
             }
         }
     }
