@@ -1,9 +1,20 @@
-﻿@model Infoline.WorkOfTime.BusinessData.PRD_ProductUnit
+﻿@model Infoline.WorkOfTime.BusinessAccess.VWPRD_ProductUnitModel
 @{
 	ViewBag.Title = "Ürüne Birim Tanımla";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<script type="text/javascript" data-selector="modalContainer">
+	function onChangeUnit(e) {
+		var customer = e.sender.dataItem();
+		if (customer.id != "") {
+			$("#alternativeUnitId").html(customer.name)
+		}
+		else {
+			$("#alternativeUnitId").html(null)
+		}
+	}
+</script>
 
 @using (Html.BeginForm("Insert", "VWPRD_ProductUnit", FormMethod.Post, new Dictionary<string, object>() {
 	{ "class", "form-horizontal" },
@@ -56,12 +67,14 @@
 		.OptionLabel("Lütfen Birim seçiniz..")
 		.DataValueField("id")
 		.DataTextField("name")
+		.Events(a=>a.Change("onChangeUnit"))
 		.Action(b => b.Action("DataSourceDropDown", "UT_Unit", new { area = "UT" }))
 		.Sort(x => x.Add("name").Ascending())
 		.Validate(Validations.Required)
 		.Execute()
             )
 		</div>
+
 	</div>
 
 
@@ -70,12 +83,16 @@
 			<label class="control-label label-md req" for="quantity">Miktar</label>
 		</div>
 		<div class="col-md-8">
-			@(
+			<div class="input-group">
+				<span class="input-group-addon" id="defaultUnitId">@Model.productUnit.quantity  @Model.productUnit.unitId_Title</span>
+				@(
                     Html.Akilli()
                     .NumericTextBoxFor(a => a.quantity)
                     .Min(0)
                     .Format("N2").Validate(Validations.NumberOnly(true,1,12))
                 )
+				<span class="input-group-addon" id="alternativeUnitId"></span>
+			</div>
 		</div>
 	</div>
 
