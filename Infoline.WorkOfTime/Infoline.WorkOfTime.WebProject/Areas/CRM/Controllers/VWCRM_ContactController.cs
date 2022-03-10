@@ -463,7 +463,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
             var trans = db.BeginTransaction();
-            var dbRes = db.UpdateCRM_Contact(new CRM_Contact().EntityDataCopyForMaterial(item, false), false, trans);
+            var dbRes = db.UpdateCRM_Contact(new CRM_Contact().EntityDataCopyForMaterial(item, true), false, trans);
 
             var statusDescription = Helper.EnumsProperties.GetDescriptionFromEnumValue((EnumCRM_ContactContactStatus)item.ContactStatus);
             var lastChanges = "";
