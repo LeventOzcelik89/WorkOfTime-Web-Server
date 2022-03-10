@@ -242,10 +242,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         }
                         else
                         {
-                            message = "Imei Numarası Boş.";
-                        }
-                        else
-                        {
                             sellThrs.Add(item);
                         }
                         if (!string.IsNullOrEmpty(message))
