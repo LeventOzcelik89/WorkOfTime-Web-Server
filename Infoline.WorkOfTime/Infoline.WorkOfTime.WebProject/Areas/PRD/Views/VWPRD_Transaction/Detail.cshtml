@@ -12,10 +12,10 @@
     
     };
 
-	function quantityFunc(data) {
+	function alternativeQuantityFunc(data) {
 		var span = '<span data-placement="left" data-toggle="tooltip" title="İşlem Yapılan Miktar"';
 		if (data.alternativeQuantity < 0 || data.quantity < 0) {
-			span += ' style="color:red">';
+			span += ' style="color:red">-';
 		}
 		else {
 			span += ' style="color:green">';
@@ -28,25 +28,27 @@
 		span += "</span>";
 
 
-		if (data.alternativeUnitId_Title != data.unitId_Title) {
-			span += " - ";
-			span += '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
-			if (data.quantity < 0) {
-				span += ' style="color:red">';
-			}
-			else {
-				span += ' style="color:green">';
-			}
-
-			span += kendo.toString(data.quantity, 'n2');
-			span += " ";
-			span += data.unitId_Title;
-
-			span += "</span>";
-		}
-
 		return span;
 
+	}
+
+	function quantityFunc(data) {
+
+		var span = '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
+		if (data.quantity < 0) {
+			span += ' style="color:red">';
+		}
+		else {
+			span += ' style="color:green">';
+		}
+
+		span += kendo.toString(data.quantity, 'n2');
+		span += " ";
+		span += data.unitId_Title;
+
+		span += "</span>";
+
+		return span;
 	}
 
 
@@ -535,7 +537,8 @@
 					{
 						columns.Bound(p => p.productId_Title).Title("Ürün").Width(180);
 						columns.Bound(p => p.serialCodes).Title("Seri Numaraları").Width(130);
-						columns.Bound(p => p.quantity).Title("Miktar").ClientTemplate("#=quantityFunc(data)#").Width(250);
+						columns.Bound(y => y.alternativeQuantity).Title("İşlem Yapılan Miktar").ClientTemplate("#=alternativeQuantityFunc(data)#").Width(150);
+						columns.Bound(y => y.quantity).Title("Varsayılan Birim Karşılığı").ClientTemplate("#=quantityFunc(data)#").Width(150);
 						columns.Bound(p => p.unitPrice).Title("Birim Fiyat").ClientTemplate("<span> #=kendo.toString(unitPrice!=null ? unitPrice : '0,00','n2')# #=currencyTitle!=null ? currencyTitle : ''#</span>").Width(130);
 						columns.Bound(p => p.quantity).Title("Toplam Fiyat").ClientTemplate(" #=kendo.toString((unitPrice*quantity),'n2')# #=currencyTitle!=null ? currencyTitle : ''#").Width(130);
 						columns.Bound(p => p.transactionTypeTitle).Title("İşlem Tipi").Hidden(true);

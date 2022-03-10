@@ -16,10 +16,10 @@
 
 <script type="text/javascript">
 
-	function quantityFunc(data) {
+	function alternativeQuantityFunc(data) {
 		var span = '<span data-placement="left" data-toggle="tooltip" title="İşlem Yapılan Miktar"';
 		if (data.alternativeQuantity < 0 || data.quantity < 0) {
-			span += ' style="color:red">';
+			span += ' style="color:red">-';
 		}
 		else {
 			span += ' style="color:green">';
@@ -32,28 +32,30 @@
 		span += "</span>";
 
 
-		if (data.alternativeUnitId_Title != data.unitId_Title) {
-		span += " - ";
-		span += '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
-		if (data.quantity < 0) {
-			span += ' style="color:red">';
-		}
-		else {
-			span += ' style="color:green">';
-		}
-
-		span += kendo.toString(data.quantity, 'n2');
-		span += " ";
-		span += data.unitId_Title;
-
-		span += "</span>";
-		}
-
 		return span;
 
 	}
 
-	function stockActionFunc(data) {
+	function quantityFunc(data) {
+
+		var span = '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
+			if (data.quantity < 0) {
+				span += ' style="color:red">';
+			}
+			else {
+				span += ' style="color:green">';
+			}
+
+			span += kendo.toString(data.quantity, 'n2');
+			span += " ";
+			span += data.unitId_Title;
+
+			span += "</span>";
+
+		return span;
+	}
+
+	function stockActionAlternativeFunc(data) {
 		var span = '<span data-placement="left" data-toggle="tooltip" title="İşlem Yapılan Miktar"';
 		if (data.totalQuantity < 0) {
 			span += ' style="color:red">';
@@ -68,12 +70,14 @@
 
 		span += "</span>";
 
+		return span;
+	}
 
-		if (data.alternativeUnitId_Title != data.unitId_Title) {
-			span += " - ";
-			span += '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
-			if (data.quantity < 0) {
-				span += ' style="color:red">';
+	function stockActionQuantityFunc(data) {
+
+		var span = '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
+		if (data.totalQuantity < 0 || data.quantity < 0) {
+				span += ' style="color:red">-';
 			}
 			else {
 				span += ' style="color:green">';
@@ -84,12 +88,9 @@
 			span += data.unitId_Title;
 
 			span += "</span>";
-		}
 
 		return span;
-
 	}
-
 
 
      function FilterMenuInventoryLastStatus(element) {
@@ -479,8 +480,8 @@
 							{
 								x.Bound(y => y.stockCompanyId_Title).Title("İşlem Yapılan Cari").Width(500);
 								x.Bound(y => y.stockId_Title).Title("İşlem Yapılan Şube/Depo/Kısım").Width(500);
-								x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("#=quantityFunc(data)#").Width(250);
-								//x.Bound(y => y.quantity).Title("Varsayılan Birim Miktarı").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(190);
+								x.Bound(y => y.alternativeQuantity).Title("İşlem Yapılan Miktar").ClientTemplate("#=alternativeQuantityFunc(data)#").Width(250);
+								x.Bound(y => y.quantity).Title("Varsayılan Birim Karşılığı").ClientTemplate("#=quantityFunc(data)#").Width(250);
 								x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
 							})
 							.Selectable(x => x.Mode(GridSelectionMode.Multiple))
@@ -531,7 +532,8 @@
 								x.Bound(y => y.dataCompanyId_Title).Title("Cari").Width(310);
 								x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım  - Pesonel").Width(300);
 								x.Bound(y => y.productId_Title).Title("Ürün").Width(300);
-								x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("#=stockActionFunc(data)#").Width(250);
+								x.Bound(y => y.alternativeQuantity).Title("İşlem Yapılan Miktar").ClientTemplate("#=stockActionAlternativeFunc(data)#").Width(250);
+								x.Bound(y => y.quantity).Title("Varsayılan Birim Karşılığı").ClientTemplate("#=stockActionQuantityFunc(data)#").Width(250);
 								x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
 								x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
 								x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(120).Format("{0:N2} TL");
