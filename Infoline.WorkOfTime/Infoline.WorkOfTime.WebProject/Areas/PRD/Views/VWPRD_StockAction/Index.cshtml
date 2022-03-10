@@ -4,7 +4,7 @@
 }
 
 <script type="text/javascript" data-selector="modalContainer">
-	function stockActionFunc(data) {
+	function stockActionAlternativeFunc(data) {
 		var span = '<span data-placement="left" data-toggle="tooltip" title="İşlem Yapılan Miktar"';
 		if (data.totalQuantity < 0) {
 			span += ' style="color:red">';
@@ -19,26 +19,26 @@
 
 		span += "</span>";
 
+		return span;
+	}
 
-		if (data.alternativeUnitId_Title != data.unitId_Title) {
-			span += " - ";
-			span += '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
-			if (data.quantity < 0) {
-				span += ' style="color:red">';
-			}
-			else {
-				span += ' style="color:green">';
-			}
+	function stockActionQuantityFunc(data) {
 
-			span += kendo.toString(data.quantity, 'n2');
-			span += " ";
-			span += data.unitId_Title;
-
-			span += "</span>";
+		var span = '<span data-placement="right" data-toggle="tooltip" title="Ürünün Varsayılan Birim Karşılığı"';
+		if (data.totalQuantity < 0 || data.quantity < 0) {
+			span += ' style="color:red">-';
+		}
+		else {
+			span += ' style="color:green">';
 		}
 
-		return span;
+		span += kendo.toString(data.quantity, 'n2');
+		span += " ";
+		span += data.unitId_Title;
 
+		span += "</span>";
+
+		return span;
 	}
 
 </script>
@@ -74,7 +74,8 @@
 				x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım  - Pesonel").Width(300);
 				x.Bound(y => y.productName).Title("Ürün Adı").Width(300);
 				x.Bound(y => y.productCode).Title("Ürün Kodu").Width(180);
-				x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("#=stockActionFunc(data)#").Width(250);
+				x.Bound(y => y.alternativeQuantity).Title("İşlem Yapılan Miktar").ClientTemplate("#=stockActionAlternativeFunc(data)#").Width(250);
+				x.Bound(y => y.quantity).Title("Varsayılan Birim Karşılığı").ClientTemplate("#=stockActionQuantityFunc(data)#").Width(250);
 				x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
 				x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
 				x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(120).Format("{0:N2} TL");

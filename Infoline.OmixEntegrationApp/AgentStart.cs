@@ -51,6 +51,7 @@ namespace Infoline.OmixEntegrationApp
 
         protected override void OnStart(string[] args)
         {
+           
             //var startingDate= ConfigurationManager.AppSettings["WorkerStart"].ToString();
             //if (string.IsNullOrEmpty(startingDate))
             //{
@@ -70,8 +71,6 @@ namespace Infoline.OmixEntegrationApp
             //    }
             //    Thread.Sleep(new TimeSpan(0,1,0));
             //}
-            Run();
-          
         }
 
         protected override void OnStop()
