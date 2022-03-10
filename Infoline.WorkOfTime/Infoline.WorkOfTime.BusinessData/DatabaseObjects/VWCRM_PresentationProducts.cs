@@ -15,6 +15,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string logo { get; set;}
         public string Presentation_Title { get; set;}
         public string unit_Title { get; set;}
+        public Guid? unitId { get; set;}
         public double? sellingPrice { get; set;}
         public double? CurrentPoint { get; set;}
     }
