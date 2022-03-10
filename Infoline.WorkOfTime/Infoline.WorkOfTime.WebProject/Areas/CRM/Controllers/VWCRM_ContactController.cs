@@ -411,15 +411,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
 
-            if (!item.PresentationId.HasValue)
-            {
-                return Json(new ResultStatusUI
-                {
-                    Result = false,
-                    FeedBack = feedback.Warning("Bağlı potansiyel fırsat bulunamadı.")
-                }, JsonRequestBehavior.AllowGet);
-            }
-
             item.changed = DateTime.Now;
             item.changedby = userStatus.user.id;
 
@@ -472,44 +463,48 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
             var trans = db.BeginTransaction();
-            var dbRes = db.UpdateCRM_Contact(new CRM_Contact().EntityDataCopyForMaterial(item, true), false, trans);
+            var dbRes = db.UpdateCRM_Contact(new CRM_Contact().EntityDataCopyForMaterial(item, false), false, trans);
 
             var statusDescription = Helper.EnumsProperties.GetDescriptionFromEnumValue((EnumCRM_ContactContactStatus)item.ContactStatus);
-
-            dbRes &= db.InsertCRM_PresentationAction(new CRM_PresentationAction
+            var lastChanges = "";
+            if (item.PresentationId.HasValue)
             {
-                created = DateTime.Now,
-                createdby = userStatus.user.id,
-                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
-                presentationId = item.PresentationId.Value,
-                contactId = item.id,
-                type = (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
-            }, trans);
-
-            var stageId = Request["PresentationStageId"].ToGuid();
-            var oldPresentation = db.GetCRM_PresentationById(item.PresentationId.Value);
-
-            if (oldPresentation != null && item.PresentationStageId != null && oldPresentation.PresentationStageId != item.PresentationStageId)
-            {
-                var newStage = db.GetCRM_ManagerStageById(stageId.Value);
-                var oldState = db.GetCRM_ManagerStageById(oldPresentation.PresentationStageId.Value);
                 dbRes &= db.InsertCRM_PresentationAction(new CRM_PresentationAction
                 {
                     created = DateTime.Now,
                     createdby = userStatus.user.id,
+                    description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
                     presentationId = item.PresentationId.Value,
-                    color = newStage != null ? newStage.color : "",
-                    type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
-                    description = "Yeni aşama : " + newStage.Name + " ||  Eski aşama :  " + oldState.Name
+                    contactId = item.id,
+                    type = (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
                 }, trans);
-                oldPresentation.PresentationStageId = item.PresentationStageId;
-                oldPresentation.changedby = userStatus.user.id;
-                oldPresentation.changed = DateTime.Now;
-                dbRes &= db.UpdateCRM_Presentation(oldPresentation, false, trans);
-                changes.Add("Potansiyel Aşaması");
-            }
 
-            var lastChanges = string.Join(", ", changes);
+                var stageId = Request["PresentationStageId"].ToGuid();
+                var oldPresentation = db.GetCRM_PresentationById(item.PresentationId.Value);
+
+                if (oldPresentation != null && item.PresentationStageId != null && oldPresentation.PresentationStageId != item.PresentationStageId)
+                {
+                    var newStage = db.GetCRM_ManagerStageById(stageId.Value);
+                    var oldState = db.GetCRM_ManagerStageById(oldPresentation.PresentationStageId.Value);
+                    dbRes &= db.InsertCRM_PresentationAction(new CRM_PresentationAction
+                    {
+                        created = DateTime.Now,
+                        createdby = userStatus.user.id,
+                        presentationId = item.PresentationId.Value,
+                        color = newStage != null ? newStage.color : "",
+                        type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
+                        description = "Yeni aşama : " + newStage.Name + " ||  Eski aşama :  " + oldState.Name
+                    }, trans);
+                    oldPresentation.PresentationStageId = item.PresentationStageId;
+                    oldPresentation.changedby = userStatus.user.id;
+                    oldPresentation.changed = DateTime.Now;
+                    dbRes &= db.UpdateCRM_Presentation(oldPresentation, false, trans);
+                    changes.Add("Potansiyel Aşaması");
+                }
+
+                lastChanges = string.Join(", ", changes);
+            }
+            
 
             dbRes &= db.BulkDeleteCRM_ContactUser(contactUsers, trans);
             dbRes &= db.BulkInsertCRM_ContactUser(IdUsers.Select(a => new CRM_ContactUser
@@ -521,7 +516,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 ContactId = item.id,
                 UserType = GetUserByType(a)
             }), trans);
-
 
             if (dbRes.result == false)
             {
