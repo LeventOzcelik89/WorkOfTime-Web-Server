@@ -106,8 +106,10 @@ namespace Infoline.WorkOfTime.WebService.Handler
         {
             try
             {
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
                 var db = new WorkOfTimeDatabase();
-                var datas = db.GetVWCRM_Contact();
+                var datas = db.GetVWCRM_Contact(cond);
                 var listData = new List<VWCRM_Contact>();
                 foreach (var data in datas)
                 {
