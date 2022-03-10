@@ -17,7 +17,6 @@ namespace System.Web.Mvc
                 {
                     {"style", "width:100%"},
                 })
-                .Format("n3")
                 .Step(1)
                 .Spinners(false)
                 .Culture(Extensions.Culture().Name);

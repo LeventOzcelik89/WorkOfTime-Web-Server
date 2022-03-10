@@ -25,6 +25,7 @@
 {
 	@Html.AntiForgeryToken()
 	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.isDefault)
 
 
 	if (Model.productId.HasValue)
@@ -68,6 +69,7 @@
 		.DataValueField("id")
 		.DataTextField("name")
 		.Events(a=>a.Change("onChangeUnit"))
+		.BasicInsert(Url.Action("Insert", "UT_Unit", new { area = "UT" }), "name", false)
 		.Action(b => b.Action("DataSourceDropDown", "UT_Unit", new { area = "UT" }))
 		.Sort(x => x.Add("name").Ascending())
 		.Validate(Validations.Required)
@@ -86,33 +88,13 @@
 			<div class="input-group">
 				<span class="input-group-addon" id="defaultUnitId">@Model.productUnit.quantity  @Model.productUnit.unitId_Title</span>
 				@(
-                    Html.Akilli()
-                    .NumericTextBoxFor(a => a.quantity)
-                    .Min(0)
-                    .Format("N2").Validate(Validations.NumberOnly(true,1,12))
-                )
+					Html.Akilli()
+					.NumericTextBoxFor(a => a.quantity)
+					.Min(-10000000)
+					)
+
 				<span class="input-group-addon" id="alternativeUnitId"></span>
 			</div>
-		</div>
-	</div>
-
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md req" for="isActive">Varsayılan Birim Mi?</label>
-		</div>
-		<div class="col-md-8">
-			<div class="clearfix m-b-md">
-				<div class="radio akilliRadioGrup clearfix">
-					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductUnitIsDefault>().OrderBy(x => x.Generic["order"]))
-					{
-						@(Html.RadioButtonFor(model => model.isDefault, item.Key, new Dictionary<string, object> { { "id", "isDefault" + item.Key } }))
-						<label for="isDefault@(item.Key)" tabindex="0" class="radio-label">
-							@item.Value
-						</label>
-					}
-				</div>
-			</div>
-
 		</div>
 	</div>
 
