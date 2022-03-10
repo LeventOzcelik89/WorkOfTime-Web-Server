@@ -25,17 +25,17 @@ namespace Infoline.OmixEntegrationApp
         public void Run()
         {
             Log.Error("TEST");
-            var taskProcessLogoEntegration = new Task(() =>
-            {
-                new ProcessLogoEntegration().Run();
-            });
-            Tasks.Add(taskProcessLogoEntegration);
+            //var taskProcessLogoEntegration = new Task(() =>
+            //{
+            //    new ProcessLogoEntegration().Run();
+            //});
+            //Tasks.Add(taskProcessLogoEntegration);
 
-            var taskProcessTitanEntegration = new Task(() =>
-            {
-                new ProcessTitanEntegration().Run();
-            });
-            Tasks.Add(taskProcessTitanEntegration);
+            //var taskProcessTitanEntegration = new Task(() =>
+            //{
+            //    new ProcessTitanEntegration().Run();
+            //});
+            //Tasks.Add(taskProcessTitanEntegration);
 
             var taskProcessFtpDistEntegration = new Task(() =>
             {
@@ -45,7 +45,7 @@ namespace Infoline.OmixEntegrationApp
 
             //taskProcessLogoEntegration.Start();
             taskProcessFtpDistEntegration.Start();
-            taskProcessTitanEntegration.Start();
+            //taskProcessTitanEntegration.Start();
 
         }
 

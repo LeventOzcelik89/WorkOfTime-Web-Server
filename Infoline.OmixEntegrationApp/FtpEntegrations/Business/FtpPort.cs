@@ -227,10 +227,22 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.ProductId = inventory?.productId;
                         item.InventoryId = inventory?.id;
                         item.CustomerOperatorId = company;
-                        var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
-                        if (existRetitive != null)
+                        if (item.Imei != null)
                         {
-                            message =  item.Imei + " Imei Numarası Sistemde Mevcuttur.";
+                            var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
+                            if (existRetitive != null)
+                            {
+                                message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
+                            }
+                            else
+                            {
+                                sellThrs.Add(item);
+                            }
+
+                        }
+                        else
+                        {
+                            message = "Imei Numarası Boş.";
                         }
                         else
                         {

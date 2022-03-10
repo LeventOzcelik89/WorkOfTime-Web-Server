@@ -123,17 +123,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB())
             {
-                StringBuilder cc = new StringBuilder();
-                cc.AppendLine("SELECT lastActionDataCompanyId as Id, lastActionDataCompanyId_Title as Name, lastActionCompanyTitles as Types, COUNT(lastActionDataCompanyId_Title) as Count, (select 0) as SellingCount");
-                cc.AppendLine("FROM VWPRD_Inventory with(nolock)");
-                cc.AppendLine("WHERE id in (SELECT EA.InventoryId");
-                cc.AppendLine("FROM PRD_EntegrationAction as EA INNER JOIN prd_entegrationfiles as EF with(nolock) ON EA.EntegrationFileId = EF.id");
-                cc.AppendLine(string.Format("WHERE EA.ProductId is not null AND EF.FileNameDate >= '{0}' AND EF.FileNameDate <= '{1}' AND EA.InventoryId is not null)", startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd")));
-                cc.AppendLine("AND lastActionDataCompanyId_Title is not null");
-                cc.AppendLine("GROUP BY lastActionDataCompanyId, lastActionDataCompanyId_Title, lastActionCompanyTitles");
-                cc.AppendLine("ORDER BY COUNT(lastActionDataCompanyId) DESC");
+                //StringBuilder cc = new StringBuilder();
+                //cc.AppendLine("SELECT lastActionDataCompanyId as Id, lastActionDataCompanyId_Title as Name, lastActionCompanyTitles as Types, COUNT(lastActionDataCompanyId_Title) as Count, (select 0) as SellingCount");
+                //cc.AppendLine("FROM VWPRD_Inventory with(nolock)");
+                //cc.AppendLine("WHERE id in (SELECT EA.InventoryId");
+                //cc.AppendLine("FROM PRD_EntegrationAction as EA INNER JOIN prd_entegrationfiles as EF with(nolock) ON EA.EntegrationFileId = EF.id");
+                //cc.AppendLine(string.Format("WHERE EA.ProductId is not null AND EF.FileNameDate >= '{0}' AND EF.FileNameDate <= '{1}' AND EA.InventoryId is not null)", startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd")));
+                //cc.AppendLine("AND lastActionDataCompanyId_Title is not null");
+                //cc.AppendLine("GROUP BY lastActionDataCompanyId, lastActionDataCompanyId_Title, lastActionCompanyTitles");
+                //cc.AppendLine("ORDER BY COUNT(lastActionDataCompanyId) DESC");
 
-                return db.ExecuteReader<SellOutReportModel>(cc.ToString()).ToArray();
+                var query = $@"SELECT lastActionDataCompanyId as Id, INV.lastActionDataCompanyId_Title as Name, INV.lastActionCompanyTitles as Types
+                            ,COUNT(INV.lastActionDataCompanyId) as Count
+                            FROM PRD_EntegrationAction as EA
+                            Inner JOIN prd_entegrationfiles as EF with(nolock) ON EA.EntegrationFileId = EF.id
+                            INNER JOIN VWPRD_Inventory INV ON INV.id = EA.InventoryId
+                            WHERE EA.ProductId is not null
+                            AND EF.FileNameDate >='{startDate.ToString("yyyy-MM-dd")}'
+                            AND EF.FileNameDate <= '{endDate.ToString("yyyy-MM-dd")}'
+                            AND EA.InventoryId is not null
+                            GROUP BY INV.lastActionDataCompanyId, INV.lastActionDataCompanyId_Title, INV.lastActionCompanyTitles ORDER BY COUNT(INV.lastActionDataCompanyId) DESC";
+
+                return db.ExecuteReader<SellOutReportModel>(query.ToString()).ToArray();
             }
         }
 

@@ -64,6 +64,16 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     Log.Error("There was a problem while data recording...: ", result.message);
                     continue;
                 }
+                else
+                {
+                    string fileName = entegrationFile.FileName;
+                    string sourcePath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory; 
+                    string targetPath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "\\ALINANLAR";
+                    string sourceFile = System.IO.Path.Combine(sourcePath, fileName);
+                    string destFile = System.IO.Path.Combine(targetPath, fileName);
+                    System.IO.Directory.CreateDirectory(targetPath);
+                    System.IO.File.Move(sourceFile, destFile);
+                }
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
@@ -231,14 +241,22 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.ProductId = inventory?.productId;
                         item.InventoryId = inventory?.id;
                         item.CustomerOperatorId = company;
-                        var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
-                        if (existRetitive != null)
+                        if (item.Imei != null)
                         {
-                            message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
+                            var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
+                            if (existRetitive != null)
+                            {
+                                message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
+                            }
+                            else
+                            {
+                                sellThrs.Add(item);
+                            }
+
                         }
                         else
                         {
-                            sellThrs.Add(item);
+                            message = "Imei Numarası Boş.";
                         }
                         if (!string.IsNullOrEmpty(message))
                         {

@@ -132,7 +132,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var db = new WorkOfTimeDatabase();
 
             var getData = db.GetVWPRD_EntegrationActionSellerReportByDistIdAndDates(distId, startDate, endDate);
-            var sallesByGrouped = getData.GroupBy(x => x.CustomerOperatorName).Select(a => new SallesByGrouped { CustomerOperatorName = a.Key, activatedCount = a.Sum(s => s.activatedCount), salesCount = a.Sum(s => s.salesCount), notActivatedCount = a.Sum(s => s.notActivatedCount) });
+            var sallesByGrouped = getData.GroupBy(x => x.CustomerOperatorName).Select(a => new SallesByGrouped { CustomerOperatorName = a.Key != null ? a.Key : "Bayi İsmi Bulunamadı.", activatedCount = a.Sum(s => s.activatedCount), salesCount = a.Sum(s => s.salesCount), notActivatedCount = a.Sum(s => s.notActivatedCount) });
 
             var activatedCount = sallesByGrouped.Sum(a => a.activatedCount);
             var salesCount = sallesByGrouped.Sum(a => a.salesCount);
