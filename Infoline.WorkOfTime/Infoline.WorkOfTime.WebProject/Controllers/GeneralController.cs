@@ -27,7 +27,7 @@ namespace Infoline.WorkOfTime.Controllers
     {
 
 
-        
+
 
         public JsonResult GetEnums([DataSourceRequest] DataSourceRequest request)
         {
@@ -397,9 +397,9 @@ namespace Infoline.WorkOfTime.Controllers
                 Result = dbres.result,
             }, JsonRequestBehavior.AllowGet);
         }
-        public ContentResult GetSH_UsersForPresentationById(Guid id)
+        public ContentResult GetSH_UsersForPresentationById(Guid? id)
         {
-            var res = new CRM_Model().GetSH_UsersForPresentationById(id);
+            var res = id != null ? new CRM_Model().GetSH_UsersForPresentationById(id.Value) : null;
             return Content(Helper.Json.Serialize(res), "application/json");
         }
         public ContentResult GetCRM_ManagerStageCodeAndName()
@@ -926,7 +926,7 @@ namespace Infoline.WorkOfTime.Controllers
             var users = db.GetSH_GroupUsersByGroupId(id);
             return Json(users, JsonRequestBehavior.AllowGet);
         }
-        
+
 
         public JsonResult GetProductMaterials(Guid productId)
         {
