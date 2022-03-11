@@ -13,45 +13,19 @@ using System.Linq;
 using System.Net;
 namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 {
-    public class FtpMobitel : IFtpDistributorEntegration
+    public class FtpKvk : IFtpDistributorEntegration
     {
         public FtpConfiguration ftpConfiguration { get; set; }
-        public string DistributorName
-        { get { return "MobilTel"; } }
-        public Guid DistributorId
-        { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); } }
-        public FtpMobitel()
+        public string DistributorName => "KVK";
+        public Guid DistributorId => new Guid("6fc15dc2-e1ce-46e2-8b3e-2e23badb1e80");
+        public FtpKvk()
         {
-            Log.Warning("Start Process Ftp Mobitel");
+            Log.Warning("Start Process Ftp KVK");
             SetFtpConfiguration();
-        }
-        public WorkOfTimeDatabase GetDbConnection()
-        {
-            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
-            return tenant.GetDatabase();
-        }
-        public void SetFtpConfiguration()
-        {
-            var url = ConfigurationManager.AppSettings["MobiltelUrl"].ToString();
-            var userName = ConfigurationManager.AppSettings["MobiltelUserName"].ToString();
-            var password = ConfigurationManager.AppSettings["MobiltelPassword"].ToString();
-            var directory = ConfigurationManager.AppSettings["MobiltelDirectory"].ToString();
-            var readAllDirectory = ConfigurationManager.AppSettings["MobiltelReadAllDirectory"].ToString();
-            var fileExtension = ConfigurationManager.AppSettings["MobiltelFileExtension"].ToString();
-            this.ftpConfiguration = new FtpConfiguration
-            {
-                Directory = directory,
-                Password = password,
-                SearchAllDirectory = Convert.ToBoolean(readAllDirectory),
-                Url = url,
-                UserName = userName,
-                FileExtension = fileExtension
-            };
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-150);
+            var processDate = DateTime.Now.AddDays(-2000);
             var entegrationFileList = GetFilesInFtp(processDate);
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
@@ -64,16 +38,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     Log.Error("There was a problem while data recording...: ", result.message);
                     continue;
                 }
-                else
-                {
-                    string fileName = entegrationFile.FileName;
-                    string sourcePath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory; 
-                    string targetPath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "\\ALINANLAR";
-                    string sourceFile = System.IO.Path.Combine(sourcePath, fileName);
-                    string destFile = System.IO.Path.Combine(targetPath, fileName);
-                    System.IO.Directory.CreateDirectory(targetPath);
-                    System.IO.File.Move(sourceFile, destFile);
-                }
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
@@ -81,7 +45,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     {
                         var bultInsertResult = db.BulkInsertPRD_EntegrationAction(sellThr);
                         if (!bultInsertResult.result)
-                            Log.Info("SellIn Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
+                            Log.Info("SellThr Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
                     }
                 }
                 Log.Success("Finish Process File : {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
@@ -89,50 +53,77 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             Log.Success($"All Files Are Integrated In {DistributorName} FTP");
             return result;
         }
+        public WorkOfTimeDatabase GetDbConnection()
+        {
+            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
+            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
+            return tenant.GetDatabase();
+        }
+        public string FileTypeName(string fileName)
+        {
+            if (fileName.Contains("SELLIN"))
+                return "SELLIN";
+            else if (fileName.Contains("SELLTHR"))
+                return "SELLTHR";
+            else if (fileName.Contains("STOK"))
+                return "SELLSTK";
+            else
+                return null;
+        }
         public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
         {
-            Log.Info(string.Format("Getting File Names On {1} : {0}", this.ftpConfiguration.Url, this.DistributorName));
-            var directoryItems = new List<DirectoryItem>();
+            Log.Info(string.Format("Getting All File Names From Kvk Server {0}", ftpConfiguration.Url));
             var fileList = new List<FileNameWithUrl>();
             try
             {
-                var request = (FtpWebRequest)WebRequest.Create(this.ftpConfiguration.Url + this.ftpConfiguration.Directory);
+                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create(ftpConfiguration.Url);
                 request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
-                request.Credentials = new NetworkCredential(this.ftpConfiguration.UserName, this.ftpConfiguration.Password);
-                string[] lineList = null;
-                using (var response = (FtpWebResponse)request.GetResponse())
-                using (var reader = new StreamReader(response.GetResponseStream()))
+                request.Credentials = new NetworkCredential(ftpConfiguration.UserName, ftpConfiguration.Password);
+                string[] list = null;
+                using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
+                using (StreamReader reader = new StreamReader(response.GetResponseStream()))
                 {
-                    lineList = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    list = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 }
-                foreach (string line in lineList.Where(x => x.Contains("SELLIN") || x.Contains("SELLTHR")))
+                foreach (string line in list)
                 {
-                    var item = new DirectoryItem();
-                    var fileDate = DateTime.ParseExact(line.Substring(0, 17), "MM-dd-yy  hh:mmtt", CultureInfo.InvariantCulture);
-                    var fileName = Tools.GetItemName(line);
-                    item.BaseUri = this.ftpConfiguration.Url;
-                    item.IsDirectory = Tools.IsDir(line);
-                    item.Name = fileName;
-                    item.DateFileCreated = fileDate;
-                    directoryItems.Add(item);
-                    if (!item.IsDirectory)
+                    DirectoryItem item = new DirectoryItem();
+                    string data = line;
+                    var dateString = line.Substring(43, 56 - 44);
+                    bool isDirectory = data[0].ToString() == "d";
+                    var name = data.Substring(56);
+                    var date = line.Substring(43, 56 - 44);
+                    item.Name = name;
+                    item.BaseUri = ftpConfiguration.Url;
+                    item.IsDirectory = isDirectory;
+                    if (name == "." || name == "..")
                     {
-                        fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
+                    }
+                    else
+                    {
+                        if (!isDirectory)
+                        {
+                            var isTransformed = DateTime.TryParseExact(date, "MMM dd  yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate);
+                            if (isTransformed)
+                            {
+                                item.DateFileCreated = parsedDate;
+                            }
+                            fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
+                        }
                     }
                 }
                 Log.Info("Files Count:" + fileList.Count);
             }
             catch (Exception e)
             {
-                Log.Error(this.ftpConfiguration.Url + " failed! : " + e.Message);
-                return null;
+                Log.Error(ftpConfiguration.Url + " failed! : " + e.Message);
             }
             var db = GetDbConnection();
             var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate, DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
-                if (entegrationFilesInDb.Any(x => x.FileName == (file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName) && x.DistributorId == this.DistributorId))
                     continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
@@ -143,7 +134,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     DistributorName = DistributorName,
                     DistributorId = DistributorId,
                     FileName = file.DirectoryFileName,
-                    FileNameDate = Tools.GetDateFromFileName(file.FileName, "yyyyMMddss"),
+                    FileNameDate = Tools.GetDateFromFileName(file.FileName, "yyyyMMdd"),
                     ProcessTime = DateTime.Now,
                     FileTypeName = FileTypeName(file.FileName)
                 });
@@ -241,22 +232,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.ProductId = inventory?.productId;
                         item.InventoryId = inventory?.id;
                         item.CustomerOperatorId = company;
-                        if (item.Imei != null)
+                        var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
+                        if (existRetitive != null)
                         {
-                            var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
-                            if (existRetitive != null)
-                            {
-                                message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
-                            }
-                            else
-                            {
-                                sellThrs.Add(item);
-                            }
-
+                            message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
                         }
                         else
                         {
-                            message = "Imei Numarası Boş.";
+                            sellThrs.Add(item);
                         }
                         if (!string.IsNullOrEmpty(message))
                         {
@@ -275,9 +258,21 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             return sellThrs.ToArray();
         }
-        public List<string[]> GetRawFile(string fileName)
+        public void SetFtpConfiguration()
         {
-            Log.Info(string.Format("Getting File  {0} on Mobitel Server {1}", fileName, ftpConfiguration.Url));
+            var kvkUserName = ConfigurationManager.AppSettings["KvkUserName"].ToString();
+            var kvkPassword = ConfigurationManager.AppSettings["KvkPassword"].ToString();
+            var kvkUrl = ConfigurationManager.AppSettings["KvkHost"].ToString() ?? "";
+            ftpConfiguration = new FtpConfiguration
+            {
+                Url = kvkUrl,
+                UserName = kvkUserName,
+                Password = kvkPassword
+            };
+        }
+        private IEnumerable<string[]> GetRawFile(string fileName)
+        {
+            Log.Info(string.Format("Getting File  {0} on KVK Server", fileName));
             var listStringArray = new List<string[]>();
             var request = (FtpWebRequest)WebRequest.Create(fileName);
             request.Method = WebRequestMethods.Ftp.DownloadFile;
@@ -290,7 +285,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             {
                 while ((line = reader.ReadLine()) != null)
                 {
-                    List<string> splitedLines = line.Split(';').ToList();
+                    List<string> splitedLines = line.Split('\t').ToList();
                     listStringArray.Add(splitedLines.ToArray());
                 }
                 response.Close();
@@ -301,17 +296,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 Log.Warning(e.Message);
             }
             return listStringArray;
-        }
-        public string FileTypeName(string fileName)
-        {
-            if (fileName.Contains("SELLIN"))
-                return "SELLIN";
-            else if (fileName.Contains("SELLTHR"))
-                return "SELLTHR";
-            else if (fileName.Contains("STOK"))
-                return "SELLSTK";
-            else
-                return null;
         }
     }
 }
