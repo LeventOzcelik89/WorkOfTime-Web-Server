@@ -25,7 +25,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-670);
+            var processDate = DateTime.Now.AddDays(-200);
             var entegrationFileList = GetFilesInFtp(processDate);
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)

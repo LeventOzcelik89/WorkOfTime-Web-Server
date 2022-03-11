@@ -74,6 +74,16 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 objects = getData
             };
         }
+        public ResultStatus GetProductSellOutDistrubitorReport(DateTime startDate, DateTime endDate)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var getData = db.GetPRD_TitanDeviceActivatedSellOutDistrubitorQuery(startDate, endDate);
+            return new ResultStatus
+            {
+                result = true,
+                objects = getData
+            };
+        }
         public ResultStatus GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -132,10 +142,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var db = new WorkOfTimeDatabase();
 
             var getData = db.GetVWPRD_EntegrationActionSellerReportByDistIdAndDates(distId, startDate, endDate);
-            var sallesByGrouped = getData.GroupBy(x => x.CustomerOperatorName).Select(a => new SallesByGrouped { CustomerOperatorName = a.Key != null ? a.Key : "Bayi İsmi Bulunamadı.", activatedCount = a.Sum(s => s.activatedCount), salesCount = a.Sum(s => s.salesCount), notActivatedCount = a.Sum(s => s.notActivatedCount) });
+            var sallesByGrouped = getData.GroupBy(x => x.CustomerOperatorName).Select(a => new SallesByGrouped { CustomerOperatorName = a.Key != null ? a.Key : "Bayi İsmi Bulunamadı.", activatedCount = a.Sum(s => s.activatedCount), salesCount = a.Sum(s => s.salesCount), returnSalesCount = a.Sum(s => s.returnSalesCount), notActivatedCount = a.Sum(s => s.notActivatedCount) });
 
             var activatedCount = sallesByGrouped.Sum(a => a.activatedCount);
             var salesCount = sallesByGrouped.Sum(a => a.salesCount);
+            var returnSalesCount = sallesByGrouped.Sum(a => a.returnSalesCount);
             var notActivatedCount = sallesByGrouped.Sum(a => a.notActivatedCount);
 
             return new SellerReportPage
@@ -143,6 +154,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 sallesByGrouped = sallesByGrouped,
                 totalActivatedCount = activatedCount,
                 totalSalesCount = salesCount,
+                returnSalesCount= returnSalesCount,
                 totalNotActivatedCount = notActivatedCount
             };
         }
@@ -191,6 +203,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public string CustomerOperatorName { get; set; }
         public int activatedCount { get; set; }
         public int salesCount { get; set; }
+        public int returnSalesCount { get; set; }
         public int notActivatedCount { get; set; }
     }
 
@@ -199,6 +212,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public IEnumerable<SallesByGrouped> sallesByGrouped { get; set; }
         public int totalActivatedCount { get; set; }
         public int totalSalesCount { get; set; }
+        public int returnSalesCount { get; set; }
         public int totalNotActivatedCount { get; set; }
     }
 

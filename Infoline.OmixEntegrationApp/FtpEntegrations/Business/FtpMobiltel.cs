@@ -51,7 +51,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-670);
+            var processDate = DateTime.Now.AddDays(-150);
             var entegrationFileList = GetFilesInFtp(processDate);
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
@@ -63,16 +63,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 {
                     Log.Error("There was a problem while data recording...: ", result.message);
                     continue;
-                }
-                else
-                {
-                    string fileName = entegrationFile.FileName;
-                    string sourcePath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory; 
-                    string targetPath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "\\ALINANLAR";
-                    string sourceFile = System.IO.Path.Combine(sourcePath, fileName);
-                    string destFile = System.IO.Path.Combine(targetPath, fileName);
-                    System.IO.Directory.CreateDirectory(targetPath);
-                    System.IO.File.Move(sourceFile, destFile);
                 }
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
@@ -132,7 +122,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
-                if (entegrationFilesInDb.Any(x => x.FileName == (file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)))
                     continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
@@ -241,22 +231,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.ProductId = inventory?.productId;
                         item.InventoryId = inventory?.id;
                         item.CustomerOperatorId = company;
-                        if (item.Imei != null)
+                        var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
+                        if (existRetitive != null)
                         {
-                            var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
-                            if (existRetitive != null)
-                            {
-                                message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
-                            }
-                            else
-                            {
-                                sellThrs.Add(item);
-                            }
-
+                            message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
                         }
                         else
                         {
-                            message = "Imei Numarası Boş.";
+                            sellThrs.Add(item);
                         }
                         if (!string.IsNullOrEmpty(message))
                         {
