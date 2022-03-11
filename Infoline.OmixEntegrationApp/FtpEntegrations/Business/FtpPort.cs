@@ -118,7 +118,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
-                if (entegrationFilesInDb.Any(x => x.FileName==(file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName == (file.FileName)))
                     continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
@@ -236,7 +236,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                             }
                             else
                             {
-                                sellThrs.Add(item);
+                                if (item.Imei == null)
+                                {
+                                    message = "Imei Numarası Boş";
+                                }
+                                else
+                                {
+                                    sellThrs.Add(item);
+                                }
                             }
 
                         }

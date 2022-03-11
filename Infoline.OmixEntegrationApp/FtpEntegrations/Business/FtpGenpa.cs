@@ -230,7 +230,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                             }
                             else
                             {
-                                sellThrs.Add(item);
+                                if (item.Imei == null)
+                                {
+                                    message = "Imei Numarası Boş";
+                                }
+                                else
+                                {
+                                    sellThrs.Add(item);
+                                }
                             }
 
                         }
