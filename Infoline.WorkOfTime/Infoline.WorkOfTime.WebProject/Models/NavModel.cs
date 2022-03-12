@@ -74,7 +74,7 @@ namespace System.Web.Mvc
                     _root.Add(GetIsletmeCariler());
                     _root.Add(GetMuhasabeYonetimi());
                     _root.Add(GetYardimDestekYonetimi());
-                    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)) && TenantConfig.Tenant.TenantCode != 1194)
+                    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
                     {
                         _root.Add(GetYonetim());
                         _root.Add(GetExternalLinks());
