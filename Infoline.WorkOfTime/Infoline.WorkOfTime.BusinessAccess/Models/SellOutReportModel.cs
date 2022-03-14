@@ -23,4 +23,13 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public int ActivatedCount { get; set; }
     }
 
+    public class SellOutReportsModel
+    {
+        public Guid DistributorId { get; set; }
+        public string dataCompanyId_Title { get; set; }
+        public int DistSalesCount { get; set; }
+        public int SalesCount { get; set; }
+        public int ActivatedData { get; set; }
+        public string Types { get; set; }
+    }
 }

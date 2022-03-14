@@ -135,16 +135,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-6">
-            <div class="ibox-title">
-                <h4>Distribütör Bazlı Toplam Kanal Sell-Out Raporu</h4>
-            </div>
-            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 500px; overflow: scroll; height: 500px;">
-                <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutDistDist">
-                </ul>
-                <span class="text-success hide" id="distSeperator">DİĞER</span>
-                <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px; margin-top:10px;" id="sellOutDist">
-                </ul>
+        <div id="sellss">
+            <div class="col-sm-6">
+                <div class="ibox-title">
+                    <h4>Distribütör Bazlı Toplam Kanal Sell-Out Raporu</h4>
+                    <input class="btn btn-primary m-t-md pull-left" style="top: -11px;position: absolute;right: 45px;" type="button" onclick="page.excelDownload()" value="Excel'e Aktar" />
+                </div>
+                <div class="ibox-content clearfix" style="min-height: 350px; max-height: 500px; overflow: scroll; height: 500px;">
+                    <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutDistDist">
+                    </ul>
+                    <span class="text-success hide" id="distSeperator">DİĞER</span>
+                    <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px; margin-top:10px;" id="sellOutDist">
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="col-sm-12" style="margin-top: 25px; height: 500px;">
@@ -172,6 +175,13 @@
             page.randomColorNumber++;
             return page.colorArray[page.randomColorNumber];
         },
+        excelDownload: function () {
+            var startDate = $("#startDate").val();
+            var endDate = $("#endDate").val();
+                var url = window.location.origin;
+                window.open(url + '/PRD/VWPRD_TitanDeviceActivated/SellOutExcel?startDate=' + startDate + '&endDate=' + endDate, '_blank');
+        },
+
         setIndexData: function (data) {
             $("#total").text(data.All);
             $("#today").text(data.Today);
@@ -215,50 +225,56 @@
         setDataSourceForDistSellOut: function (data) {
             var startDate = $("#startDate").val();
             var endDate = $("#endDate").val();
-            var count = 0;
-            var countSelling = 0;
+            var activatedCount = 0;
+            var saleCount = 0;
+            var distSaleCount = 0;
             $("#sellOutDistDist li").remove();
             $("#sellOutDist li").remove();
             $("#distSeperator").addClass("hide");
             $.each(data.objects, function (i, item) {
-                debugger;
                 var isCompanyDistributor = false;
                 if (item.Types != null) {
                     isCompanyDistributor = item.Types.toLowerCase().includes("distribütör");
                 }
-                count = count + parseInt(item.Count);
-                countSelling += item.SellingCount;
+                activatedCount = activatedCount + parseInt(item.ActivatedData);
+                saleCount = saleCount + parseInt(item.SalesCount);
+                distSaleCount = distSaleCount + parseInt(item.DistSalesCount);
                 if (isCompanyDistributor == true) {
                     $("#sellOutDistDist").append(
-                        '<li class= "clearfix" >' +
-                        '<a target="_blank" href="/PRD/VWPRD_EntegrationAction/SellerReport?DistributorId=' + item.Id + '&startDate=' + startDate + '&endDate=' + endDate +'"' +
+                        '<li class= "clearfix" style="padding-bottom: 6px;padding-top: 6px;" >' +
+                        '<a target="_blank" href="/PRD/VWPRD_EntegrationAction/SellerReport?DistributorId=' + item.DistributorId + '&startDate=' + startDate + '&endDate=' + endDate +'"' +
                         '<span class="pull-left" data-category="0">' +
-                        '<i class="fa fa-building"  style="color:gray"></i>' + item.Name +
+                        '<i class="fa fa-building"  style="color:gray"></i>' + item.dataCompanyId_Title +
                         '</span></a>' +
-                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Satılan Miktar" >' + item.Count + '</span>' +
+                        '<span id="allTasks" class="badge badge-warning text-white pull-right" style="margin-top:3px;padding-bottom: 3px;" data-original-title="Satılan Miktar" >Satılan Miktar : ' + item.SalesCount + '</span><br/>' +
+                        '<span id="allTasks" class="badge badge-danger text-white pull-right" style="margin-top:3px;padding-bottom: 3px;" data-original-title="Sattığı Miktar" >Sattığı Miktar : ' + item.DistSalesCount + '</span><br/>' +
+                        '<span id="allTasks" class="badge badge-primary text-white pull-right" style="margin-top:3px;padding-bottom: 3px;" data-original-title="Aktive Olan" >Aktive Olan : ' + item.ActivatedData + '</span><br/>' +
                         '</li>'
                     );
                 }
                 else {
                     $("#distSeperator").removeClass("hide");
                     $("#sellOutDist").append(
-                        '<li class= "clearfix" >' +
+                        '<li class= "clearfix" style="padding-bottom: 6px;padding-top: 6px;" >' +
                         '<span class="pull-left" data-category="0">' +
-                        '<i class="fa fa-building" style="color:gray"></i>' + item.Name +
+                        '<i class="fa fa-building" style="color:gray"></i>' + item.dataCompanyId_Title +
                         '</span>'+
-                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Toplam Aktive Olan Miktar"  >' + item.Count + '</span>' +
-
+                        '<span id="allTasks" class="badge badge-warning text-white pull-right" style="margin-top:3px;padding-bottom: 3px;" data-original-title="Satılan Miktar" >Satılan Miktar : ' + item.SalesCount + '</span><br/>' +
+                        '<span id="allTasks" class="badge badge-danger text-white pull-right" style="margin-top:3px;padding-bottom: 3px;" data-original-title="Sattığı Miktar" >Sattığı Miktar : ' + item.DistSalesCount + '</span><br/>' +
+                        '<span id="allTasks" class="badge badge-primary text-white pull-right" style="margin-top:3px;padding-bottom: 3px;" data-original-title="Aktive Olan" >Aktive Olan : ' + item.ActivatedData + '</span><br/>' +
                         '</li>'
                     );
                 }
 
             });
             $("#sellOutDist").append(
-                '<li class= "clearfix">' +
+                '<li class= "clearfix" style="padding-bottom: 6px;padding-top: 6px;">' +
                 '<span class="pull-left" data-category="0">' +
                 '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
                 '</span>' +
-                '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs"  data-original-title="Toplam Aktive Olan Miktar" ">' + count + '</span>  ' +
+                '<span id="allTasks" class="badge badge-warning text-white pull-right" style="padding-bottom: 3px;" data-original-title="Toplam Satılan Miktar" ">Toplam Satıan : ' + saleCount + '</span> <br/> ' +
+                '<span id="allTasks" class="badge badge-danger text-white pull-right" style="padding-bottom: 3px;" data-original-title="Toplam Sattığı Miktar" "> Toplam Sattığı : ' + distSaleCount + '</span> <br/> ' +
+                '<span id="allTasks" class="badge badge-primary text-white pull-right" style="padding-bottom: 3px;" data-original-title="Toplam Aktive Olan Miktar" "> Toplam Aktive : ' + activatedCount + '</span><br/>  ' +
 
                 '</li>'
             );
@@ -375,7 +391,7 @@
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetPageReport", { startDate: startDate, endDate: endDate }, function (data) {
                 page.setIndexData(data.IndexData);
                 page.setDataSourceForProductSellOut(data.ProductSellOut);
-                page.setDataSourceForDistSellOut(data.DistSellOut);
+                page.setDataSourceForDistSellOut(data.ProductSellOutDistrubitorData);
                 page.createProductChart(data.ProductSellOutProductChartData);
                 page.createDistChart(data.ProductSellOutDistChartData);
             });
