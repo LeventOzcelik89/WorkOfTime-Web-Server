@@ -25,8 +25,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-200);
-            var entegrationFileList = GetFilesInFtp(processDate);
+            var entegrationFileList = GetFilesInFtp();
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
             {
@@ -71,7 +70,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             else
                 return null;
         }
-        public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
+        public PRD_EntegrationFiles[] GetFilesInFtp()
         {
             Log.Info(string.Format("Getting All File Names From Kvk Server {0}", ftpConfiguration.Url));
             var fileList = new List<FileNameWithUrl>();
@@ -113,7 +112,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         }
                     }
                 }
-                Log.Info("Files Count:" + fileList.Count);
+                Log.Info("KVK Files Count:" + fileList.Count);
             }
             catch (Exception e)
             {
@@ -124,7 +123,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList)
             {
-                if (entegrationFilesInDb.Any(x => x.FileName == (file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName == (file.DirectoryFileName)))
                     continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
