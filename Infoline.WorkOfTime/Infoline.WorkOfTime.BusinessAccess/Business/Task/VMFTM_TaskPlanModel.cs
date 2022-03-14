@@ -389,31 +389,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				}
 			}
 
-			//var newTasks = new int[] {
-			//		(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
-			//		(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
-			//		(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
-			//		(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
-			//		(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
-			//		(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
-			//	};
-
-			//dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
-			//{
-			//	a.lastOperationDate = null;
-			//});
-
 			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
 			tasks.AddRange(dbtasks);
 			return tasks.ToArray();
 
 		}
 
-		public VMFTM_TaskPlanCalendarModel[] CalendarNewDataSource(PageSecurity userStatus)
+		public VMFTM_TaskCalendarModel[] CalendarNewDataSource(PageSecurity userStatus)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var query = "SELECT id,code,customer_Title,customerStorage_Title,fixture_Title,taskPlanId_Title,priority_Title,plate,priority,lastOperationStatus,assignUserId,assignableUserIds,isComplete,taskPlanId_Title,type_Title,description,penaltyStartDate,amercementTotal,SLAText,assignableUserTitles,taskSubjectType_Title,planLater FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < " + (int)EnumFTM_TaskOperationStatus.GorevBaslandi + "AND assignUserId IS NULL AND assignableUserIds IS NULL AND dueDate >= GETDATE()";
-			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskCalendarModel>();
 
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
 			{
@@ -438,7 +424,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				a.lastOperationDate = null;
 			});
 
-			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
+			var tasks = new List<VMFTM_TaskCalendarModel>();
 			tasks.AddRange(dbtasks);
 			return tasks.ToArray();
 		}
