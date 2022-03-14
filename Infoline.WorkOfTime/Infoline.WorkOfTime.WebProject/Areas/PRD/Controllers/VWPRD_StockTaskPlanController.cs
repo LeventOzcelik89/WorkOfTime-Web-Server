@@ -367,7 +367,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     planStartDate = planStartDate,
                     dueDate = dueDate,
                     fixtureId = sub.inventoryId,
-                    companyId = TenantConfig.Tenant.TenantCode == 1100 ? new Guid("101F88C2-DC52-4794-919B-F3B8207A68FE") : TenantConfig.Tenant.TenantCode == 1130 ? new Guid("EF98597D-9FDE-4BF9-A18B-2CEB1BFBBE96") : userStatus.user.CompanyId
+                    companyId = TenantConfig.Tenant.TenantCode == 1100 ? new Guid("101F88C2-DC52-4794-919B-F3B8207A68FE") : TenantConfig.Tenant.TenantCode == 1000 ? new Guid("101F88C2-DC52-4794-919B-F3B8207A68FE"): TenantConfig.Tenant.TenantCode == 1130 ? new Guid("EF98597D-9FDE-4BF9-A18B-2CEB1BFBBE96") : userStatus.user.CompanyId
                 }.InsertAll(userStatus.user.id,Request, trans);
 
             }
@@ -477,7 +477,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     planStartDate = planStartDate,
                     dueDate = dueDate,
                     fixtureId = data.inventoryId,
-                    companyId = TenantConfig.Tenant.TenantCode == 1100 ? new Guid("101F88C2-DC52-4794-919B-F3B8207A68FE") : TenantConfig.Tenant.TenantCode == 1130 ? new Guid("EF98597D-9FDE-4BF9-A18B-2CEB1BFBBE96") : userStatus.user.CompanyId
+                    companyId = TenantConfig.Tenant.TenantCode == 1100 ? new Guid("101F88C2-DC52-4794-919B-F3B8207A68FE") : TenantConfig.Tenant.TenantCode == 1000 ? new Guid("101F88C2-DC52-4794-919B-F3B8207A68FE") : TenantConfig.Tenant.TenantCode == 1130 ? new Guid("EF98597D-9FDE-4BF9-A18B-2CEB1BFBBE96") : userStatus.user.CompanyId
                 }.InsertAll(userStatus.user.id,Request, trans);
 
             }
