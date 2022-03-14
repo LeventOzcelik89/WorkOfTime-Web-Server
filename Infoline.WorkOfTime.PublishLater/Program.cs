@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.PublishLater
 
                 try
                 {
-                    using (var _db = new InfolineDatabase(connection.Replace("IntranetManagement", "WorkOfTime" + (execute.TenantCode == 1100 ? "" : execute.TenantCode.ToString())), DatabaseType.Mssql))
+                    using (var _db = new InfolineDatabase(connection.Replace("IntranetManagement", "WorkOfTime" + (execute.TenantCode == 1100 ? "" : execute.TenantCode == 1100 ? "" : execute.TenantCode.ToString())), DatabaseType.Mssql))
                     {
                         var res = _db.ExecuteNonQuery(refreshView);
                         if (res.result)

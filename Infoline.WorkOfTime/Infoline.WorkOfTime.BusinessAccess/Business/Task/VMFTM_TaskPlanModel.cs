@@ -450,7 +450,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.db = this.db ?? new WorkOfTimeDatabase();
 
 			var plans = db.GetVWFTM_TaskPlan()
-				.Where(a => a.enabled == true && a.frequencyEndDate.HasValue && a.frequencyEndDate.Value.Year == year)
+				.Where(a => a.enabled == true)
 				.ToList();
 
 			if (customerId.HasValue)
@@ -726,6 +726,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					task.IsTemplate = true;
 					task.lastOperationDate = null;
 					task.taskPlanId = this.id;
+					task.taskPlanId_Title = this.name;
 					task.taskTemplateId = this.templateId;
 
 					task.dueDate = a.AddMinutes(TaskTemplate.estimatedTaskMinute.Value);

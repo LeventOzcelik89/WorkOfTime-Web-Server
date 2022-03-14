@@ -212,7 +212,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             {
                 var shUserRoles = db.GetSH_UserRoleByUserId(user.id);
 
-                if (TenantConfig.Tenant.TenantCode == 1179 || TenantConfig.Tenant.TenantCode == 1100 && shUserRoles.Where(x => x.roleid.Value == new Guid(SHRoles.CRMBayiPersoneli)).FirstOrDefault() != null)
+                if (TenantConfig.Tenant.TenantCode == 1179 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000 && shUserRoles.Where(x => x.roleid.Value == new Guid(SHRoles.CRMBayiPersoneli)).FirstOrDefault() != null)
                 {
                     redirecturl = Url.Action("Index", "VWCRM_Presentation", new { area = "CRM" });
                 }
@@ -660,7 +660,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
         [AllowEveryone]
         public ActionResult CustomerSignUp(Guid? companyId)
         {
-            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000)
             {
                
             }
@@ -723,7 +723,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
         [AllowEveryone]
         public ActionResult CustomerDealerSignUp(Guid? companyId)
         {
-            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000)
             {
 
             }

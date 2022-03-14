@@ -105,7 +105,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
 			foreach (var yeary in years)
 			{
-				var yearData = data.Where(a => a.dueDate.HasValue && a.dueDate.Value.Year == yeary).ToList();
+				var yearData = data.Where(a => a.dueDate.HasValue).ToList();
 				res.Add(new VM_TaskTemplateYearList
 				{
 					Year = yeary,

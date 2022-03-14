@@ -11,7 +11,7 @@ namespace System.Web.Mvc
 
         public NavModel(PageSecurity userStatus)
         {
-            if ((TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1187) && userStatus.user.id == new Guid("DCEAA584-35B7-4637-AF55-48CCF013C9D3"))
+            if ((TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000 || TenantConfig.Tenant.TenantCode == 1187) && userStatus.user.id == new Guid("DCEAA584-35B7-4637-AF55-48CCF013C9D3"))
             {
                 _root.Add(GetMenuForScada());
             }
@@ -377,7 +377,7 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Stok ve Envanter İşlemleri", "/PRD/VWPRD_Transaction/Index"));
             menu.AddChild(new Menu("Dağıtım/Sevkiyat İşlemleri", "/PRD/VWPRD_DistributionPlan/Index"));
             menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/Index"));
-            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100)
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000)
             {
                 menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
                 menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_TitanDeviceActivated/SellOutDashboard"));
@@ -414,13 +414,13 @@ namespace System.Web.Mvc
             var menu = new Menu("Firma&Cari Yönetimi", "#", "fa fa-building");
             menu.AddChild(new Menu("Firma&Cari Listesi", "/CMP/VWCMP_Company/Index"));
             menu.AddChild(new Menu("Firma&Cari Şube/Depo/Kısımları", "/CMP/VWCMP_Storage/Index"));
-            if (TenantConfig.Tenant.TenantCode == 1187 || TenantConfig.Tenant.TenantCode == 1100)
+            if (TenantConfig.Tenant.TenantCode == 1187 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000)
             {
                 menu.AddChild(new Menu("Tedarikçi Puanlama", "/CMP/VWCMP_Storage/SupplierScoring"));
             }
             menu.AddChild(new Menu("Şube/Depo/Kısım Haritası", "/CMP/VWCMP_Storage/Map"));
             menu.AddChild(new Menu("Müşteri Rehberi", "/SH/VWSH_User/ContactCustomerPersons"));
-            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000)
             {
                 menu.AddChild(new Menu("Bayi Personelleri", "/SH/VWSH_User/CompanyPersonIndex"));
                 menu.AddChild(new Menu("Bayi Onay Listesi", "/CMP/VWCMP_Company/CompanyApproveIndex"));
