@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             DatabaseType = (DatabaseType)TenantConfig.Tenant.DBType;
             ConnectionString = TenantConfig.Tenant.GetConnectionString();
-            ConnectionString = ConnectionString.Replace("10.100.0.223", "46.221.52.221");
+            ConnectionString = ConnectionString.Replace("10.100.0.222", "46.221.52.222");
         }
 
         public WorkOfTimeDatabase(string conn)
@@ -24,7 +24,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             this.DatabaseType = type;
             this.ConnectionString = conn;
-            ConnectionString = ConnectionString.Replace("10.100.0.223", "46.221.52.221");
+            ConnectionString = ConnectionString.Replace("10.100.0.222", "46.221.52.222");
         }
 
         public InfolineDatabase GetDB(DbTransaction tran = null)
