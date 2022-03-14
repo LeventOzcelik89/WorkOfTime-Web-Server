@@ -109,7 +109,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 Log.Error("GENPA : " + e.ToString());
             };
             var db = GetDbConnection();
-            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate, DistributorName);
+            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in directoryItems)
             {
