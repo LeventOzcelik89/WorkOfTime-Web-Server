@@ -13,7 +13,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
         void SetFtpConfiguration();
         ResultStatus ExportFilesToDatabase();
-        PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate);
+        PRD_EntegrationFiles[] GetFilesInFtp();
         PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId);
         string FileTypeName(string fileName);
     }

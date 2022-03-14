@@ -51,8 +51,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-150);
-            var entegrationFileList = GetFilesInFtp(processDate);
+            var entegrationFileList = GetFilesInFtp();
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
             {
@@ -64,16 +63,34 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     Log.Error("There was a problem while data recording...: ", result.message);
                     continue;
                 }
-                else
-                {
-                    string fileName = entegrationFile.FileName;
-                    string sourcePath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory;
-                    string targetPath = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "\\ALINANLAR";
-                    string sourceFile = System.IO.Path.Combine(sourcePath, fileName);
-                    string destFile = System.IO.Path.Combine(targetPath, fileName);
-                    System.IO.Directory.CreateDirectory(targetPath);
-                    System.IO.File.Move(sourceFile, destFile);
-                }
+                //else
+                //{
+                //    string fileName = entegrationFile.FileName.Substring(26);
+                //    string ftp = this.ftpConfiguration.Url;
+                //    string ftpFolder = this.ftpConfiguration.Directory;
+                //    try
+                //    {
+                //        FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftp + ftpFolder + fileName);
+                //        request.Method = WebRequestMethods.Ftp.DownloadFile;
+                //        request.Credentials = new NetworkCredential(this.ftpConfiguration.UserName, this.ftpConfiguration.Password);
+                //        request.UsePassive = true;
+                //        request.UseBinary = true;
+                //        request.EnableSsl = false;
+                //        FtpWebResponse response = (FtpWebResponse)request.GetResponse();
+                //        using (Stream responseStream = response.GetResponseStream())
+                //        {
+                //            using (Stream fileStream = new FileStream(@"ftp:\\95.0.40.86\Omix-FTP\ALINANLAR\" + fileName, FileMode.CreateNew))
+                //            {
+                //                responseStream.CopyTo(fileStream);
+                //            }
+                //        }
+                //    }
+                //    catch (WebException ex)
+                //    {
+                //        throw new Exception((ex.Response as FtpWebResponse).StatusDescription);
+                //    }
+
+                //}
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
@@ -89,7 +106,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             Log.Success($"All Files Are Integrated In {DistributorName} FTP");
             return result;
         }
-        public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
+        public PRD_EntegrationFiles[] GetFilesInFtp()
         {
             Log.Info(string.Format("Getting File Names On {1} : {0}", this.ftpConfiguration.Url, this.DistributorName));
             var directoryItems = new List<DirectoryItem>();
@@ -132,7 +149,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList)
             {
-                if (entegrationFilesInDb.Any(x => x.FileName == (file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName == (file.DirectoryFileName)))
                     continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {

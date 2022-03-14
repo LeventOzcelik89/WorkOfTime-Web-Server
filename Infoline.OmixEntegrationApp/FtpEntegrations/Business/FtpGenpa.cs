@@ -37,8 +37,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-200);
-            var entegrationFileList = GetFilesInFtp(processDate);
+            var entegrationFileList = GetFilesInFtp();
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
             {
@@ -75,7 +74,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             else
                 return null;
         }
-        public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
+        public PRD_EntegrationFiles[] GetFilesInFtp()
         {
             Log.Info("Getting All File Names On Genpa Wing Ftp Server");
             var directoryItems = new List<DirectoryItem>();
@@ -102,7 +101,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         }
                     }
                 }
-                Log.Info("Files Count:" + directoryItems.Count);
+                Log.Info("Genpa Files Count:" + directoryItems.Count);
             }
             catch (Exception e)
             {
