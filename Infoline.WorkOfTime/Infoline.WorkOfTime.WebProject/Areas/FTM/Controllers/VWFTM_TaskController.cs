@@ -862,6 +862,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				FeedBack = dbresult.result ? feedback.Success("Görev güncelleme işlemi başarılı.", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Görev güncelleme başarısız. Mesaj : " + dbresult.message)
 			}, JsonRequestBehavior.AllowGet);
 		}
+
+		[PageInfo("Saha Görevi Düzenleme Metodu (Calendar Update Method)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+		[HttpPost]
+		public JsonResult UpdateTaskCalendar(VMFTM_TaskModel request, bool? isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = request.UpdateTaskCalendar(userStatus.user.id);
+			if (dbresult.result == true)
+			{
+				new FileUploadSave(Request).SaveAs();
+			}
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Görev güncelleme işlemi başarılı.", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Görev güncelleme başarısız. Mesaj : " + dbresult.message)
+			}, JsonRequestBehavior.AllowGet);
+		}
+
 		[PageInfo("Saha Görevi Düzenleme Metodu (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
 		[HttpPost, ValidateInput(false)]
 		public JsonResult UpdateStaff(VMFTM_TaskModel request, bool? isPost)
