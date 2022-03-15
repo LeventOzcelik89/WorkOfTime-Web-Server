@@ -90,8 +90,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			_MonthFrequenciesData.Add("Son");
 
 			_DayFrequenciesData.Add("Gün");
-			_DayFrequenciesData.Add("Hafta Sonu");
-			_DayFrequenciesData.Add("Hafta Sonu Son Günü");
 			_DayFrequenciesData.Add("Pazar");
 			_DayFrequenciesData.Add("Pazartesi");
 			_DayFrequenciesData.Add("Salı");
