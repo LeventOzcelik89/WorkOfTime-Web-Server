@@ -61,20 +61,20 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     Log.Error("There was a problem while data recording...: ", result.message);
                     continue;
                 }
-                else
-                {
-                    try
-                    {
-                        string fileName = entegrationFile.FileName.Substring(27);
-                        Uri serverFile = new Uri("ftp://infolineftp@95.0.40.86/Omix-FTP" + "/" + fileName);
-                        FtpWebRequest reqFTP = (FtpWebRequest)FtpWebRequest.Create(serverFile);
-                        reqFTP.Method = WebRequestMethods.Ftp.Rename;
-                        reqFTP.Credentials = new NetworkCredential(this.ftpConfiguration.UserName, this.ftpConfiguration.Password);
-                        reqFTP.RenameTo = "ALINANLAR" + "/" + fileName;
-                        FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                    }
-                    catch { }
-                }
+                //else
+                //{
+                //    try
+                //    {
+                //        string fileName = entegrationFile.FileName.Substring(27);
+                //        Uri serverFile = new Uri("ftp://infolineftp@95.0.40.86/Omix-FTP" + "/" + fileName);
+                //        FtpWebRequest reqFTP = (FtpWebRequest)FtpWebRequest.Create(serverFile);
+                //        reqFTP.Method = WebRequestMethods.Ftp.Rename;
+                //        reqFTP.Credentials = new NetworkCredential(this.ftpConfiguration.UserName, this.ftpConfiguration.Password);
+                //        reqFTP.RenameTo = "ALINANLAR" + "/" + fileName;
+                //        FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                //    }
+                //    catch { }
+                //}
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
