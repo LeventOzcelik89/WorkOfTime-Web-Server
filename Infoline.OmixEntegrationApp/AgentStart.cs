@@ -24,7 +24,6 @@ namespace Infoline.OmixEntegrationApp
 
         public void Run()
         {
-            Log.Error("TEST");
             //var taskProcessLogoEntegration = new Task(() =>
             //{
             //    new ProcessLogoEntegration().Run();
