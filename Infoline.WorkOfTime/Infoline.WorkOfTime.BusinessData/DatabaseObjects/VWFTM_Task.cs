@@ -63,6 +63,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? taskPlanId { get; set;}
         public Guid? taskTemplateId { get; set;}
         public short? planLater { get; set;}
+        public bool? sendMailCustomer { get; set;}
+        public string sendedCustomer { get; set;}
         public string company_Code { get; set;}
         public string customer_Code { get; set;}
         public string customer_Title { get; set;}

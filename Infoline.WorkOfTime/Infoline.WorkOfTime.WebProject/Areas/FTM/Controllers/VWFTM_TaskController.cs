@@ -2000,6 +2000,28 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				objects = model
 			});
 		}
+		[PageInfo("Mail Atılacak Müşteriler", SHRoles.Personel)]
+		public ContentResult GetCustomerMail(Guid? userid)
+		{
+			var db = new WorkOfTimeDatabase();
+			var list = new List<string>();
+			var companies = db.GetVWCMP_CompanyById(userid.Value).email;
+			var users = db.GetVWSH_UserByCompanyId(userid.Value).ToList();
+
+            foreach (var item in users)
+            {
+				if ((item.RoleIds == SHRoles.SahaGorevYonetici) || (item.RoleIds == SHRoles.SistemYonetici) || (item.RoleIds == SHRoles.SahaGorevOperator) || (item.RoleIds == SHRoles.SahaGorevMusteri))
+                {
+					list.Add(item.email);
+				}
+					
+            }
+			list.Add(companies);
+			return Content(Infoline.Helper.Json.Serialize(list.Distinct().ToArray()), "application/json");
+		}
+
+
+
 		[PageInfo("Kullanıcının Bir Ay İçinde Bulunan İzinleri", SHRoles.Personel, SHRoles.SahaGorevMusteri)]
 		public JsonResult DownloadFiles(Guid taskId)
 		{
