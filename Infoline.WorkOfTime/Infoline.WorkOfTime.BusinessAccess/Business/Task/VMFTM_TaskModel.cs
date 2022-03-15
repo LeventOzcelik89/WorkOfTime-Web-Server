@@ -794,6 +794,69 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 			return rs;
 		}
+
+		public ResultStatus UpdateTaskCalendar(Guid? userId, DbTransaction _trans = null)
+		{
+			this.db = this.db ?? new WorkOfTimeDatabase();
+			this.trans = _trans ?? this.db.BeginTransaction();
+			this.assignableUsers = this.assignableUsers ?? new List<Guid>();
+			this.helperUsers = this.helperUsers ?? new List<Guid>();
+			this.followUpUsers = this.followUpUsers ?? new List<Guid>();
+			var task = db.GetVWFTM_TaskById(this.id);
+			task.priority = this.priority;
+			task.dueDate = this.dueDate;
+			task.changed = DateTime.Now;
+			task.changedby = userId;
+			task.companyId = this.companyId;
+			task.customerId = this.customerId;
+			task.customerStorageId = this.customerStorageId;
+			task.planStartDate = this.planStartDate;
+			task.dueDate = this.dueDate;
+			task.notificationDate = this.notificationDate;
+			task.companyCarId = this.companyCarId;
+			task.planLater = (short)EnumFTM_TaskPlanLater.Hayir;
+			if (task.customerId.HasValue)
+			{
+				this.customer = db.GetVWCMP_CompanyById(task.customerId.Value);
+			}
+			if (task.customerStorageId.HasValue)
+			{
+				this.customerStorage = db.GetVWCMP_StorageById(task.customerStorageId.Value);
+			}
+			task.location = this.customerStorage?.location ?? this.customer?.location;
+			var rs = new ResultStatus { result = true };
+			if (this.fixtureId != null)
+			{
+				this.SetFixtureInfo(this.fixtureId.Value);
+			}
+			if (task.description != this.description)
+			{
+				var operations = db.GetFTM_TaskOperationByTaskId(this.id);
+				var updateOperations = operations.Where(a => a.status == (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu || a.status == (int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri || a.status == (int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem).ToList();
+				foreach (var item in updateOperations)
+				{
+					item.changed = DateTime.Now;
+					item.changedby = userId;
+					item.description = this.description;
+				}
+				rs &= db.BulkUpdateFTM_TaskOperation(updateOperations, true, trans);
+			}
+			
+			rs &= db.UpdateFTM_Task(new FTM_Task().B_EntityDataCopyForMaterial(task, true), false, trans);
+			if (rs.result)
+			{
+				if (_trans == null) trans.Commit();
+				rs.message = "Görev başarıyla güncellendi.";
+			}
+			else
+			{
+				if (_trans == null) trans.Rollback();
+				rs.message = "Görev güncellenemedi.";
+			}
+			
+			return rs;
+		}
+
 		public ResultStatus UpdateStaff(Guid? userId, DbTransaction _trans = null)
 		{
 			var rs = new ResultStatus { result = true };
