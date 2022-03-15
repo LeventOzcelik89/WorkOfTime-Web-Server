@@ -17,10 +17,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         [Description("Gün")]
         Day = 0,
-        [Description("Hafta Sonu")]
-        haftaSonu = 1,
-        [Description("Hafta Sonu Son Günü")]
-        haftaSonuSon = 2,
         [Description("Pazar")]
         Pazar = 3,
         [Description("Pazartesi")]
@@ -29,7 +25,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Sali = 5,
         [Description("Çarşamba")]
         Carsamba = 6,
-        [Description("Persembe")]
+        [Description("Perşembe")]
         Persembe = 7,
         [Description("Cuma")]
         Cuma = 8,
