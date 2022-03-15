@@ -42,9 +42,26 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
                     if (sellThr != null && sellThr.Count() > 0)
                     {
-                        var bultInsertResult = db.BulkInsertPRD_EntegrationAction(sellThr);
-                        if (!bultInsertResult.result)
-                            Log.Info("SellThr Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
+                        foreach (var item in sellThr)
+                        {
+                            var checkImei = db.GetPRD_EntegrationAction().Where(a => a.Imei == item.Imei && a.Quantity == 1).OrderByDescending(b => b.created).FirstOrDefault();
+                            if (checkImei == null)
+                            {
+                                var InsertResult = db.InsertPRD_EntegrationAction(item);
+                                if (!InsertResult.result)
+                                    Log.Info("SellIn Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, InsertResult.message);
+                            }
+                            else
+                            {
+                                if (checkImei.EntegrationFileId != null)
+                                {
+
+                                    var file = db.GetPRD_EntegrationFilesById(checkImei.EntegrationFileId.Value);
+                                    Log.Info(item.Imei + " Daha önce " + file.FileName + " adlı dosya ile içeri aktarılmıştır");
+                                }
+                                Log.Info(item.Imei + "Sistemde bulunuyor...");
+                            }
+                        }
                     }
                 }
                 Log.Success("Finish Process File : {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
@@ -226,23 +243,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.ProductId = inventory?.productId;
                         item.InventoryId = inventory?.id;
                         item.CustomerOperatorId = company;
-                        if (item.Imei != null)
-                        {
-                            var existRetitive = db.GetPRD_EntegrationActionByRepetitive(item.Imei);
-                            if (existRetitive != null)
-                            {
-                                message = item.Imei + " Imei Numarası Sistemde Mevcuttur.";
-                            }
-                            else
-                            {
-                                sellThrs.Add(item);
-                            }
-
-                        }
-                        else
-                        {
-                            sellThrs.Add(item);
-                        }
+                        sellThrs.Add(item);
                         if (!string.IsNullOrEmpty(message))
                         {
                             NotificationLogger.SaveError(DateTime.Now, message, item);
