@@ -33,9 +33,9 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
                                 if (now.Hour == 1 && now.Minute == 00)
                                 {
                                     var taskMobitel = new Task(() =>
-                                    {
-                                        new FtpMobitel().ExportFilesToDatabase(); ;
-                                    });
+                                {
+                                    new FtpMobitel().ExportFilesToDatabase(); ;
+                                });
                                     Tasks.Add(taskMobitel);
 
                                     var taskGenpa = new Task(() =>
@@ -71,7 +71,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
                     });
                 }
             }
-
         }
         public void Dispose()
         {
