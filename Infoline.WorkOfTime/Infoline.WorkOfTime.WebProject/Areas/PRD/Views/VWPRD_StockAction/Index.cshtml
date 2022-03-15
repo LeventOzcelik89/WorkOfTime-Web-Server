@@ -47,6 +47,15 @@
     .k-grid td {
         padding: 5px 15px;
     }
+    tbody[role="rowgroup"] tr td {
+        word-break: normal;
+    }
+    [role="tooltip"] {
+        width: 500px;
+        max-width:500px;
+        overflow:auto;
+        word-break:break-all;
+    }
 </style>
 
 <div class="ibox ">
@@ -60,39 +69,42 @@
     </div>
     <div class="ibox-content">
         @(Html.Akilli()
-			.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
-			.DataSource(x => x.Ajax().Read(r => r.Action("DataSourceIndex", "VWPRD_StockAction", new { area = "PRD" }))
-			.Filter(a => a.stockTable == "CMP_Storage").PageSize(25))
-			.Groupable(a => a.Enabled(true))
-			.Scrollable(a => a.Height(600))
-			.Columns(x =>
-			{
-				x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(140);
-				x.Bound(y => y.stockCompanyId_Title).Title("İşlemi Gerçekleştiren Cari").Width(330);
-				x.Bound(y => y.stockId_Title).Title("İşlemi Gerçekleştiren Şube/Depo/Kısım").Width(280);
-				x.Bound(y => y.dataCompanyId_Title).Title("Cari").Width(310);
-				x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım  - Pesonel").Width(300);
-				x.Bound(y => y.productName).Title("Ürün Adı").Width(300);
-				x.Bound(y => y.productCode).Title("Ürün Kodu").Width(180);
-				x.Bound(y => y.alternativeQuantity).Title("İşlem Yapılan Miktar").ClientTemplate("#=stockActionAlternativeFunc(data)#").Width(250);
-				x.Bound(y => y.quantity).Title("Varsayılan Birim Karşılığı").ClientTemplate("#=stockActionQuantityFunc(data)#").Width(250);
-				x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
-				x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
-				x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(120).Format("{0:N2} TL");
-				x.Bound(y => y.totalPrice).Title("Tutar").Width(100).Format("{0:N2} TL");
-				x.Bound(y => y.currency_Title).Title("Birim").Hidden(true);
-				x.Bound(y => y.createdby_Title).Title("İşlemi Gerçekleştiren").Width(180);
-				x.Bound(y => y.created).Title("İşlemi Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
-				x.Bound(y => y.code).Title("Evrak Kodu").Width(150);
-				x.Bound(y => y.date).Title("Evrak Tarihi").Width(150).Format(Extensions.DateFormatFull(true));
-			})
-			.Events(a => a.ExcelExport("Kendo_CustomExport"))
-			.Selectable(x => x.Mode(GridSelectionMode.Single))
-			.ToolBar(x =>
-			{
-				//x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockAction", new { area = "PRD" }));
+            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceIndex", "VWPRD_StockAction", new { area = "PRD" }))
+            .Filter(a => a.stockTable == "CMP_Storage").PageSize(25))
+            .Groupable(a => a.Enabled(true))
+            .Scrollable(a => a.Height(600))
+            .Columns(x =>
+            {
+                x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(140);
+                x.Bound(y => y.stockCompanyId_Title).Title("İşlemi Gerçekleştiren Cari").Width(330);
+                x.Bound(y => y.stockId_Title).Title("İşlemi Gerçekleştiren Şube/Depo/Kısım").Width(280);
+                x.Bound(y => y.dataCompanyId_Title).Title("Cari").Width(310);
+                x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım  - Pesonel").Width(300);
+                x.Bound(y => y.productName).Title("Ürün Adı").Width(300);
+                x.Bound(y => y.productCode).Title("Ürün Kodu").Width(180);
+                x.Bound(y => y.alternativeQuantity).Title("İşlem Yapılan Miktar").ClientTemplate("#=stockActionAlternativeFunc(data)#").Width(250);
+                x.Bound(y => y.quantity).Title("Varsayılan Birim Karşılığı").ClientTemplate("#=stockActionQuantityFunc(data)#").Width(250);
+                //x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
+                x.Bound(y => y.serialCodes).Title("Seri Kodları").ClientTemplate("#=TemplateEngine('productActionSeriNoTemplate', data)#").Width(250);
+                //x.Bound(y => y.fullName).Title("İşletme Bilgileri").ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#");
 
-			}))
+                x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
+                x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(120).Format("{0:N2} TL");
+                x.Bound(y => y.totalPrice).Title("Tutar").Width(100).Format("{0:N2} TL");
+                x.Bound(y => y.currency_Title).Title("Birim").Hidden(true);
+                x.Bound(y => y.createdby_Title).Title("İşlemi Gerçekleştiren").Width(180);
+                x.Bound(y => y.created).Title("İşlemi Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                x.Bound(y => y.code).Title("Evrak Kodu").Width(150);
+                x.Bound(y => y.date).Title("Evrak Tarihi").Width(150).Format(Extensions.DateFormatFull(true));
+            })
+            .Events(a => a.ExcelExport("Kendo_CustomExport"))
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .ToolBar(x =>
+            {
+                //x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockAction", new { area = "PRD" }));
+
+            }))
     </div>
 </div>
 
