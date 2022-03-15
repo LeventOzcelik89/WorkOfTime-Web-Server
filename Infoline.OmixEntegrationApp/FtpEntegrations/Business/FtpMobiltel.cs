@@ -133,7 +133,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList)
             {
-                if (entegrationFilesInDb.Any(x => x.FileName == (file.DirectoryFileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName == (file.FileName)))
                     continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
@@ -143,7 +143,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     CreateDateInFtp = file.FileCreatedDate,
                     DistributorName = DistributorName,
                     DistributorId = DistributorId,
-                    FileName = file.DirectoryFileName,
+                    FileName = file.FileName,
                     FileNameDate = Tools.GetDateFromFileName(file.FileName, "yyyyMMddss"),
                     ProcessTime = DateTime.Now,
                     FileTypeName = FileTypeName(file.FileName)
