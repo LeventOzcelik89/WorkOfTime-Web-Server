@@ -106,6 +106,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
         {
             try
             {
+                var userStatus = CallContext.Current.UserId;
                 var c = ParseRequest<Condition>(context);
                 var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
                 var db = new WorkOfTimeDatabase();
@@ -122,12 +123,10 @@ namespace Infoline.WorkOfTime.WebService.Handler
                     {
                         continue;
                     }
-
                     if (!data.createdby.HasValue)
                     {
                         continue;
                     }
-
                     var fark = (data.ContactEndDate.Value - data.ContactStartDate.Value).TotalDays;
                     if (fark > 1)
                     {
@@ -151,9 +150,12 @@ namespace Infoline.WorkOfTime.WebService.Handler
                     }
                     else
                     {
-                        listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
+                        var checkContactUser = contactUsers.Where(a => a.UserId == userStatus).FirstOrDefault();
+                        if (checkContactUser != null || data.createdby == userStatus)
+                        {
+                            listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
+                        }
                     }
-
                 }
                 var res = listData.GroupBy(x => x.ContactStartDate.Value.ToString("yyyy-MM-dd")).ToDictionary(a => a.Key, b =>
                    b.Where(x => x.ContactStartDate.Value.ToShortDateString() == b.Select(f => f.ContactStartDate.Value.ToShortDateString()).FirstOrDefault()).ToArray()
