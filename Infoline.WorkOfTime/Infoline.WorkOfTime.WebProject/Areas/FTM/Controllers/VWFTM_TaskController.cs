@@ -2029,13 +2029,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
             foreach (var item in users)
             {
-				if(item.RoleIds != null)
+				if(item.email != null)
                 {
-					if ((item.RoleIds.Contains(SHRoles.SahaGorevYonetici) == true) || (item.RoleIds.Contains(SHRoles.SistemYonetici) == true) || (item.RoleIds.Contains(SHRoles.SahaGorevOperator) == true) || (item.RoleIds.Contains(SHRoles.SahaGorevMusteri) == true))
-					{
-						list.Add(item.email);
-					}
-				}	
+					list.Add(item.email);
+				}
+			 
             }
 			if(companies != null)
             {
