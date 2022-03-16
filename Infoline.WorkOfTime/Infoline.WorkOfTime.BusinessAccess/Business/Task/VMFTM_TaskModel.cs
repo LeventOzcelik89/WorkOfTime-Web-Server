@@ -145,6 +145,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.personUserIds.AddRange(db.GetSH_UserByRoleIdList(new Guid(SHRoles.YukleniciPersoneli)));
 			this.planLater = this.planLater.HasValue ? this.planLater.Value : (short)EnumFTM_TaskPlanLater.Hayir;
 			this.isSendDocuments = this.isSendDocuments.HasValue ? this.isSendDocuments.Value : (short)EnumFTM_TaskPersonIsSendDocuments.Hayır;
+			this.sendMailCustomer  = this.sendMailCustomer.HasValue ? this.sendMailCustomer.Value : (short)EnumFTM_TaskPersonSendMailCustomer.Hayır;
 			if (this.personUserIds.Count() > 0)
 			{
 				this.personUserIds.AddRange(db.GetSH_UserByRoleIdList(new Guid(SHRoles.BayiGorevPersoneli)));

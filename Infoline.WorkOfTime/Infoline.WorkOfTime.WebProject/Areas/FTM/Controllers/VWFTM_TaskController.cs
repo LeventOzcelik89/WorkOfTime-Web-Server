@@ -2029,13 +2029,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
             foreach (var item in users)
             {
-				if ((item.RoleIds == SHRoles.SahaGorevYonetici) || (item.RoleIds == SHRoles.SistemYonetici) || (item.RoleIds == SHRoles.SahaGorevOperator) || (item.RoleIds == SHRoles.SahaGorevMusteri))
+				if(item.RoleIds != null)
                 {
-					list.Add(item.email);
-				}
-					
+					if ((item.RoleIds.Contains(SHRoles.SahaGorevYonetici) == true) || (item.RoleIds.Contains(SHRoles.SistemYonetici) == true) || (item.RoleIds.Contains(SHRoles.SahaGorevOperator) == true) || (item.RoleIds.Contains(SHRoles.SahaGorevMusteri) == true))
+					{
+						list.Add(item.email);
+					}
+				}	
             }
-			list.Add(companies);
+			if(companies != null)
+            {
+				list.Add(companies);
+			}
+			
 			return Content(Infoline.Helper.Json.Serialize(list.Distinct().ToArray()), "application/json");
 		}
 

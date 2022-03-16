@@ -402,6 +402,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             notification.NotificationSend(customerUser.id, Task.createdby, "Saha Görev Yönetimi", notify, $"/FTM/VWFTM_Task/Detail?id={this.taskId}");
                         }
                     }
+
+
+                    var taskMail = db.GetVWFTM_TaskById(Task.id);
+                    if(taskMail.sendMailCustomer == (short)EnumFTM_TaskPersonSendMailCustomer.Evet)
+                    {
+                        var mails = taskMail.sendedCustomer.Split(',');
+                        foreach (var item in mails)
+                        {
+                            var customer = db.GetVWSH_UserByMail(item);
+                            var notify = "Sayın " + customer.FullName + "(" + this.Task.code + ") " + this.Task.product_Title + " ürün için talep ettiğiniz arıza/bakım kaydı çözümlenmiştir.";
+                            var msj = "<h3>Sayın " + customer.FullName + "</h3>";
+                            msj += "<div><strong>" + "(" + this.Task.code + ") " + this.Task.product_Title + "</strong> ürün için talep ettiğiniz arıza/bakım kaydı çözümlenmiştir. </div>";
+                            msj += "<div>Bilgilerinize.</div>";
+                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", msj).Send((Int16)EmailSendTypes.Cozum, item, "Çözüm Onay Bilgilendirmesi", true);
+                            notification.NotificationSend(customer.id, Task.createdby, "Saha Görev Yönetimi", notify, $"/FTM/VWFTM_Task/Detail?id={this.taskId}");
+
+                        }
+                    }
+              
                     //Todo Oğuz => Müşteriye mail  Taskı oluşturan diğer işletme personeliyse mail yollanacak
 
                     if (status == EnumFTM_TaskOperationStatus.CozumOnaylandi)
