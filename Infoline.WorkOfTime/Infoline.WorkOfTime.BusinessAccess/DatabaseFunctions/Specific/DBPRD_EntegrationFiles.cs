@@ -21,5 +21,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_EntegrationFiles>().Where(a =>a.DistributorName == distName).Execute().ToArray();
             }
         }
+        public PRD_EntegrationFiles GetPRD_EntegrationFilesByEntegrationId(Guid entegrationId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<PRD_EntegrationFiles>().Where(a => a.id == entegrationId).Execute().FirstOrDefault();
+            }
+        }
     }
 }
