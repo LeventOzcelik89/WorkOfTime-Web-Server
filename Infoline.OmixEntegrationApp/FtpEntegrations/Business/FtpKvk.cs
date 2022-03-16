@@ -132,6 +132,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                             {
                                 item.DateFileCreated = parsedDate;
                             }
+                            else
+                            {
+                                isTransformed = DateTime.TryParseExact(date, "MMM dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate);
+                                if (isTransformed)
+                                {
+                                    item.DateFileCreated = parsedDate;
+                                }
+                            }
                             fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
                         }
                     }

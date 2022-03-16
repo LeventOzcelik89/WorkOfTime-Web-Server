@@ -115,6 +115,11 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 foreach (var data in datas)
                 {
                     var contactUsers = db.GetVWCRM_ContactUserByContactId(data.id);
+                    var checkContactUser = contactUsers.Where(a => a.UserId == userStatus).FirstOrDefault();
+                    if (checkContactUser == null && data.createdby != userStatus)
+                    {
+                        continue;
+                    }
                     if (!data.ContactEndDate.HasValue)
                     {
                         continue;
@@ -150,11 +155,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                     }
                     else
                     {
-                        var checkContactUser = contactUsers.Where(a => a.UserId == userStatus).FirstOrDefault();
-                        if (checkContactUser != null || data.createdby == userStatus)
-                        {
-                            listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
-                        }
+                        listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
                     }
                 }
                 var res = listData.GroupBy(x => x.ContactStartDate.Value.ToString("yyyy-MM-dd")).ToDictionary(a => a.Key, b =>
