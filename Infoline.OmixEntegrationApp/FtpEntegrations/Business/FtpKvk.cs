@@ -34,7 +34,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 result = db.InsertPRD_EntegrationFiles(entegrationFile);
                 if (!result.result)
                 {
-                    Log.Error("There was a problem while data recording...: ", result.message);
+                    Log.Error("There was a problem while data recording...: " +  result.message);
                     continue;
                 }
 
@@ -43,23 +43,31 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
                     if (sellThr != null && sellThr.Count() > 0)
                     {
+
                         foreach (var item in sellThr)
                         {
-                            var checkImei = db.GetPRD_EntegrationAction().Where(a => a.Imei == item.Imei && a.Quantity == 1).OrderByDescending(b => b.created).FirstOrDefault();
-                            if (checkImei == null)
+                            if (item.Imei != null)
                             {
-                                var InsertResult = db.InsertPRD_EntegrationAction(item);
-                                if (!InsertResult.result)
-                                    Log.Info("SellThr Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, InsertResult.message);
+                                var checkImei = db.GetPRD_EntegrationAction().Where(a => a.Imei == item.Imei && a.Quantity == 1).OrderByDescending(b => b.created).FirstOrDefault();
+                                if (checkImei == null)
+                                {
+                                    var InsertResult = db.InsertPRD_EntegrationAction(item);
+                                    if (!InsertResult.result)
+                                        Log.Info("SellThr Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, InsertResult.message);
+                                }
+                                else
+                                {
+                                    if (checkImei.EntegrationFileId != null)
+                                    {
+                                        var file = db.GetPRD_EntegrationFilesById(checkImei.EntegrationFileId.Value);
+                                        Log.Info(item.Imei + " Daha önce " + file.FileName + " adlı dosya ile içeri aktarılmıştır");
+                                    }
+                                    Log.Info(item.Imei + "Sistemde bulunuyor...");
+                                }
                             }
                             else
                             {
-                                if (checkImei.EntegrationFileId != null)
-                                {
-                                    var file = db.GetPRD_EntegrationFilesById(checkImei.EntegrationFileId.Value);
-                                    Log.Info(item.Imei + " Daha önce " + file.FileName + " adlı dosya ile içeri aktarılmıştır");
-                                }
-                                Log.Info(item.Imei + "Sistemde bulunuyor...");
+                                Log.Info("Imei Numarası Boş");
                             }
                         }
                     }

@@ -30,8 +30,8 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
                             {
                                 var now = DateTime.Now;
                                 var db = new WorkOfTimeDatabase();
-                                if (now.Hour == 1 && now.Minute == 00)
-                                {
+                                //if (now.Hour == 1 && now.Minute == 00)
+                                //{
                                     var taskMobitel = new Task(() =>
                                     {
                                         new FtpMobitel().ExportFilesToDatabase(); ;
@@ -60,7 +60,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
                                     {
                                         task.Start();
                                     }
-                                }
+                                //}
                             }
                             catch (Exception ex)
                             {
