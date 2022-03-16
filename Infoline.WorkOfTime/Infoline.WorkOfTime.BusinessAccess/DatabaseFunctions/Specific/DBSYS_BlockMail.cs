@@ -26,6 +26,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWSYS_BlockMail GetVWSYS_BlockMailByIdForPayType(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWSYS_BlockMail>().Where(a => a.userId == id).Execute().FirstOrDefault(a => a.type == 50);
+            }
+        }
+
 
         public SYS_BlockMail GetSYS_BlockMailByUserIdAndType(Guid Id, int type, DbTransaction tran = null)
         {
