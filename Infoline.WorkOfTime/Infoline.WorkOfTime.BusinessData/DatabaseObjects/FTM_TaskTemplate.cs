@@ -39,5 +39,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public bool? hasVerifyCode { get; set;}
         public bool? sendMail { get; set;}
+        public short? sendMailCustomer { get; set;}
+        public string sendedCustomer { get; set;}
     }
 }

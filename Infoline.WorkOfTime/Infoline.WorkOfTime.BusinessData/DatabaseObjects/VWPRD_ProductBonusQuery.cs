@@ -14,6 +14,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string code { get; set;}
         public string ruleName { get; set;}
         public string query { get; set;}
-        public string present { get; set;}
+        public double? present { get; set;}
     }
 }

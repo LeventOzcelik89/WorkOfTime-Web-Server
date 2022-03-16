@@ -72,6 +72,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.hasVerifyCode = this.hasVerifyCode ?? false;
             this.type = this.type ?? (int)EnumFTM_TaskType.Ariza;
             this.priority = this.priority ?? (int)EnumFTM_TaskPriority.Orta;
+            this.sendMailCustomer = this.sendMailCustomer.HasValue ? this.sendMailCustomer.Value : (short)EnumFTM_TaskPersonSendMailCustomer.Hayır;
             this.created = this.created ?? DateTime.Now;
             this.createdby = this.createdby ?? userId;
             this.assignableUsers = this.assignableUsers ?? new List<Guid>();
