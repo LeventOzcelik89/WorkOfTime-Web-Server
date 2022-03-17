@@ -21,5 +21,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_EntegrationAction>().Where(a => a.Imei == imei && a.Quantity == 1).Execute().OrderByDescending(a=>a.created).FirstOrDefault();
             }
         }
+
+        public PRD_EntegrationAction GetPRD_EntegrationActionByImei(string imei, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<PRD_EntegrationAction>().Where(a => a.Imei == imei).Execute().FirstOrDefault();
+            }
+        }
     }
 }

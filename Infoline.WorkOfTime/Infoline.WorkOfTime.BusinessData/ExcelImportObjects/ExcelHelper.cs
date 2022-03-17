@@ -1,6 +1,4 @@
-﻿using Infoline.Helper;
-using Infoline.WorkOfTime.BusinessAccess;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 namespace System.Web.Mvc
@@ -35,61 +33,6 @@ namespace System.Web.Mvc
             public bool Unique { get; set; }
             public string Description { get; set; }
             public string Info { get; set; }
-        }
-        public static string GetSchema(Type excelClass, string tableName = "")
-        {
-            return Infoline.Helper.Json.Serialize(GetColumnInfo(excelClass, tableName));
-        }
-        public static ColumnInfo[] GetColumnInfo(Type excelClass, string tableName = "")
-        {
-            var list = new List<ColumnInfo>();
-            foreach (var item in excelClass.GetProperties().OrderBy(a => a.MetadataToken))
-            {
-                var column = new ColumnInfo();
-                column.Name = item.Name;
-                if (item.PropertyType.IsGenericType && item.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
-                    column.Type = item.PropertyType.GetGenericArguments()[0].Name;
-                }
-                else
-                {
-                    column.Type = item.PropertyType.Name;
-                }
-                column.Alias = item.GetCustomAttribute<ColumnInfoAttribute>().Alias;
-                column.DefaultValue = item.GetCustomAttribute<ColumnInfoAttribute>().DefaultValue;
-                column.Required = item.GetCustomAttribute<ColumnInfoAttribute>().Required;
-                column.Unique = item.GetCustomAttribute<ColumnInfoAttribute>().IsUnique;
-                column.Info = item.GetCustomAttribute<ColumnInfoAttribute>().Info;
-                if (column.Type == "DateTime")
-                {
-                    column.Description = " Örnek : (12.03.1996)";
-                }
-                if (column.Type == "Double")
-                {
-                    column.Description = " Örnek : (1234.45)";
-                }
-                if (column.Type == "Boolean")
-                {
-                    column.Description = " (1 veya 0)";
-                }
-                list.Add(column);
-            }
-            if (!string.IsNullOrEmpty(tableName) && TenantConfig.Tenant.Config.CustomProperty.ContainsKey(tableName))
-            {
-                var props = TenantConfig.Tenant.Config.CustomProperty[tableName];
-                foreach (var prop in props)
-                {
-                    list.Add(new ColumnInfo
-                    {
-                        Alias = prop,
-                        Name = prop,
-                        Required = false,
-                        Type = "String",
-                        DefaultValue = ""
-                    });
-                }
-            }
-            return list.ToArray();
         }
     }
     public class SH_UserExcel
@@ -344,6 +287,18 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Toplam Satis Adedi")]
         public int? sellingQuantity { get; set; }
     }
+    public class PRD_ProductProgressPaymentImportExcel
+    {
+        [ColumnInfoAttribute("Imei", true)]
+        public string imei { get; set; }
+        [ColumnInfoAttribute("Satış Tarihi", true)]
+        public DateTime? date { get; set; }
+        [ColumnInfoAttribute("Bayi Kodu", true)]
+        public string companyCode { get; set; }
+        [ColumnInfoAttribute("Bayi Adı")]
+        public string companyName { get; set; }
+    }
+
     public class ExcelResult
     {
         public bool status { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Infoline.Framework.Database;
+using Infoline.Framework.Helper;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
@@ -64,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             var excelDatas = Helper.Json.Deserialize<PRD_StockTaskPlanExcel[]>(model);
 
-            var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(PRD_StockTaskPlanExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
+            var uniqueColumn = ExcelImportHelper.GetColumnInfo(typeof(PRD_StockTaskPlanExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
 
             var existError = new List<ExcelResult>();
             var excelResult = new ExcelResult

@@ -516,6 +516,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                                 new string[]{ SHRoles.Personel}),
                 }
             },
+             {
+                "PRD_ProductProgressPaymentImport", new []{
+                    new FileBase("Fatura Dosyası", "*.jpeg,*.doc,*.docx,*.png,*.pdf,*.jpg,*.jpeg",  1,
+                                                                                new string[]{ SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli},
+                                                                                new string[]{ SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli},
+                                                                                new string[]{ SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli}),
+                }
+            },
             {
                 "INV_CompanyPersonCalendar", new []{
                     new FileBase("Takvim Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  99,

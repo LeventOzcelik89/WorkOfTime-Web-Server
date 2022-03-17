@@ -83,7 +83,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_Inventory>().Where(x =>  x.serialcode.In(serialCode)).Execute().ToArray();
+                return db.Table<PRD_Inventory>().Where(x => x.serialcode.In(serialCode)).Execute().ToArray();
             }
         }
 
@@ -92,6 +92,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
             {
                 return db.Table<PRD_Inventory>().Where(x => x.productId == productId && x.id != inventoryId && x.serialcode == serialCode).Count() > 0;
+            }
+        }
+        public PRD_Inventory GetPRD_InventoryByImei(string imei, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_Inventory>().Where(x => x.serialcode == imei).Execute().FirstOrDefault();
             }
         }
 

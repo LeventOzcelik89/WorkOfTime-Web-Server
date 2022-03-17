@@ -3,6 +3,7 @@ using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -501,6 +502,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return null;
             }
 
+        }
+
+        public static ResultStatus Validate<T>(this T entity) where T : class, new()
+        {
+            var myResult = new List<ValidationResult>();
+            var ctx = new ValidationContext(entity);
+            if (Validator.TryValidateObject(entity, ctx, myResult, true))
+            {
+                return new ResultStatus { result = true };
+            }
+            else
+            {
+                return new ResultStatus { result = false, message = string.Join(Environment.NewLine, myResult.Select(a => a.ErrorMessage)) };
+            }
         }
 
         public static ResultStatus<string> GetRemoteString(string url)
