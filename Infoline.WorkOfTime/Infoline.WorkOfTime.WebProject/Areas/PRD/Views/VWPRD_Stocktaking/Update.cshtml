@@ -1,0 +1,135 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_Stocktaking
+@{
+    ViewBag.Title = "Stok Sayım İşlemleri Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Update", "VWPRD_Stocktaking", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="code">Sayım Kodu</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Sayım Kodu giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="date">Sayım Tarihi</label>
+        </div>
+        <div class="col-md-8">
+			 @(
+			      Html.Akilli().
+			      DatePickerFor(model => model.date).
+			      Placeholder("Lütfen Sayım Tarihi girin..").
+			      Format(Extensions.DateFormatShort()).
+			      Validate(Validations.Required)
+			 )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="storageId">Depo id'si</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.storageId)
+			      .OptionLabel("Lütfen Depo id'si seçiniz..")
+			      .DataTextField("name")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+			      .Sort(x => x.Add("name").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="responsibleUserId">Sorumlu Personel Id'si</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.responsibleUserId)
+			      .OptionLabel("Lütfen Sorumlu Personel Id'si seçiniz..")
+			      .DataTextField("firstname")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+			      .Sort(x => x.Add("firstname").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.description, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Açıklama giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="status">İşlem Durumu</label>
+        </div>
+        <div class="col-md-8">
+			 @(
+			     Html.Akilli().
+			     DropDownListFor(model => model.status).
+			     OptionLabel("Lütfen İşlem Durumu seçiniz..").
+			     DataTextField("enumDescription").
+			     DataValueField("Id").
+			     Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			     Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRD_Stocktaking" && a.fieldName == "status").
+			     Sort(x => x.Add("enumDescription").Ascending()).
+			     Validate(Validations.Required).
+			     Execute("enumKey")
+			 )
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
