@@ -1,4 +1,5 @@
 ﻿using Infoline.Framework.Database;
+using Infoline.Framework.Helper;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
@@ -348,7 +349,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
             var TL = currencies.Where(a => a.code == "TL").FirstOrDefault();
 
-            var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(SH_UserExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
+            var uniqueColumn = ExcelImportHelper.GetColumnInfo(typeof(SH_UserExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
 
             var existError = new List<ExcelResult>();
             var excelResult = new ExcelResult
