@@ -18,14 +18,14 @@
     $(document)
         .on('ready', function () {
             FilterDate();
-
+          
         })
         ;
 </script>
 <script data-selector="modalContainer" type="text/javascript">
     var insertAll = {
         filter: function (e) {
-            
+
         },
         makeTagify: function () {
             var whitelist = $.ajax({
@@ -45,10 +45,12 @@
             });
         },
         kendoDropDownChange: function (e) {
+            debugger;
             var tagify = $("#userMails").data("tagify");
             var item = e.sender.dataItem();
             tagify.removeAllTags();
             tagify.addTags(item.email, true, true);
+
         }
     }
     function onChangeCompany(e) {
@@ -110,6 +112,50 @@
             $("#fixtureIds").data("handler").value([]);
         }
 
+        if (customer.id != null && customer.id != '') {
+            var tagifys = $("#sendedCustomer").data("tagify");
+            var items = e.sender.dataItem();
+            if (tagifys != null) {
+                tagifys.removeAllTags();
+            }
+
+            var res = $.ajax({
+                type: "POST",
+                url: '/FTM/VWFTM_Task/GetCustomerMail',
+                data: { userid: customer.id },
+                async: false
+            }).responseJSON || [];
+        
+
+            if (res[0] == null) {
+                var ss = $('#sendedCustomer').data("tagify");
+                ss.settings.whitelist = res;
+            }
+            else {
+                var ss = $('#sendedCustomer').data("tagify");
+                ss.settings.whitelist = res;
+            }
+
+        }
+        else {
+            $('#sendedCustomer').tagify({
+                whitelist: [],
+                placeholder: "Lütfen Mail Adresini yazın ve Enter'a basınız",
+                dropdown: {
+                    maxItems: 99999999999,           // <- mixumum allowed rendered suggestions
+                    //classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
+                    enabled: 0,             // <- show suggestions on focus
+                    closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
+                }
+            });
+            var ss = $('#sendedCustomer').data("tagify");
+            ss.removeAllTags();
+            ss.settings.whitelist = [];
+        }
+  
+
+
+
     }
     $(document)
         .on("change", '[name="type"][type="radio"]', function (c) {
@@ -129,15 +175,31 @@
                 $("#mailTo").addClass("hidden");
             }
 
-        }).on("before:submit", "#VWFTM_TaskInsertForm", function () {
+        }).on("change", '[name="sendMailCustomer"]', function () {
+            var getChecked = $('[name="sendMailCustomer"]:checked').val();
+            if (getChecked == 1) {
+                $("#mailToCustomer").removeClass("hidden");
+            }
+            else {
+                $("#mailToCustomer").addClass("hidden");
+            }
+
+        })
+        .on("before:submit", "#VWFTM_TaskInsertForm", function () {
+            debugger;
             var tag = $("#userMails").data("tagify");
             if (tag && tag.value) {
                 $("#userMails").val(tag.value.map(a => a.value).join(","))
             }
 
+            var tags = $("#sendedCustomer").data("tagify");
+            if (tags && tags.value) {
+                $("#sendedCustomer").val(tags.value.map(a => a.value).join(","))
+            }
+
 
         }).on("click", ".clearDropdown", function () {
-         
+
             var customer = $("#customerId").data("kendoDropDownList").dataItem().id;
             var filter = ("(companyId~equals~'" + customer + "'')");
             var filterJSON = kendo.filterParser(filter);
@@ -292,13 +354,13 @@
             .CascadeFromField("companyId")
             .Sort(x => x.Add("fullName").Ascending())
             .Events(x=>x.Select("insertAll.kendoDropDownChange").Filtering("insertAll.filter"))
-           
+
             .Execute()
                 )
-                <span class="input-group-addon"><a disabled id="customerStorageModal" data-task="Insert"  data-show="single" data-modal="true" data-method="get" data-href=""  class="btn btn-primary"><i class="fa fa-code-fork"></i></a></span>
+                <span class="input-group-addon"><a disabled id="customerStorageModal" data-task="Insert" data-show="single" data-modal="true" data-method="get" data-href="" class="btn btn-primary"><i class="fa fa-code-fork"></i></a></span>
             </div>
-           
-       
+
+
         </div>
     </div>
     <div class="form-group">
@@ -467,7 +529,7 @@
         .Filter<VWSH_User>(a => persons.Contains(a.id))
         .Events(e => { e.Change("onChangePerson").Close("onChangePerson").DataBound("onBoundPerson"); })
         .Sort(x => x.Add("FullName").Ascending())
-       
+
         .Execute()
             )
         </div>
@@ -569,6 +631,37 @@
     </div>
     <div class="form-group">
         <div class="col-md-4">
+            <label for="sendMailCustomer">Tamamlandı Bildirimi Yapılsın Mı?</label>
+        </div>
+        <div class="col-md-8">
+            <div class="clearfix m-b-md">
+                <div class="radio akilliRadioGrup clearfix">
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPersonSendMailCustomer>().OrderBy(x => x.Generic["order"]))
+                    {
+
+                        @(Html.RadioButtonFor(model => model.sendMailCustomer, item.Key, new Dictionary<string, object> { { "id", "sendMailCustomer" + item.Key } } ))
+                        <label for="sendMailCustomer@(item.Key)" tabindex="0" class="radio-label">
+                            @item.Value
+                        </label>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group hidden" id="mailToCustomer">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="sendedCustomer">Mail Atılacak Müşteriler</label>
+
+        </div>
+        <div class="col-md-8 ">
+            <input name="sendedCustomer" id="sendedCustomer" type="text" />
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
             <label class="control-label label-md" for="Dosya"> <i class="fa fa-folder-open"></i> Görev Dosyası</label>
         </div>
         <div class="col-md-8">
@@ -607,7 +700,7 @@
         </button>
     </div>
     <script>
-        
+
         $(document).on("click", "#treeStorage", function () {
 
             console.log("yes")

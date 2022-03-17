@@ -79,6 +79,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Evet"), Generic("order", "1")]
         Evet = 1
     }
+    [EnumInfo(typeof(VWFTM_Task), "sendMailCustomer")]
+    public enum EnumFTM_TaskPersonSendMailCustomer
+    {
+        [Description("Hayır"), Generic("order", "2")]
+        Hayır = 0,
+        [Description("Evet"), Generic("order", "1")]
+        Evet = 1
+    }
 
     partial class WorkOfTimeDatabase
     {

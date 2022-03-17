@@ -102,6 +102,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWSH_User>().Where(a => a.CompanyId == companyId && ((a.firstname == name && a.lastname == lastName) || a.email == email)).Execute().FirstOrDefault();
             }
         }
+        public VWSH_User GetVWSH_UserByMail(string email, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWSH_User>().Where(a => a.email == email).Execute().FirstOrDefault();
+            }
+        }
+
 
         public VWSH_User[] GetVWSH_UserByCompanyIds(Guid[] companyIds, DbTransaction tran = null)
         {
