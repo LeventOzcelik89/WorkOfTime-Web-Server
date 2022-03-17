@@ -1,40 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Infoline.Framework.Helper;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
-namespace System.Web.Mvc
+namespace Infoline.WorkOfTime.BusinessData
 {
-    public class ColumnInfoAttribute : Attribute
-    {
-        public string Alias { get; set; }
-        public object DefaultValue { get; set; }
-        public bool Required { get; set; }
-        public bool IsUnique { get; set; }
-        public string Description { get; set; }
-        public string Info { get; set; }
-        public ColumnInfoAttribute(string alias, bool required = false, object defaultValue = null, bool isUnique = false, string description = "", string info = "")
-        {
-            Alias = alias;
-            DefaultValue = defaultValue;
-            Required = required;
-            IsUnique = isUnique;
-            Description = description;
-            Info = info;
-        }
-    }
-    public static class ExcelHelper
-    {
-        public class ColumnInfo
-        {
-            public string Name { get; set; }
-            public string Alias { get; set; }
-            public string Type { get; set; }//Javascript Type
-            public object DefaultValue { get; set; }
-            public bool Required { get; set; }
-            public bool Unique { get; set; }
-            public string Description { get; set; }
-            public string Info { get; set; }
-        }
-    }
     public class SH_UserExcel
     {
         [ColumnInfoAttribute("İsim")]
@@ -289,13 +260,13 @@ namespace System.Web.Mvc
     }
     public class PRD_ProductProgressPaymentImportExcel
     {
-        [ColumnInfoAttribute("Imei", true)]
+        [ColumnInfoAttribute("Imei**"),Required(ErrorMessage ="Imei numarası alanı zorunludur.")]
         public string imei { get; set; }
-        [ColumnInfoAttribute("Satış Tarihi", true)]
+        [ColumnInfoAttribute("Satış Tarihi"), Required(ErrorMessage = "Satış tarihi alanı zorunludur.")]
         public DateTime? date { get; set; }
-        [ColumnInfoAttribute("Bayi Kodu", true)]
+        [ColumnInfoAttribute("Bayi Kodu"), Required(ErrorMessage = "Bayi kodu alanı zorunludur.")]
         public string companyCode { get; set; }
-        [ColumnInfoAttribute("Bayi Adı")]
+        [ColumnInfoAttribute("Bayi Adı"), Required(ErrorMessage = "Bayi Adı alanı zorunludur.")]
         public string companyName { get; set; }
     }
 
