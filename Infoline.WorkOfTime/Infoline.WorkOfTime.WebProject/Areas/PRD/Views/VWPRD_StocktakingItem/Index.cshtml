@@ -1,0 +1,53 @@
+﻿@{
+    ViewBag.Title = "Stok Sayım İşlemi Ürünleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+     <div class="col-md-2">
+         <div class="ibox">
+             <div class="ibox-content mailbox-content">
+                 <div class="file-manager">
+                     <a class="btn btn-block btn-success" data-task="Insert" data-href="/PRD/VWPRD_StocktakingItem/Insert" data-modal="true" data-method="get">
+                         <i class="fa fa-plus-circle"></i> Stok Sayım İşlemi Ürünleri Oluştur
+                     </a>
+                 </div>
+             </div>
+         </div>
+     </div>
+     <div class="col-md-10">
+         <div class="ibox">
+             <div class="ibox-title">
+                 <h5>Stok Sayım İşlemi Ürünleri</h5>
+                 <div class="ibox-tools">
+                     <a class="collapse-link">
+                         <i class="fa fa-chevron-up"></i>
+                     </a>
+                 </div>
+             </div>
+             <div class="ibox-content">
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StocktakingItem>("VWPRD_StocktakingItem")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StocktakingItem", new { area = "PRD" })).PageSize(25))
+    .Columns(x =>
+    {
+
+        x.Bound(y => y.stocktakingId_Title).Title("Sayım id'si").Width(130);
+        x.Bound(y => y.productId_Title).Title("Ürün id'si").Width(130);
+        x.Bound(y => y.serialNumber).Title("Envanter Seri Numarası").Width(130);
+        x.Bound(y => y.quantity).Title("Miktar").Width(130);
+        x.Bound(y => y.unitId_Title).Title("Sayım birimi").Width(130);
+    })
+    .Scrollable(x => x.Height(650))
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Stok Sayım İşlemi Ürünleri Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_StocktakingItem", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Stok Sayım İşlemi Ürünleri Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StocktakingItem", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Stok Sayım İşlemi Ürünleri Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_StocktakingItem", new { area = "PRD" }));
+    }))
+             </div>
+         </div>
+     </div>
+</div>

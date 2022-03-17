@@ -58,8 +58,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWCMP_Request Request { get; set; }
         public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
         public VMFTM_TaskUserInfo[] taskFollowUpUsers { get; set; }
+		public VWFTM_Task[] subTasks { get; set; }
 
-    }
+	}
 
 
     public class VWFTM_TaskOperationOperation : VWFTM_TaskOperation
@@ -164,6 +165,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 model.TaskStorage = storage;
             }
+
+            model.subTasks = _db.GetVWFTM_TaskByPid(data.id);
 
             model.FTM_TaskSubjectTypeIds = _db.GetFTM_TaskSubjectTypeByTaskIdTypesIds(taskId);
 
