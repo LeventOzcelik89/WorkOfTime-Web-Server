@@ -38,6 +38,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWPRD_Product[] GetVWPRD_ProductByCode(string code)
+        {
+
+            using (var db = GetDB())
+            {
+                return db.Table<VWPRD_Product>().Where(a => a.code == code).Execute().ToArray();
+            }
+        }
+
 
 
     }
