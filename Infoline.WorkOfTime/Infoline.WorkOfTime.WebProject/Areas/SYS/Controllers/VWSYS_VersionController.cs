@@ -11,8 +11,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SYS.Controllers
 {
     public class VWSYS_VersionController : Controller
     {
-        [AllowEveryone]
-        [PageInfo("Versiyon Yönetimi")]
+        [PageInfo("Versiyon Yönetimi", SHRoles.Personel)]
         public ActionResult Index(VWSYS_VersionModel model)
         {
             var userStatus = (PageSecurity)Session["userStatus"];

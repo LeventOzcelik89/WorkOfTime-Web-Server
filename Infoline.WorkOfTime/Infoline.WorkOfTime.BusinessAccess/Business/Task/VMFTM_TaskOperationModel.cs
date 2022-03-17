@@ -417,9 +417,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             msj += "<div><strong>" + "(" + this.Task.code + ") " + "</strong> ürün için talep ettiğiniz arıza/bakım kaydı çözümlenmiştir. </div>";
                             msj += "<div>Bilgilerinize.</div>";
                             var files = new List<string> { url + "/FTM/VWFTM_Task/Print/" + Task.id };
-                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", msj).Send((Int16)EmailSendTypes.Cozum, item, "Çözüm Onay Bilgilendirmesi", true,null,null, files.ToArray());
+                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", msj).Send((Int16)EmailSendTypes.Cozum, item, "Çözüm Onay Bilgilendirmesi", true,null,null, new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/FTM/VWFTM_Task/Print?id={Task.id}" }, false);                 
                             notification.NotificationSend(customer.id, Task.createdby, "Saha Görev Yönetimi", notify, $"/FTM/VWFTM_Task/Detail?id={this.taskId}");
-
                         }
                     }
               

@@ -49,6 +49,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public short? planLater { get; set;}
         public short? sendMailCustomer { get; set;}
         public string sendedCustomer { get; set;}
+        public Guid? pid { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string type_Title { get; set;}

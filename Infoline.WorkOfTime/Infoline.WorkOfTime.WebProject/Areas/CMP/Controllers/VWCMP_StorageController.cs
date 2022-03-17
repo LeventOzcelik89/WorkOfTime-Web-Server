@@ -1,4 +1,5 @@
 ﻿using Infoline.Framework.Database;
+using Infoline.Framework.Helper;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
@@ -279,7 +280,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var companies = db.GetCMP_Company().ToArray();
 			var locations = db.GetUT_LocationCityAndTownInTR();
 			var excelStorages = Helper.Json.Deserialize<CMP_StorageExcel[]>(model);
-			var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(CMP_StorageExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
+			var uniqueColumn = ExcelImportHelper.GetColumnInfo(typeof(CMP_StorageExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
 			var existError = new List<ExcelResult>();
 			var excelResult = new ExcelResult
 			{

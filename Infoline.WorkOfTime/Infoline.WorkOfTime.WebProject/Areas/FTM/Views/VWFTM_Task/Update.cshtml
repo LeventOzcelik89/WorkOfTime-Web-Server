@@ -1,80 +1,80 @@
 ﻿@model VMFTM_TaskModel
 @{
-    ViewBag.Title = "Görev Düzenle";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    Model.customerId = Model.customerId ?? Guid.NewGuid();
-    var persons = Model.personUserIds.ToList();
+	ViewBag.Title = "Görev Düzenle";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	Model.customerId = Model.customerId ?? Guid.NewGuid();
+	var persons = Model.personUserIds.ToList();
 }
 
 <script type="text/javascript" data-selector="modalContainer">
-    function onChangeCompany(e) {
-        var companyId = this.value();
-        var personElem = $('#assignableUsers').data("kendoMultiSelect");
-        var basefilter = personElem.options.dataSource.filter;
-        personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
-    }
-    function onBoundPerson(e) {
-        e.sender.trigger("change");
-    }
+	function onChangeCompany(e) {
+		var companyId = this.value();
+		var personElem = $('#assignableUsers').data("kendoMultiSelect");
+		var basefilter = personElem.options.dataSource.filter;
+		personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
+	}
+	function onBoundPerson(e) {
+		e.sender.trigger("change");
+	}
 
-    function onChangePerson(e) {
-        var values = e.sender.value();
-        $('[data-selector="personSelection"]')[values.length == 0 ? "hide" : "show"]();
-    }
+	function onChangePerson(e) {
+		var values = e.sender.value();
+		$('[data-selector="personSelection"]')[values.length == 0 ? "hide" : "show"]();
+	}
 
-    function onChangeCustomer(e) {
-        var type = $('[name="type"]:checked').val();;
-        var customer = e.sender.dataItem();
-        if (this.value() != "") {
-            var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "'~or~(firstActionDataCompanyId~eq~'" + customer.id + "'~and~firstActionType~eq~101))");
-            var filterJSON = kendo.filterParser(filter);
-            $('#fixtureIds').data("kendoMultiSelect").dataSource.filter(filterJSON);
-            $("#location").val(customer.location);
-            haritalar['location'].feature.remove("DrawLayer", "DrawFeature");
-            haritalar['location'].feature.add("DrawLayer", "DrawFeature", customer.location);
-        }
-    }
-    var insertAll = {
-        makeTagify: function () {
-            var whitelist = $.ajax({
-                url: '/General/DataSourceEmailsCompanyAndUsers',
-                async: false,
-            }).responseJSON || [];
-            $('#userMails').tagify({
-                whitelist: whitelist,
-                placeholder: "Lütfen Mail Adresini yazın ve Enter'a basınız",
-                dropdown: {
-                    maxItems: 99999999999,           // <- mixumum allowed rendered suggestions
-                    //classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
-                    enabled: 0,             // <- show suggestions on focus
-                    closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
-                }
-            }).on("add removetag", function (e) {
-            });
-        },
-        kendoDropDownChange: function (e) {
-            var tagify = $("#userMails").data("tagify")
-            var item = e.sender.dataItem();
-            tagify.removeAllTags();
-            tagify.addTags(item.email, true, true);
-        }
-    }
-    insertAll.makeTagify();
-    $(document).on("change", '[name="isSendDocuments"]', function () {
-        var getChecked = $('[name="isSendDocuments"]:checked').val();
-        if (getChecked == 1) {
-            $("#mailTo").removeClass("hidden");
-        }
-        else {
-            $("#mailTo").addClass("hidden");
-        }
+	function onChangeCustomer(e) {
+		var type = $('[name="type"]:checked').val();;
+		var customer = e.sender.dataItem();
+		if (this.value() != "") {
+			var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "'~or~(firstActionDataCompanyId~eq~'" + customer.id + "'~and~firstActionType~eq~101))");
+			var filterJSON = kendo.filterParser(filter);
+			$('#fixtureIds').data("kendoMultiSelect").dataSource.filter(filterJSON);
+			$("#location").val(customer.location);
+			haritalar['location'].feature.remove("DrawLayer", "DrawFeature");
+			haritalar['location'].feature.add("DrawLayer", "DrawFeature", customer.location);
+		}
+	}
+	var insertAll = {
+		makeTagify: function () {
+			var whitelist = $.ajax({
+				url: '/General/DataSourceEmailsCompanyAndUsers',
+				async: false,
+			}).responseJSON || [];
+			$('#userMails').tagify({
+				whitelist: whitelist,
+				placeholder: "Lütfen Mail Adresini yazın ve Enter'a basınız",
+				dropdown: {
+					maxItems: 99999999999,           // <- mixumum allowed rendered suggestions
+					//classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
+					enabled: 0,             // <- show suggestions on focus
+					closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
+				}
+			}).on("add removetag", function (e) {
+			});
+		},
+		kendoDropDownChange: function (e) {
+			var tagify = $("#userMails").data("tagify")
+			var item = e.sender.dataItem();
+			tagify.removeAllTags();
+			tagify.addTags(item.email, true, true);
+		}
+	}
+	insertAll.makeTagify();
+	$(document).on("change", '[name="isSendDocuments"]', function () {
+		var getChecked = $('[name="isSendDocuments"]:checked').val();
+		if (getChecked == 1) {
+			$("#mailTo").removeClass("hidden");
+		}
+		else {
+			$("#mailTo").addClass("hidden");
+		}
 
-    }).on("before:submit", "#VWFTM_TaskInsertForm", function () {
-        var tag = $("#userMails").data("tagify");
-        if (tag && tag.value) {
-            $("#userMails").val(tag.value.map(a => a.value).join(","))
-        }
-    });
+	}).on("before:submit", "#VWFTM_TaskInsertForm", function () {
+		var tag = $("#userMails").data("tagify");
+		if (tag && tag.value) {
+			$("#userMails").val(tag.value.map(a => a.value).join(","))
+		}
+	});
 </script>
 
 @using (Html.BeginForm("Update", "VWFTM_Task", FormMethod.Post, new Dictionary<string, object>() {
@@ -85,41 +85,43 @@
 	{ "data-formType", "Ajax" }
 }))
 {
-    @Html.AntiForgeryToken()
-    @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model => model.code)
-
-    <div class="hide">
-        @(Html.Akilli().MapInputFor(a => a.lastOperationLocation).Navigation(true))
-    </div>
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.code)
+	@Html.HiddenFor(model => model.pid)
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="code">Görev Kodu/Tipi</label>
-        </div>
-        <div class="col-md-4">
-            @Html.TextBoxFor(a => a.code, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"disabled", "disabled" }
-            })
-        </div>
-        <div class="col-md-4">
-            @Html.TextBoxFor(a => a.type_Title, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"disabled", "disabled" }
-            })
-        </div>
-    </div>
+	<div class="hide">
+		@(Html.Akilli().MapInputFor(a => a.lastOperationLocation).Navigation(true))
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="customer_Title">Müşteri İşletme</label>
-        </div>
-        <div class="col-md-8">
-            @(
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="code">Görev Kodu/Tipi</label>
+		</div>
+		<div class="col-md-4">
+			@Html.TextBoxFor(a => a.code, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"disabled", "disabled" }
+			})
+		</div>
+		<div class="col-md-4">
+			@Html.TextBoxFor(a => a.type_Title, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"disabled", "disabled" }
+			})
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="customer_Title">Müşteri İşletme</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli()
                 .DropDownListFor(model => model.customerId)
                 .OptionLabel("Lütfen Müşteri İşletmeyı Seçiniz..")
@@ -132,15 +134,15 @@
                 .Validate(Validations.Required)
                 .Execute()
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md " for="customerStorageId">Şube/Depo/Kısım</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md " for="customerStorageId">Şube/Depo/Kısım</label>
+		</div>
+		<div class="col-md-8">
+			@(
                     Html.Akilli()
                     .DropDownListFor(model => model.customerStorageId)
                     .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
@@ -155,45 +157,45 @@
                       .Events(x => x.Select("insertAll.kendoDropDownChange"))
                     .Execute()
                 )
-        </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="created">Oluşturulma Tarihi</label>
-        </div>
-        <div class="col-md-8">
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="created">Oluşturulma Tarihi</label>
+		</div>
+		<div class="col-md-8">
 
-            @Html.TextBoxFor(model => model.created, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
-        </div>
-    </div>
+			@Html.TextBoxFor(model => model.created, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"readonly", "readonly"}
+			})
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="notificationDate">Bildirim Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="notificationDate">Bildirim Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli().
                 DateTimePickerFor(model => model.notificationDate).
                 Placeholder("Bildirim Tarihi").
                 Format(Extensions.DateFormatFull())
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
 
-    //if (Model.planLater == (int)EnumFTM_TaskPlanLater.Evet)
-    //{
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="planStartDate">Planlanan Başlangıç Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	//if (Model.planLater == (int)EnumFTM_TaskPlanLater.Evet)
+	//{
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="planStartDate">Planlanan Başlangıç Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli().
                 DateTimePickerFor(model => model.planStartDate).
                 Placeholder("Planlanan Başlangıç Tarihi").
@@ -202,15 +204,15 @@
                 //MaxDateElement("dueDate").
                 Validate(Validations.Required)
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="dueDate">Planlanan Bitiş Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="dueDate">Planlanan Bitiş Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli().
                 DateTimePickerFor(model => model.dueDate).
                 Placeholder("Planlanan Bitiş Tarihi").
@@ -219,25 +221,25 @@
                 MinDateElement("planStartDate").
                 Validate(Validations.Required)
             )
-        </div>
-    </div>
-    @*}
-        else
-        {
-            @Html.HiddenFor(x => x.planStartDate);
-            @Html.HiddenFor(x => x.dueDate);
-        }*@
+		</div>
+	</div>
+	@*}
+		else
+		{
+			@Html.HiddenFor(x => x.planStartDate);
+			@Html.HiddenFor(x => x.dueDate);
+		}*@
 
 
 
-    if (Model.type < 5)
-    {
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md" for="fixture_Title">Görevli Envanter</label>
-            </div>
-            <div class="col-md-8">
-                @(Html.Akilli()
+	if (Model.type < 5)
+	{
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="fixture_Title">Görevli Envanter</label>
+			</div>
+			<div class="col-md-8">
+				@(Html.Akilli()
                     .DropDownListFor(model => model.fixtureId)
                     .OptionLabel("Lütfen Envanter Seçiniz..")
                     .DataTextField("searchField")
@@ -248,18 +250,18 @@
                     .Template("#=TemplateEngine('inventoryTemplate',data)#")
                     .Execute()
                 )
-            </div>
-        </div>
+			</div>
+		</div>
 
-    }
-    else
-    {
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md req" id="locationLabel" for="location">Görev Konumu</label>
-            </div>
-            <div class="col-md-8">
-                @(
+	}
+	else
+	{
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" id="locationLabel" for="location">Görev Konumu</label>
+			</div>
+			<div class="col-md-8">
+				@(
                     Html.Akilli().MapInputFor(a => a.location).
                     HelpText("Lütfen Lokasyon seçiniz.").
                     HtmlAttributes(new Dictionary<string, object>()
@@ -272,27 +274,27 @@
                     Navigation(false).
                     Searchable(true)
                 )
-            </div>
-        </div>
-    }
+			</div>
+		</div>
+	}
 
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="priority">Görev Önceliği</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli().RadioButtonGroupFor(a => a.priority).Value(EnumFTM_TaskPriority.Orta))
-        </div>
-    </div>
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="priority">Görev Önceliği</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli().RadioButtonGroupFor(a => a.priority).Value(EnumFTM_TaskPriority.Orta))
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="CMP_Types">Görev Konuları</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli()
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="CMP_Types">Görev Konuları</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
      .MultiSelect("FTM_TaskSubjectTypeIds")
      .Placeholder("Lütfen Görev Konusu Seçiniz..")
      .DataTextField("name")
@@ -303,35 +305,35 @@
      //.Validate(Validations.Required)
      .Execute("id")
          )
-        </div>
-    </div>
+		</div>
+	</div>
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="description">Görev Açıklaması</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen Açıklama Giriniz." }
-            }).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
-        </div>
-    </div>
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="description">Görev Açıklaması</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Açıklama Giriniz." }
+			}).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
+		</div>
+	</div>
 
 
 
 
-    if (Model.assignUserId == null)
-    {
+	if (Model.assignUserId == null)
+	{
 
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md" for="companyId">Sorumlu İşletmem</label>
-            </div>
-            <div class="col-md-8">
-                @(
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="companyId">Sorumlu İşletmem</label>
+			</div>
+			<div class="col-md-8">
+				@(
                 Html.Akilli()
                 .DropDownListFor(model => model.companyId)
                 .OptionLabel("Lütfen sorumlu işletmeyi seçiniz..")
@@ -344,15 +346,15 @@
                 .Sort(x => x.Add("fullName").Ascending())
                 .Execute()
             )
-            </div>
-        </div>
+			</div>
+		</div>
 
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md" for="assignableUsers">Sorumlu Personeller</label>
-            </div>
-            <div class="col-md-8">
-                @(
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="assignableUsers">Sorumlu Personeller</label>
+			</div>
+			<div class="col-md-8">
+				@(
                 Html.Akilli()
                 .MultiSelectFor(a => a.assignableUsers)
                 .Placeholder("Lütfen sorumlu personelleri seçiniz..")
@@ -365,46 +367,46 @@
                 .Sort(x => x.Add("FullName").Ascending())
                 .Execute()
             )
-            </div>
-        </div>
-    }
-    else
-    {
+			</div>
+		</div>
+	}
+	else
+	{
 
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md" for="assignUser_Title">Görevli İşletmem</label>
-            </div>
-            <div class="col-md-8">
-                @Html.TextBoxFor(a => a.companyId, new Dictionary<string, object>()
-                {
-                    {"class", "form-control"},
-                    {"disabled", "disabled" }
-                })
-            </div>
-        </div>
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="assignUser_Title">Görevli İşletmem</label>
+			</div>
+			<div class="col-md-8">
+				@Html.TextBoxFor(a => a.companyId, new Dictionary<string, object>()
+				{
+					{"class", "form-control"},
+					{"disabled", "disabled" }
+				})
+			</div>
+		</div>
 
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md" for="assignUser_Title">Görevli Personel</label>
-            </div>
-            <div class="col-md-8">
-                @Html.TextBoxFor(a => a.assignUser_Title, new Dictionary<string, object>()
-                {
-                    {"class", "form-control"},
-                    {"disabled", "disabled" }
-                })
-            </div>
-        </div>
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="assignUser_Title">Görevli Personel</label>
+			</div>
+			<div class="col-md-8">
+				@Html.TextBoxFor(a => a.assignUser_Title, new Dictionary<string, object>()
+				{
+					{"class", "form-control"},
+					{"disabled", "disabled" }
+				})
+			</div>
+		</div>
 
-    }
+	}
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="assignableUsers">Yardımcı Personeller</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="assignableUsers">Yardımcı Personeller</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli()
                 .MultiSelectFor(a => a.helperUsers)
                 .Placeholder("Lütfen yardımcı personelleri seçiniz..")
@@ -416,15 +418,15 @@
                 .Sort(x => x.Add("FullName").Ascending())
                 .Execute()
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="followUpUsers">Takip Edecek Kişiler</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="followUpUsers">Takip Edecek Kişiler</label>
+		</div>
+		<div class="col-md-8">
+			@(
         Html.Akilli()
         .MultiSelectFor(a => a.followUpUsers)
         .Placeholder("Lütfen takip edecek kişileri seçiniz..")
@@ -436,15 +438,15 @@
         .Sort(x => x.Add("FullName").Ascending())
         .Execute()
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="companyCarId">Araç</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli()
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="companyCarId">Araç</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
              .DropDownListFor(model => model.companyCarId)
              .OptionLabel("Lütfen Araç Seçiniz..")
              .DataTextField("plate")
@@ -454,79 +456,79 @@
              .BasicInsert(Url.Action("Insert", "VWCMP_CompanyCars", new { area = "CMP" }), "plate")
              .Execute("id")
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group" style="margin-bottom: 1px;">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="isSendDocuments">Evraklar Mail Gönderilsin Mi? <i class="icon-info-4" data-toggle="tooltip" data-placement="top" title="Çağrıda görevli personellerin özlük dosyaları mail olarak müşteriye gönderilsin mi."></i></label>
-        </div>
-        <div class="col-md-8">
-            <div class="clearfix m-b-md">
-                <div class="radio akilliRadioGrup clearfix">
-                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPersonIsSendDocuments>().OrderBy(x => x.Generic["order"]))
-                    {
-                        @(Html.RadioButtonFor(model => model.isSendDocuments, item.Key, new Dictionary<string, object> { { "id", "isSendDocuments" + item.Key } }))
-                        <label for="isSendDocuments@(item.Key)" tabindex="0" class="radio-label">
-                            @item.Value
-                        </label>
-                    }
-                </div>
+	<div class="form-group" style="margin-bottom: 1px;">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="isSendDocuments">Evraklar Mail Gönderilsin Mi? <i class="icon-info-4" data-toggle="tooltip" data-placement="top" title="Çağrıda görevli personellerin özlük dosyaları mail olarak müşteriye gönderilsin mi."></i></label>
+		</div>
+		<div class="col-md-8">
+			<div class="clearfix m-b-md">
+				<div class="radio akilliRadioGrup clearfix">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPersonIsSendDocuments>().OrderBy(x => x.Generic["order"]))
+					{
+						@(Html.RadioButtonFor(model => model.isSendDocuments, item.Key, new Dictionary<string, object> { { "id", "isSendDocuments" + item.Key } }))
+						<label for="isSendDocuments@(item.Key)" tabindex="0" class="radio-label">
+							@item.Value
+						</label>
+					}
+				</div>
 
-            </div>
-        </div>
-    </div>
-
-
-    <div class="form-group hidden" id="mailTo">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="sendedUser">Mail İle Gönderilecek Kullanıcılar</label>
-
-        </div>
-        <div class="col-md-8 ">
-            <input name="userMails" id="userMails" type="text" />
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="Dosya"> <i class="fa fa-folder-open"></i> Görev Dosyası</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli().FileUpload()
+	<div class="form-group hidden" id="mailTo">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="sendedUser">Mail İle Gönderilecek Kullanıcılar</label>
+
+		</div>
+		<div class="col-md-8 ">
+			<input name="userMails" id="userMails" type="text" />
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="Dosya"> <i class="fa fa-folder-open"></i> Görev Dosyası</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli().FileUpload()
                             .DataTable("FTM_TaskOperation")
                             .DataId(Model.taskOperations.Where(x=>x.status == (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu).Select(x=>x.id).FirstOrDefault())
                             .DataKey(x => x.fileGroup == "Görev Dosyası")
                         )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div style="display:none;" data-selector="personSelection">
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md" for="hasVerifyCode">Onay Kodu Doğrulaması?</label>
-            </div>
-            <div class="col-md-7 radio m-l-sm">
-                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.hasVerifyCode).Value(true).Checked(false) <span> Evet</span></label>
-                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.hasVerifyCode).Value(false).Checked(true) <span> Hayır</span></label>
-            </div>
-        </div>
+	<div style="display:none;" data-selector="personSelection">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="hasVerifyCode">Onay Kodu Doğrulaması?</label>
+			</div>
+			<div class="col-md-7 radio m-l-sm">
+				<label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.hasVerifyCode).Value(true).Checked(false) <span> Evet</span></label>
+				<label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.hasVerifyCode).Value(false).Checked(true) <span> Hayır</span></label>
+			</div>
+		</div>
 
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md" for="hasVerifyCode">Mail Bilgilendirmesi?</label>
-            </div>
-            <div class="col-md-7 radio m-l-sm">
-                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.sendMail).Value(true).Checked(false) <span> Evet</span></label>
-                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.sendMail).Value(false).Checked(true) <span> Hayır</span></label>
-            </div>
-        </div>
-    </div>
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="hasVerifyCode">Mail Bilgilendirmesi?</label>
+			</div>
+			<div class="col-md-7 radio m-l-sm">
+				<label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.sendMail).Value(true).Checked(false) <span> Evet</span></label>
+				<label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.sendMail).Value(false).Checked(true) <span> Hayır</span></label>
+			</div>
+		</div>
+	</div>
 
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Görevi Güncelle</button>
-    </div>
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Görevi Güncelle</button>
+	</div>
 
 }

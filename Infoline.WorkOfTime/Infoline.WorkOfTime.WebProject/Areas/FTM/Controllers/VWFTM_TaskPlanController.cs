@@ -63,7 +63,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View();
 		}
 
-		[PageInfo("Bakım Planları DataSource (New)", SHRoles.SahaGorevYonetici)]
+		[PageInfo("Bakım Planları DataSource (New)", SHRoles.Personel, SHRoles.SahaGorevMusteri)]
 		public ContentResult AllTaskCalendarNewDataSource(int? year, Guid? customerId, Guid? planId)
 		{
 			var model = new TaskSchedulerModel();
