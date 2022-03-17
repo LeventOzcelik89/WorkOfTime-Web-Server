@@ -671,6 +671,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
+		public VWFTM_Task[] GetVWFTM_TaskByPid(Guid taskId, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				return db.Table<VWFTM_Task>().Where(a=>a.pid == taskId).Execute().ToArray();
+			}
+		}
+
 		public VWFTM_Task[] GetVWFTM_TaskByCalendar(Guid userId, DateTime start, DateTime end, bool isManager, Guid[] followingTaskIds)
 		{
 			using (var db = GetDB())
