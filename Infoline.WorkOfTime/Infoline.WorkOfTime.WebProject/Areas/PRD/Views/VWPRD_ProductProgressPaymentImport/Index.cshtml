@@ -1,6 +1,8 @@
-﻿@{
+﻿@model List<Guid>
+@{
     ViewBag.Title = "Hakediş Listesi";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 <script type="text/javascript">
     $(document)
@@ -9,25 +11,11 @@
         })
         ;
 </script>
-<div class="row">
-    <div class="col-sm-12">
-        @(Html.Akilli()
-         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductProgressPaymentImport>("VWPRD_ProductProgressPaymentImport")
-         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductProgressPaymentImport", new { area = "PRD" })).PageSize(25))
-         .Columns(x =>
-         {
-             x.Bound(y => y.companyId_Title).Title("Bayi Adı").Width(180);
-             x.Bound(y => y.productId_Title).Title("Ürün Adı").Width(180);
-             x.Bound(y => y.imei).Title("Imei Numarası").Width(180);
-         })
-         .Scrollable(x => x.Height(700))
-         .ToolBar(x =>
-         {
-             x.Custom().Text("<i data-original-title='Hakediş Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductProgressPaymentImport", new { area = "PRD" }));
-             x.Custom().Text("<i data-original-title='Hakediş Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-    default", "" } }).Url(Url.Action("Update", "VWPRD_ProductProgressPaymentImport", new { area = "PRD" }));
-             x.Custom().Text("<i data-original-title='Hakediş Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete",      "VWPRD_ProductProgressPaymentImport", new { area = "PRD" }));
-             x.Custom().Text("<i data-original-title='Örnek Excel İndir' class='icon-download'></i>").HtmlAttributes(new Dictionary<string, object>() { { "class", "pull-right" }, { "data-show", "always" }, { "data-download", "Excel" }, { "data-modal", "false" } }).Url("#");
-             x.Custom().Text("<i data-original-title='Excel İle İçe Aktar' class='icon-upload'></i>").HtmlAttributes(new Dictionary<string, object>() { { "class", "pull-right" }, { "data-show", "always" }, { "data-gridRefresh", "VWEMP_Employee" }, { "data-import", "Excel" }, { "data-properties", Infoline.Framework.Helper.ExcelImportHelper.GetSchema(typeof(PRD_ProductProgressPaymentImportExcel)) }, { "data-post", Url.Action("Import", "VWPRD_ProductProgressPaymentImport", new { area = "PRD" }) } }).Url("#");
-         }))
-    </div>
-</div>
+@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+{
+    Html.RenderPartial("~/Areas/PRD/Views/VWPRD_ProductProgressPaymentImport/Indexes/_MyIndex.cshtml", Model);
+}
+else
+{
+    Html.RenderPartial("~/Areas/PRD/Views/VWPRD_ProductProgressPaymentImport/Indexes/_AllIndex.cshtml", Model);
+}

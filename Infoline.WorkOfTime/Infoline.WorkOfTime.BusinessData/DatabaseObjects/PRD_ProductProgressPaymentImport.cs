@@ -9,6 +9,5 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? productId { get; set;}
         public DateTime? date { get; set;}
         public string imei { get; set;}
-        public string companyTypes { get; set;}
     }
 }

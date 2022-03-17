@@ -7,7 +7,6 @@ namespace Infoline.WorkOfTime.BusinessData
     {
         public Guid? companyId { get; set;}
         public Guid? productId { get; set;}
-        public string companyTypes { get; set;}
         public bool? existFTP { get; set;}
         public bool? isActivated { get; set;}
         public bool? isInventory { get; set;}

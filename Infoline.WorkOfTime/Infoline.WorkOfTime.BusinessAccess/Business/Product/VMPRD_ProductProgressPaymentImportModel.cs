@@ -24,6 +24,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.B_EntityDataCopyForMaterial(productImport, true);
             }
+            if (this.companyId != null)
+            {
+                var company = db.GetCMP_CompanyById(this.companyId.Value);
+                this.companyCode = company.code;
+                this.companyName = company.name;
+            }
             return this;
         }
 
@@ -57,7 +63,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var existImei = db.GetPRD_ProductProgressPaymentImportByImei(this.imei);
             if (existImei != null && existImei.id != this.id)
             {
-                result.message = existImei.imei + "imei numaralı kayıt sistemde mevcut.Başka bir imei numarası ile işleme devam ediniz";
+                result.message = existImei.imei + " imei numaralı kayıt sistemde mevcut.Başka bir imei numarası ile işleme devam ediniz";
                 result.result = false;
                 return result;
             }
@@ -124,15 +130,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var checkIsActivated = db.GetPRD_TitanDeviceActivatedByImei(this.imei);
                 var checkIsInventory = db.GetPRD_InventoryByImei(this.imei);
                 var checkIsFTP = db.GetPRD_EntegrationActionByImei(this.imei);
-                var companyTypes = db.GetCMP_CompanyTypeByCompanyId(company.id);
-                var list = new List<CMP_Types>();
-                if (companyTypes != null)
-                {
-                    foreach (var item in companyTypes)
-                    {
-                        list.Add(db.GetCMP_TypesById(item.typesId.Value));
-                    }
-                }
                 var progressPayment = new PRD_ProductProgressPayment();
                 progressPayment.created = DateTime.Now;
                 progressPayment.createdby = this.createdby;
@@ -143,7 +140,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 progressPayment.companyId = company.id;
                 progressPayment.productId = inventory.productId;
                 progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approving;
-                progressPayment.companyTypes = string.Join(",", list);
                 var dbResult = db.InsertPRD_ProductProgressPayment(progressPayment);
                 if (!dbResult.result)
                 {
@@ -265,7 +261,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     objects = existError.Where(x => x.status == false).ToArray()
                 };
             }
-
         }
     }
 }

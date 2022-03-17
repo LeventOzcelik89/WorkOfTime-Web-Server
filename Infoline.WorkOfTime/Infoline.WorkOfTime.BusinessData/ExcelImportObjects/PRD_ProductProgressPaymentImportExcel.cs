@@ -11,11 +11,11 @@ namespace Infoline.WorkOfTime.BusinessData
     {
         [ColumnInfoAttribute("Imei**"),Required(ErrorMessage ="Imei numarası alanı zorunludur.")]
         public string imei { get; set; }
-        [ColumnInfoAttribute("Satış Tarihi"), Required(ErrorMessage = "Satış tarihi alanı zorunludur.")]
+        [ColumnInfoAttribute("Satış Tarihi**"), Required(ErrorMessage = "Satış tarihi alanı zorunludur.")]
         public DateTime? date { get; set; }
-        [ColumnInfoAttribute("Bayi Kodu"), Required(ErrorMessage = "Bayi kodu alanı zorunludur.")]
+        [ColumnInfoAttribute("Bayi Kodu**"), Required(ErrorMessage = "Bayi kodu alanı zorunludur.")]
         public string companyCode { get; set; }
-        [ColumnInfoAttribute("Bayi Adı"), Required(ErrorMessage = "Bayi Adı alanı zorunludur.")]
+        [ColumnInfoAttribute("Bayi Adı**"), Required(ErrorMessage = "Bayi Adı alanı zorunludur.")]
         public string companyName { get; set; }
     }
 }
