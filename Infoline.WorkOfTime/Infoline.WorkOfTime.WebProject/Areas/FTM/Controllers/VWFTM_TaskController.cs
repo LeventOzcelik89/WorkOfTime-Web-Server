@@ -956,6 +956,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View();
 		}
 
+		[PageInfo("Görev Raporu", SHRoles.SahaGorevMusteri)]
+		public ActionResult Dashboard()
+		{
+			var model = new TaskSchedulerModel();
+			var res = model.GetTaskTemplatePlanList();
+			return View(res);
+		}
+
 		[PageInfo("Personel Görevleri", SHRoles.Personel)]
 		public ContentResult DataSourceForStaffReport(Guid[] assignableUsers, DateTime? planStartDate, DateTime? dueDate, Guid? customer, Guid? customerStorage)
 		{
