@@ -22,6 +22,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? taskPlanId { get; set;}
         public Guid? taskTemplateId { get; set;}
         public short? planLater { get; set;}
+        public short? sendMailCustomer { get; set;}
+        public string sendedCustomer { get; set;}
         public string createdTime { get; set;}
         public string planStartDateTime { get; set;}
         public string dueDateTime { get; set;}
