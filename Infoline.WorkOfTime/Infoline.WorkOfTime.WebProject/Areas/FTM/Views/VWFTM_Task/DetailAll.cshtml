@@ -16,9 +16,166 @@
 <link href="css/plugins/blueimp/css/blueimp-gallery.min.css" rel="stylesheet">
 <script src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
 
+<script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+    #var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+    #var color ="text-primary"#
 
+    #if(priority==0)
+	{#
+    #color = "text-danger"#
+    #}
+	else if(priority==1)
+	{#
+    #color = "text-warning"#
+    #}
+	else if(priority==2){#
+    #color = "text-primary"#
+    #}#
+
+    #var slaStatus = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskSLAStatus>()));#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td style="width:3%;text-align: center;vertical-align: inherit;">
+                    <span>
+                        #if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30' && lastOperationStatus!='26'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}
+
+                        else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}
+
+                        else if(isComplete=='0' && lastOperationStatus=='26'){#
+                        <i style="font-size: 25px;" class="icon-pause #:color#"></i><br />
+                        #}
+
+                        else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}
+
+                        else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+
+
+                    </span>
+                </td>
+
+                <td class="desc" style="width:55%;">
+                    #if(taskPlanId_Title!=null){#
+                    <div style="font-size:13px;"><strong>Bakım Planı : </strong>#=taskPlanId_Title#</div>
+                    #}#
+                    #if(type_Title != null){#
+                    <div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+                    #}#
+
+                    #if(description!=null){#
+                    #if(description.length >= 25){#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+                    #}
+                    else
+                    {#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+                    #}#
+                    #}#
+
+                    #if(code!=null){#
+                    <div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+                    #}#
+
+                    #if(customer_Title!=null){#
+                    <div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+                    #}#
+
+                    #if(customerStorage_Title!=null){#
+                    <div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+                    #}#
+
+                    #if(fixture_Title!=null){#
+                    <div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
+                    #}#
+
+                    <div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(planStartDate,"dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(dueDate,"dd.MM.yyyy HH:mm") : '-')#</div>
+
+                    #if(lastOperationStatus_Title!=null){#
+                    <div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
+                    #}#
+
+
+
+                    #if(penaltyStartDate!=null){#
+                    <div style="font-size:13px"><strong>SLA Başlangıç Tarihi  :</strong><span style="color:red;font-weight:bold"> #=kendo.toString(penaltyStartDate,"dd.MM.yyyy HH:mm")#  #=(SLAText ? ' | '+SLAText : '')# </span></div>
+                    <div style="font-size:13px"><strong>SLA Ceza Tutarı  :</strong><span style="color:red;font-weight:bold"> #=amercementTotal#  ₺ </span> </div>
+                    #}#
+
+                    #if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                    <div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+                    #}#
+
+
+
+                    #if(taskSubjectType_Title != null){#
+                    <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+                    #}#
+                   </td>
+	               <td style="width:5%;vertical-align: inherit;">
+	               #if(transactionCount > 0){#
+
+	                <a href="/PA/VWPA_Transaction/IndexAllRequest?id=#:id#" target="_blank" class="btn btn-xs btn-success"> <i class="fa fa-money"></i> Görev Masrafları</a>
+
+	                #}#
+
+	                #if(planLater == @((int)EnumFTM_TaskPlanLater.Evet)){#
+                     <span>
+                        <i style="font-size: 28px;margin-right: 64px;" class="icon-clock text-success" data-toggle="tooltip" data-placement="top" title="Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekliyor." st=""></i><br>
+                    </span>
+	                #}#
+
+	                #if(MemnuniyetAnketiDoldurulmaSayisi > 0){#
+	                <span>
+                        <a data-task="Insert" data-href="/FTM/VWFTM_TaskOperation/Detail/#=memnuniyetAnketId#"><i style="font-size: 42px;margin-right: 64px;" class="ii-hesap-kodu-operasyonlari" data-toggle="tooltip" data-placement="top" title="Memnuniyet Anketi Dolduruldu." st=""></i></a><br>
+                    </span>
+	                #}#
+	            </td>
+                <td style="width:10%;vertical-align: inherit;">
+                    <h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="İşlem Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-qrcode   m-r-xs"></i>#=IslemSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Doldurulan Görev Form Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-file-text   m-r-xs"></i> #=DoldurulanGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Dosya(Resim) Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-image   m-r-xs"></i> #=DosyaSayisi# Adet
+                    </h5>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</script>
 
 <script type="text/javascript">
+
+
+	var first = false;
+
+	$(document).on('shown.bs.tab', 'a[href="#subTasks"]', function (e) {
+		if (first == false) {
+			first = true;
+			$("#VWFTM_SubTask").data("kendoGrid").refresh();
+		}
+	});
+
 
 		function FilterMenuTaskType(element) {
 		element.kendoDropDownList({
@@ -525,14 +682,14 @@
 								</div>
 								<div class="ibox-content" style="padding:25px;height:600px;">
 									@(Html.Akilli()
-        .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
+        .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_SubTask")
         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" }))
         .Filter(a=>a.pid == Model.id)
         .PageSize(25).Sort(a => a.Add(c => c.lastOperationDate).Descending()))
         .Scrollable(a => a.Height(650))
         .Columns(x =>
         {
-            x.Bound(y => y.id).Title("").Width(800).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+            x.Bound(y => y.id).Title("").Width(600).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
 
             x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
             {
@@ -573,8 +730,7 @@
         .Selectable(x => x.Mode(GridSelectionMode.Multiple))
         .ToolBar(x =>
         {
-
-            x.Custom().Text("<i data-original-title='Toplu Onay' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-method", "GET" }, { "data-check", "all" } }).Url(Url.Action("ApproveAll", "VWFTM_Task", new { area = "FTM" }));
+			x.Custom().Text("<i data-original-title='Görev Oluştur' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM", pid = Model.id, customerStorageId = Model.customerStorageId, customerId = Model.customerId }));
             x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
             x.Custom().Text("<i class='icon-money' data-original-title='Masraf Girişi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "ftmtask" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA" }));
             x.Custom().Text("<i class='fa fa-th-list' data-original-title='Memnuniyet Anketi Doldur'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "satisfactionSurvey" } }).Url(Url.Action("Insert", "VWFTM_TaskOperation", new { area = "FTM", status = (int)EnumFTM_TaskFormType.Anket }));
