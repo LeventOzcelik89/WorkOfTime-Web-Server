@@ -16,42 +16,49 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		[PageInfo("Hakediş Onay Listesi", SHRoles.SistemYonetici)]
 		public ActionResult Index()
 		{
-		    return View();
+			return View();
 		}
 
 		[PageInfo("Hakediş Onay Veri Kaynağı", SHRoles.SistemYonetici)]
-		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
+		public ContentResult DataSourceMix([DataSourceRequest]DataSourceRequest request)
 		{
-		    var condition = KendoToExpression.Convert(request);
+		    
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var condition = VMPRD_ProductProgressPaymentModel.UpdateDataSourceFilterMix(KendoToExpression.Convert(request), userStatus);
+			request.Page = 1;
+			var db = new WorkOfTimeDatabase();
+			var data = db.GetVWPRD_ProductProgressPayment(condition).RemoveGeographies().ToDataSourceResult(request);
+			data.Total = db.GetVWPRD_ProductProgressPaymentCount(condition.Filter);
+			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+		}
 
-		    var page = request.Page;
-		    request.Filters = new FilterDescriptor[0];
-		    request.Sorts = new SortDescriptor[0];
-		    request.Page = 1;
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_ProductProgressPayment(condition).RemoveGeographies().ToDataSourceResult(request);
-		    data.Total = db.GetVWPRD_ProductProgressPaymentCount(condition.Filter);
-		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+		[PageInfo("Hakediş Onay Veri Kaynağı", SHRoles.SistemYonetici)]
+		public ContentResult DataSourceOperator([DataSourceRequest] DataSourceRequest request)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var condition = VMPRD_ProductProgressPaymentModel.UpdateDataSourceFilterOperator(KendoToExpression.Convert(request), userStatus);
+			request.Page = 1;
+			var db = new WorkOfTimeDatabase();
+			var data = db.GetVWPRD_ProductProgressPayment(condition).RemoveGeographies().ToDataSourceResult(request);
+			data.Total = db.GetVWPRD_ProductProgressPaymentCount(condition.Filter);
+			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
 
 		[PageInfo("Hakediş Onay", SHRoles.SistemYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Approve(PRD_ProductProgressPayment item)
+		public JsonResult Approve(VMPRD_ProductProgressPaymentModel item)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertPRD_ProductProgressPayment(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = item.Save(userStatus.user.id, Request);
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				Object = item.id,
+				FeedBack = dbresult.result ? feedback.Success("Hakediş Tanımlama İşlemi Başarılı") : feedback.Warning(dbresult.message)
+			};
+			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 	}
 }

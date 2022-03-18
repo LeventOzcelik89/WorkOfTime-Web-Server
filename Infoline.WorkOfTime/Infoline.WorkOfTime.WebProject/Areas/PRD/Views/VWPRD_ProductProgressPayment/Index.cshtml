@@ -1,47 +1,119 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Hakediş Onayları";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
+
+<script type="text/javascript">
+    function activatedFunction(data) {
+        if (data == false) {
+            return '<span class="text-center"><i class="fa fa-times text-danger fa-2x" ><i/></span>';
+        }
+        else {
+            return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
+        }
+    }
+    function inventoryFunction(data) {
+        if (data == false) {
+            return '<span class="text-center"><i class="fa fa-times text-danger fa-2x" ><i/></span>';
+        }
+        else {
+            return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
+        }
+    }
+    function ftpFunction(data) {
+        if (data == false) {
+            return '<span class="text-center"><i class="fa fa-times text-danger fa-2x" ><i/></span>';
+        }
+        else {
+            return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
+        }
+    }
+    $(document)
+        .on("selected:grid", "#VWPRD_ProductProgressPaymentMix", function (e, res) {
+            $('[data-button="mixApprove"]').hide();
+            if (res.isActivated == true && res.isInventory == true) {
+                $('[data-button="mixApprove"]').show();
+            }
+            else {
+                $('[data-button="mixApprove"]').hide();
+            }
+        })
+        .on("selected:grid", "#VWPRD_ProductProgressPaymentOperator", function (e, res) {
+            $('[data-button="operatorApprove"]').hide();
+            if (res.isActivated == true && res.isInventory == true) {
+                $('[data-button="operatorApprove"]').show();
+            }
+            else {
+                $('[data-button="operatorApprove"]').hide();
+            }
+        })
+</script>
 
 
 <div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
-    </div>
-</div>
-
-
-@(Html.Akilli()
-    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductProgressPayment>("VWPRD_ProductProgressPayment")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductProgressPayment", new { area = "PRD" })).PageSize(25))
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Mix Bayi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductProgressPayment>("VWPRD_ProductProgressPaymentMix")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceMix", "VWPRD_ProductProgressPayment", new { area = "PRD" })).Filter(a => a.isProgressPayment == (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approving && a.CMPTypes_Title.Contains("Bayi") && a.CMPTypes_Title.Contains("Mix")).PageSize(25))
     .Columns(x =>
     {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.existFTP).Title("existFTP").Width(180);
-        x.Bound(y => y.isActivated).Title("isActivated").Width(180);
-        x.Bound(y => y.isInventory).Title("isInventory").Width(180);
-        x.Bound(y => y.isProgressPayment).Title("isProgressPayment").Width(180);
-        x.Bound(y => y.imei).Title("imei").Width(180);
-        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
-        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
-        x.Bound(y => y.productId_Title).Title("productId_Title").Width(180);
-        x.Bound(y => y.companyId_Title).Title("companyId_Title").Width(180);
-        x.Bound(y => y.companyIdTypes_Title).Title("companyIdTypes_Title").Width(180);
+        x.Bound(y => y.companyId_Title).Title("Bayi Adı").Width(180);
+        x.Bound(y => y.productId_Title).Title("Ürün Adı").Width(180);
+        x.Bound(y => y.imei).Title("Imei").Width(180);
+        x.Bound(y => y.isActivated).Title("Aktive Edilmiş Mi?").Width(180).ClientTemplate("#=activatedFunction(data.isActivated)#");
+        x.Bound(y => y.isInventory).Title("Envanterde Var Mı?").Width(180).ClientTemplate("#=inventoryFunction(data.isActivated)#");
     })
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
     .ToolBar(x =>
     {
-        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
-        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
-        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Hakediş Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-button", "mixApprove" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Approve", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
     }))
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Operator Bayi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductProgressPayment>("VWPRD_ProductProgressPaymentOperator")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceOperator", "VWPRD_ProductProgressPayment", new { area = "PRD" })).Filter(a=>a.isProgressPayment == (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approving &&a.CMPTypes_Title.Contains("Bayi") && !(a.CMPTypes_Title.Contains("Mix"))).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.companyId_Title).Title("Bayi Adı").Width(180);
+        x.Bound(y => y.productId_Title).Title("Ürün Adı").Width(180);
+        x.Bound(y => y.imei).Title("Imei").Width(180);
+        x.Bound(y => y.existFTP).Title("Ftp'de Var Mı?").Width(180).ClientTemplate("#=ftpFunction(data.existFTP)#");
+        x.Bound(y => y.isActivated).Title("Aktive Edilmiş Mi?").Width(180).ClientTemplate("#=activatedFunction(data.isActivated)#");
+        x.Bound(y => y.isInventory).Title("Envanterde Var Mı?").Width(180).ClientTemplate("#=inventoryFunction(data.isActivated)#");
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Hakediş Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-button", "operatorApprove" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Approve", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
+    }))
+            </div>
+        </div>
+    </div>
+</div>
