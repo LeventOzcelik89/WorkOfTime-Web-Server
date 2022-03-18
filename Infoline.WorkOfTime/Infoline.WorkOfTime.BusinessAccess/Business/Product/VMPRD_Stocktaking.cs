@@ -20,6 +20,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
+                this.items = db.GetVWPRD_StocktakingItemByStocktakingId(this.id);
             }
             return this;
         }
@@ -151,6 +152,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Müşteri silme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
+        }
+
+        public SummaryHeadersStocktaking GetPageInfo(Guid userId)
+        {
+            this.Load();
+            return db.GetVWPRD_StocktakingPageInfo(userId);
         }
 
 

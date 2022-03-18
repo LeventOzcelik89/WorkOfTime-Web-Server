@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Infoline.Framework.Database;
-using System.Data.SqlClient;
-using System.Linq.Expressions;
 using System.Data.Common;
 using Infoline.WorkOfTime.BusinessData;
 
@@ -38,12 +33,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public VWPRD_Product[] GetVWPRD_ProductByCode(string code)
+        public VWPRD_Product GetVWPRD_ProductByCode(string code)
         {
 
             using (var db = GetDB())
             {
-                return db.Table<VWPRD_Product>().Where(a => a.code == code).Execute().ToArray();
+                return db.Table<VWPRD_Product>().Where(a => a.code == code).Execute().FirstOrDefault();
             }
         }
 

@@ -19,31 +19,6 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
 
         }
 
-        [HandleFunction("VWPRD_Stocktaking/GetAll")]
-        public void VWPRD_StocktakingGetAll(HttpContext context)
-        {
-            try
-            {
-                var c = ParseRequest<Condition>(context);
-                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
-                var db = new WorkOfTimeDatabase();
-                var data = db.GetVWPRD_Stocktaking(cond);
-                var list = new List<VMPRD_StocktakingModel>();
-                foreach (var stocktaking in data)
-                {
-                    var items = db.GetVWPRD_StocktakingItemByStocktakingId(stocktaking.id);
-                    var item = new VMPRD_StocktakingModel { id = stocktaking.id }.Load();
-                    item.items = items;
-                    list.Add(item);
-                }
-                RenderResponse(context, list);
-            }
-            catch (Exception ex)
-            {
-                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            }
-        }
-
         [HandleFunction("VWPRD_Stocktaking/Insert")]
         public void VWPRD_StocktakingInsert(HttpContext context)
         {
@@ -66,6 +41,29 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             }
         }
 
+        [HandleFunction("VWPRD_Stocktaking/GetById")]
+        public void VWPRD_StocktakingGetById(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var id = context.Request["id"];
+                var item = new VMPRD_StocktakingModel { id = Guid.Parse(id) }.Load();
+
+                if (item == null)
+                {
+                    RenderResponse(context, new ResultStatus { result = false, message = "Sayım kaydı bulunamadı." });
+                    return;
+                }
+
+                RenderResponse(context, item);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
         [HandleFunction("VWPRD_Stocktaking/BarcodeRead")]
         public void VWPRD_StocktakingBarcodeRead(HttpContext context)
         {
@@ -74,16 +72,16 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 var db = new WorkOfTimeDatabase();
                 var barcode = context.Request["barcode"];
                 var productData = db.GetVWPRD_ProductByCode(barcode);
-                if (productData != null && productData.Length > 0)
+                if (productData != null)
                 {
-                    RenderResponse(context, productData);
+                    RenderResponse(context, new { stocktakingItemType = 0, data = productData });
                 }
                 else
                 {
                     var inventoryData = db.GetVWPRD_InventoryBySerialOrCode(barcode);
                     if (inventoryData != null)
                     {
-                        RenderResponse(context, inventoryData);
+                        RenderResponse(context, new { stocktakingItemType = 1, data = inventoryData });
                     }
                     else
                     {
@@ -91,6 +89,20 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     }
                 }
 
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
+        [HandleFunction("VWPRD_Stocktaking/GetPageInfo")]
+        public void VWPRD_StocktakingGetPageInfo(HttpContext context)
+        {
+            try
+            {
+                var data = new VMPRD_StocktakingModel().GetPageInfo(CallContext.Current.UserId);
+                RenderResponse(context, data);
             }
             catch (Exception ex)
             {
