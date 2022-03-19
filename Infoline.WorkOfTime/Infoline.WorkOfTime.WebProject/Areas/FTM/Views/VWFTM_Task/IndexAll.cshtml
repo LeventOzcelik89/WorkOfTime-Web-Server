@@ -11,6 +11,18 @@
 	.active {
 		font-weight: bold;
 	}
+
+	.blink {
+      animation: blinker 1.9s linear infinite;
+      color: red;
+      font-size: 30px;
+      font-weight: bold;
+      font-family: sans-serif;
+      }
+      @@keyframes blinker {
+      50% { opacity: 0; }
+      }
+
 </style>
 <script type="text/javascript">
 	function FilterMenuTaskType(element) {
@@ -402,6 +414,10 @@
                     #}#
                     #}#
 
+	                #if(mainTaskCode!=null){#
+                    <div style="font-size:13px;"><strong>Ana Görev Kodu : </strong>#=mainTaskCode#</div>
+                    #}#
+
                     #if(code!=null){#
                     <div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
                     #}#
@@ -424,6 +440,9 @@
                     <div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
                     #}#
 
+	                #if(planLater == @((int)EnumFTM_TaskPlanLater.Evet)){#
+                    <div class="blink" style="font-size:13px;color:red;"><strong>Göreve Planlanmış Başlangıç ve Bitiş Atanması Bekleniyor</strong></div>
+	                #}#
 
 
                     #if(penaltyStartDate!=null){#
@@ -441,25 +460,32 @@
                     <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
                     #}#
                    </td>
+	           <td style="width:5%;vertical-align: inherit;">
+	            #if(mainTaskCode != null){#
+	                            <span>
+                                    <a target="_blank" href="/FTM/VWFTM_Task/Detail/#=mainTaskId#"><i style="font-size: 30px;margin-right: 10px;" class="ii-anasayfa" data-toggle="tooltip" data-placement="top" title="Ana Görev" st=""></i></a><br>
+                                </span>
+	            #}#
+	            </td>
+		        <td style="width:5%;vertical-align: inherit;">
+	            #if(MemnuniyetAnketiDoldurulmaSayisi > 0){#
+	                            <span>
+                                    <a data-task="Insert" data-href="/FTM/VWFTM_TaskOperation/Detail/#=memnuniyetAnketId#"><i style="font-size: 30px;margin-right: 10px;" class="ii-hesap-kodu-operasyonlari" data-toggle="tooltip" data-placement="top" title="Memnuniyet Anketi Dolduruldu." st=""></i></a><br>
+                                </span>
+	                            #}#
+	            </td>
 	               <td style="width:5%;vertical-align: inherit;">
 	               #if(transactionCount > 0){#
 
-	                <a href="/PA/VWPA_Transaction/IndexAllRequest?id=#:id#" target="_blank" class="btn btn-xs btn-success"> <i class="fa fa-money"></i> Görev Masrafları</a>
+	                  <span>
+                          <a target="_blank" href="/PA/VWPA_Transaction/IndexAllRequest?id=#:id#"><i style="font-size: 30px;margin-right: 10px;" class="ii-sermayeuretim" data-toggle="tooltip" data-placement="top" title="Görev Masrafları" st=""></i></a><br>
+                      </span>
 
-	                #}#
-
-	                #if(planLater == @((int)EnumFTM_TaskPlanLater.Evet)){#
-                     <span>
-                        <i style="font-size: 28px;margin-right: 64px;" class="icon-clock text-success" data-toggle="tooltip" data-placement="top" title="Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekliyor." st=""></i><br>
-                    </span>
-	                #}#
-
-	                #if(MemnuniyetAnketiDoldurulmaSayisi > 0){#
-	                <span>
-                        <a data-task="Insert" data-href="/FTM/VWFTM_TaskOperation/Detail/#=memnuniyetAnketId#"><i style="font-size: 42px;margin-right: 64px;" class="ii-hesap-kodu-operasyonlari" data-toggle="tooltip" data-placement="top" title="Memnuniyet Anketi Dolduruldu." st=""></i></a><br>
-                    </span>
 	                #}#
 	            </td>
+
+
+
                 <td style="width:10%;vertical-align: inherit;">
                     <h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
                         <i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
@@ -541,6 +567,7 @@
 			}
 
 			))).Width(180).Format(Extensions.DateFormatFull(true));
+			x.Bound(y => y.mainTaskCode).Title("Ana Görev Kodu").Width(180);
 			x.Bound(y => y.code).Title("Görev Kodu").Width(180);
 			x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
 			x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
@@ -589,6 +616,8 @@
 		.Columns(x =>
 		{
 			x.Bound(y => y.id).Title("").Width(800).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+			x.Bound(y => y.mainTaskCode).Title("Ana Görev Kodu").Width(180);
+			x.Bound(y => y.code).Title("Görev Kodu").Width(180);
 			x.Bound(y => y.taskPlanId_Title).Title("Bakım Planı").Width(180);
 			x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
 			{
@@ -599,7 +628,6 @@
 			}
 
 			))).Width(180).Format(Extensions.DateFormatFull(true));
-			x.Bound(y => y.code).Title("Görev Kodu").Width(180);
 			x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
 			x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
 			x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
@@ -699,7 +727,11 @@
 							<i class="fa fa-user"></i>  Benim Oluşturduklarım
 						</a>
 					</li>
-
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="5" data-query="(mainTaskCode~neq~'@System.UIHelper.String.Null')">
+							<i class="fa fa-recycle"></i> İlişkili Görevler
+						</a>
+					</li>
 				</ul>
 
 

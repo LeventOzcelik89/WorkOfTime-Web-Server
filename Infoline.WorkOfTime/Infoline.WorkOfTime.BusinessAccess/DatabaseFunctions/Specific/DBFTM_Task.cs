@@ -90,7 +90,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     partial class WorkOfTimeDatabase
     {
-
+        public FTM_Task GetFTM_TaskByPid(Guid pid, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<FTM_Task>().Where(a => a.id == pid).Execute().FirstOrDefault();
+            }
+        }
 
         public FTM_Task[] GetFTM_TaskByFixtureIds(Guid[] productIds, DbTransaction tran = null)
         {
