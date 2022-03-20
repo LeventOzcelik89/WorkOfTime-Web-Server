@@ -20,241 +20,253 @@
 
 <div class="ibox-content clearfix">
 
-    <div class="col-lg-6" style="border-right: 1px solid #cfcfcf;">
-        <dl class="dl-horizontal">
-            <dt>Görev Kodu:</dt>
-            <dd>@Model.code</dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>Görev Tipi:</dt>
-            <dd><i class='@type.Generic["icon"]' style="font-size:14px;" data-toggle='tooltip' data-placement='bottom'></i>  @Model.type_Title </dd>
-        </dl>
+	<div class="col-lg-6" style="border-right: 1px solid #cfcfcf;">
+		@if (Model.mainTask != null)
+		{
+			<dl class="dl-horizontal">
+				<dt>Ana Görev:</dt>
+				<dd>
+					<span>@(Model.mainTask.code)</span>
+					<a href="/FTM/VWFTM_Task/Detail?id=@Model.mainTask.id" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+				</dd>
+			</dl>
+		}
+		<dl class="dl-horizontal">
+			<dt>Görev Kodu:</dt>
+			<dd>@Model.code</dd>
+		</dl>
+		<dl class="dl-horizontal">
+			<dt>Görev Tipi:</dt>
+			<dd><i class='@type.Generic["icon"]' style="font-size:14px;" data-toggle='tooltip' data-placement='bottom'></i>  @Model.type_Title </dd>
+		</dl>
 
-        <dl class="dl-horizontal">
-            <dt>Görevi Oluşturan:</dt>
-            <dd>@Model.createdby_Title</dd>
-        </dl>
+		<dl class="dl-horizontal">
+			<dt>Görevi Oluşturan:</dt>
+			<dd>@Model.createdby_Title</dd>
+		</dl>
 
-        <dl class="dl-horizontal">
-            <dt>Görev Açıklaması:</dt>
-            <dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description)</span></dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>Son Operasyon:</dt>
-            <dd><span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@(Model.lastOperationStatus_Title)</u></strong></span></dd>
-        </dl>
+		<dl class="dl-horizontal">
+			<dt>Görev Açıklaması:</dt>
+			<dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description)</span></dd>
+		</dl>
+		<dl class="dl-horizontal">
+			<dt>Son Operasyon:</dt>
+			<dd><span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@(Model.lastOperationStatus_Title)</u></strong></span></dd>
+		</dl>
 
-        <dl class="dl-horizontal">
-            <dt>Son Operasyon Tarihi :</dt>
-            <dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate) </dd>
-        </dl>
+		<dl class="dl-horizontal">
+			<dt>Son Operasyon Tarihi :</dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate) </dd>
+		</dl>
 
-        <dl class="dl-horizontal">
-            <dt>Görev Öncelik Durumu: </dt>
-            <dd> @Model.priority_Title </dd>
-        </dl>
-
-
-        <dl class="dl-horizontal">
-            <dt>Görevli İşletmem:</dt>
-            <dd>
-                <span>@Model.company_Title </span>
-                @if (Model.companyId.HasValue)
-                {
-                    <a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
-                }
-
-            </dd>
-        </dl>
-
-        <dl class="dl-horizontal">
-            <dt>Araç:</dt>
-            <dd>
-                <span>@(Model.plate)</span>
-                @if (Model.companyCarId.HasValue)
-                {
-                    <a href="/CMP/VWCMP_CompanyCars/Detail?id=@Model.companyCarId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
-                }
-            </dd>
-        </dl>
-
-        @if (Model.taskSubjectType_Title != null)
-        {
-            <dl class="dl-horizontal">
-                <dt>Görev Konuları:</dt>
-                <dd>
-                    <span>@(Html.Raw(String.Join(" ",Model.taskSubjectType_Title.Split(',').Select(x =>"<span style='background-color: #ffffff; color: #9a9797; border: 1px solid;' class='badge badge-warning'>" + x + "</span>").ToArray()))) </span>
-                </dd>
-            </dl>
-        }
-
-        @if (!String.IsNullOrEmpty(Model.subjectId_LevelTitle))
-        {
-            <dl class="dl-horizontal clearfix">
-                <dt>Görev Seviye:</dt>
-                <dd><span>@Model.subjectId_LevelTitle</span></dd>
-            </dl>
-        }
-
-        @if (!String.IsNullOrEmpty(Model.scopeId_levelTitle))
-        {
-            <dl class="dl-horizontal clearfix">
-                <dt>Bölge Seviye:</dt>
-                <dd><span>@Model.scopeId_levelTitle</span></dd>
-            </dl>
-        }
-        @if (Model.planLater==1)
-        {
-            <dl class="dl-horizontal clearfix">
-              
-                <dd><span style="color:red"><b>Görev Planlanmış Başlangıç ve Bitişi Atanması Bekleniyor..</b></span></dd>
-            </dl>
-        }
+		<dl class="dl-horizontal">
+			<dt>Görev Öncelik Durumu: </dt>
+			<dd> @Model.priority_Title </dd>
+		</dl>
 
 
-    </div>
+		<dl class="dl-horizontal">
+			<dt>Görevli İşletmem:</dt>
+			<dd>
+				<span>@Model.company_Title </span>
+				@if (Model.companyId.HasValue)
+				{
+					<a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
+				}
 
-    <div class="col-lg-6">
-        @if (!string.IsNullOrEmpty(Model.SLAText))
-        {
-            <dl class="dl-horizontal">
-                <dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Başlangıç Tarihi:</dt>
-                <dd>
-                    @String.Format("{0:dd.MM.yyyy HH:mm}", Model.penaltyStartDate)
-                </dd>
-            </dl>
+			</dd>
+		</dl>
 
-            <dl class="dl-horizontal">
-                <dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Toplam Ceza:</dt>
-                <dd>
-                    @String.Format("{0:C2}", Model.amercementTotal)
-                </dd>
-            </dl>
-        }
-    <dl class="dl-horizontal">
-
-        @if (Model.taskPlanId_Title != null)
-        {
-            <dt>Bakım Planı :</dt>
-            <dd>@Model.taskPlanId_Title  <a data-href="/FTM/VWFTM_TaskPlan/TemplatePlanDetail?id=@Model.taskPlanId" data-modal="true" data-task="Insert" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
-
-        }
-
-    </dl>
-
-        <dl class="dl-horizontal">
-            <dt>Planlanan Başlangıç :</dt>
-            <dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.planStartDate) </dd>
-        </dl>
-
-        <dl class="dl-horizontal">
-            <dt>Planlanan Bitiş :</dt>
-            <dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.dueDate) </dd>
-        </dl>
+		<dl class="dl-horizontal">
+			<dt>Araç:</dt>
+			<dd>
+				<span>@(Model.plate)</span>
+				@if (Model.companyCarId.HasValue)
+				{
+					<a href="/CMP/VWCMP_CompanyCars/Detail?id=@Model.companyCarId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+				}
+			</dd>
+		</dl>
 
 
 
-        <dl class="dl-horizontal">
-            <dt>Geçen Süre:</dt>
-            <dd>@(Model.workingHour)</dd>
-        </dl>
+		@if (Model.taskSubjectType_Title != null)
+		{
+			<dl class="dl-horizontal">
+				<dt>Görev Konuları:</dt>
+				<dd>
+					<span>@(Html.Raw(String.Join(" ",Model.taskSubjectType_Title.Split(',').Select(x =>"<span style='background-color: #ffffff; color: #9a9797; border: 1px solid;' class='badge badge-warning'>" + x + "</span>").ToArray()))) </span>
+				</dd>
+			</dl>
+		}
 
-        @if (Model.taskStartDate != null)
-        {
-            <dl class="dl-horizontal">
-                <dt>Görev Başlangıç Tarihi :</dt>
-                <dd> <strong><u>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskStartDate) </u></strong></dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Görev Bitiş Tarihi :</dt>
-                @if (Model.taskEndDate != null)
-                {
-                    <dd> <strong><u>  @String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskEndDate) </u></strong></dd>
-                }
-                else
-                {
-                    <dd> <strong><u> @(Model.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.GorevDurduruldu ? "Görev Durduruldu" : "Görev Devam Etmekte")  </u></strong></dd>
-                }
-            </dl>
-        }
+		@if (!String.IsNullOrEmpty(Model.subjectId_LevelTitle))
+		{
+			<dl class="dl-horizontal clearfix">
+				<dt>Görev Seviye:</dt>
+				<dd><span>@Model.subjectId_LevelTitle</span></dd>
+			</dl>
+		}
 
-        <dl class="dl-horizontal">
-            <dt>Müşteri İşletme:</dt>
-            <dd><span>@(Model.customer_Title)</span> <a href="/CMP/VWCMP_Company/Detail?id=@Model.customerId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+		@if (!String.IsNullOrEmpty(Model.scopeId_levelTitle))
+		{
+			<dl class="dl-horizontal clearfix">
+				<dt>Bölge Seviye:</dt>
+				<dd><span>@Model.scopeId_levelTitle</span></dd>
+			</dl>
+		}
+		@if (Model.planLater == 1)
+		{
+			<dl class="dl-horizontal clearfix">
 
-        </dl>
-
-        @if (Model.customerStorageId.HasValue)
-        {
-            <dl class="dl-horizontal">
-                <dt>Şube/Depo/Kısım:</dt>
-                <dd><span>@(Model.customerStorage_Title)</span> <a href="/CMP/VWCMP_Storage/Detail?id=@Model.customerStorageId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
-            </dl>
-        }
+				<dd><span style="color:red"><b>Görev Planlanmış Başlangıç ve Bitişi Atanması Bekleniyor..</b></span></dd>
+			</dl>
+		}
 
 
-        @if (Model.fixtureId.HasValue)
-        {
-            <dl class="dl-horizontal">
-                <dt>Görevlendirilen Envanter:</dt>
-                <dd><span>@(Model.fixture_Title)</span> <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.fixtureId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
-            </dl>
-        }
+	</div>
 
-        @{var assignInfo = Model.taskUsers.Where(a => a.status == true).FirstOrDefault(); }
+	<div class="col-lg-6">
+		@if (!string.IsNullOrEmpty(Model.SLAText))
+		{
+			<dl class="dl-horizontal">
+				<dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Başlangıç Tarihi:</dt>
+				<dd>
+					@String.Format("{0:dd.MM.yyyy HH:mm}", Model.penaltyStartDate)
+				</dd>
+			</dl>
 
-        @if (assignInfo != null)
-        {
-            <dl class="dl-horizontal">
-                <dt>Görevi Üstlenen:</dt>
-                <dd class="project-people">
-                    <img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@assignInfo.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(assignInfo.photo != null ? assignInfo.photo : "/Content/Custom/img/na.png")">
-                </dd>
-            </dl>
-        }
-        else
-        {
-            <dl class="dl-horizontal">
-                <dt>Üstlenebilecekler:</dt>
-                <dd class="project-people">
-                    @if (Model.taskUsers.Count() > 0)
-                    {
-                        foreach (var user in Model.taskUsers)
-                        {
-                            <a href="#">
-                                <img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
-                            </a>
-                        }
-                    }
-                    else
-                    {
-                        <span>Henüz personel ataması yapılmamış</span>
-                    }
+			<dl class="dl-horizontal">
+				<dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Toplam Ceza:</dt>
+				<dd>
+					@String.Format("{0:C2}", Model.amercementTotal)
+				</dd>
+			</dl>
+		}
+		<dl class="dl-horizontal">
 
-                </dd>
-            </dl>
-        }
+			@if (Model.taskPlanId_Title != null)
+			{
+				<dt>Bakım Planı :</dt>
+				<dd>@Model.taskPlanId_Title  <a data-href="/FTM/VWFTM_TaskPlan/TemplatePlanDetail?id=@Model.taskPlanId" data-modal="true" data-task="Insert" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
 
-        <dl class="dl-horizontal">
-            <dt>Yardımcılar:</dt>
-            <dd class="project-people">
-                @if (Model.taskUsersHelper.Count() > 0)
-                {
-                    foreach (var user in Model.taskUsersHelper)
-                    {
-                        <a href="#">
-                            <img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
-                        </a>
-                    }
-                }
-                else
-                {
-                    <span>Yardımcı personel yok</span>
-                }
+			}
 
-            </dd>
-        </dl>
+		</dl>
 
-    </div>
+		<dl class="dl-horizontal">
+			<dt>Planlanan Başlangıç :</dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.planStartDate) </dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Planlanan Bitiş :</dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.dueDate) </dd>
+		</dl>
+
+
+
+		<dl class="dl-horizontal">
+			<dt>Geçen Süre:</dt>
+			<dd>@(Model.workingHour)</dd>
+		</dl>
+
+		@if (Model.taskStartDate != null)
+		{
+			<dl class="dl-horizontal">
+				<dt>Görev Başlangıç Tarihi :</dt>
+				<dd> <strong><u>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskStartDate) </u></strong></dd>
+			</dl>
+			<dl class="dl-horizontal">
+				<dt>Görev Bitiş Tarihi :</dt>
+				@if (Model.taskEndDate != null)
+				{
+					<dd> <strong><u>  @String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskEndDate) </u></strong></dd>
+				}
+				else
+				{
+					<dd> <strong><u> @(Model.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.GorevDurduruldu ? "Görev Durduruldu" : "Görev Devam Etmekte")  </u></strong></dd>
+				}
+			</dl>
+		}
+
+		<dl class="dl-horizontal">
+			<dt>Müşteri İşletme:</dt>
+			<dd><span>@(Model.customer_Title)</span> <a href="/CMP/VWCMP_Company/Detail?id=@Model.customerId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+
+		</dl>
+
+		@if (Model.customerStorageId.HasValue)
+		{
+			<dl class="dl-horizontal">
+				<dt>Şube/Depo/Kısım:</dt>
+				<dd><span>@(Model.customerStorage_Title)</span> <a href="/CMP/VWCMP_Storage/Detail?id=@Model.customerStorageId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+			</dl>
+		}
+
+
+		@if (Model.fixtureId.HasValue)
+		{
+			<dl class="dl-horizontal">
+				<dt>Görevlendirilen Envanter:</dt>
+				<dd><span>@(Model.fixture_Title)</span> <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.fixtureId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+			</dl>
+		}
+
+		@{var assignInfo = Model.taskUsers.Where(a => a.status == true).FirstOrDefault(); }
+
+		@if (assignInfo != null)
+		{
+			<dl class="dl-horizontal">
+				<dt>Görevi Üstlenen:</dt>
+				<dd class="project-people">
+					<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@assignInfo.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(assignInfo.photo != null ? assignInfo.photo : "/Content/Custom/img/na.png")">
+				</dd>
+			</dl>
+		}
+		else
+		{
+			<dl class="dl-horizontal">
+				<dt>Üstlenebilecekler:</dt>
+				<dd class="project-people">
+					@if (Model.taskUsers.Count() > 0)
+					{
+						foreach (var user in Model.taskUsers)
+						{
+							<a href="#">
+								<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+							</a>
+						}
+					}
+					else
+					{
+						<span>Henüz personel ataması yapılmamış</span>
+					}
+
+				</dd>
+			</dl>
+		}
+
+		<dl class="dl-horizontal">
+			<dt>Yardımcılar:</dt>
+			<dd class="project-people">
+				@if (Model.taskUsersHelper.Count() > 0)
+				{
+					foreach (var user in Model.taskUsersHelper)
+					{
+						<a href="#">
+							<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+						</a>
+					}
+				}
+				else
+				{
+					<span>Yardımcı personel yok</span>
+				}
+
+			</dd>
+		</dl>
+
+	</div>
 
 </div>

@@ -375,24 +375,29 @@
                     <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
                     #}#
                 </td>
-<td style="width:5%;vertical-align: inherit;">
-	 #if(transactionCount > 0){#
+                <td style="width:5%;vertical-align: inherit;">
+	            #if(mainTaskCode != null){#
+	                            <span>
+                                    <a target="_blank" href="/FTM/VWFTM_Task/Detail/#=mainTaskId#"><i style="font-size: 30px;margin-right: 10px;" class="ii-anasayfa" data-toggle="tooltip" data-placement="top" title="Ana Görev" st=""></i></a><br>
+                                </span>
+	            #}#
+	            </td>
+		        <td style="width:5%;vertical-align: inherit;">
+	            #if(MemnuniyetAnketiDoldurulmaSayisi > 0){#
+	                            <span>
+                                    <a data-task="Insert" data-href="/FTM/VWFTM_TaskOperation/Detail/#=memnuniyetAnketId#"><i style="font-size: 30px;margin-right: 10px;" class="ii-hesap-kodu-operasyonlari" data-toggle="tooltip" data-placement="top" title="Memnuniyet Anketi Dolduruldu." st=""></i></a><br>
+                                </span>
+	                            #}#
+	            </td>
+	               <td style="width:5%;vertical-align: inherit;">
+	               #if(transactionCount > 0){#
 
-	                <a href="/PA/VWPA_Transaction/IndexAllRequest?id=#:id#" target="_blank" class="btn btn-xs btn-success"> <i class="fa fa-money"></i> Görev Masrafları</a>
+	                  <span>
+                          <a target="_blank" href="/PA/VWPA_Transaction/IndexAllRequest?id=#:id#"><i style="font-size: 30px;margin-right: 10px;" class="ii-sermayeuretim" data-toggle="tooltip" data-placement="top" title="Görev Masrafları" st=""></i></a><br>
+                      </span>
 
 	                #}#
-
-	#if(planLater == @((int)EnumFTM_TaskPlanLater.Evet)){#
-
-<span>
-
-                        <i style="font-size: 28px;margin-right: 64px;" class="icon-clock text-success" data-toggle="tooltip" data-placement="top" title="Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekliyor." st=""></i><br>
-
-
-
-                    </span>
-	                #}#
-	</td>
+	            </td>
 	             <td style="width:10%;vertical-align: inherit;">
 	             	<h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
 	             		<i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
@@ -435,7 +440,9 @@
 					.Scrollable(a => a.Height(650))
 					.Columns(x =>
 					{
-						x.Bound(y => y.id).Title("").Width(700).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+						x.Bound(y => y.id).Title("").Width(800).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+						x.Bound(y => y.mainTaskCode).Title("Ana Görev Kodu").Width(180);
+						x.Bound(y => y.code).Title("Görev Kodu").Width(180);
 						x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
 						x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
 						x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
@@ -443,7 +450,6 @@
 						x.Bound(y => y.taskPlanId_Title).Title("Bakım Planı").Width(180);
 						x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(160).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
 						x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable => filterable.UI("FilterMenuTaskPriority")).Width(140).ClientTemplate("#=taskPriorityResult(data)#");
-						x.Bound(y => y.code).Title("Görev Kodu").Width(180);
 						x.Bound(y => y.plate).Title("Araç").Width(180);
 						x.Bound(y => y.lastOperationDate).Title("Son Operasyon Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
 						x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
@@ -519,38 +525,44 @@
             <div class="file-manager">
                 <div class="space-25"></div>
                 <h5> GÖREV DURUMU </h5>
-                <ul class="folder-list" style="padding: 0">
-                    <li class="clearfix">
-                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~contains~'@userStatus.user.id')~and~isComplete~eq~false)">
-                            <i class="icon-users"></i>  Üstlenilebileceğim Görevler
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~contains~'@userStatus.user.id')~and~isComplete~eq~false)">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30)">
-                            <i class="icon-clock "></i>  Üstlendiğim Görevler
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30)">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~26)">
-                            <i class="fa fa-pause "></i>  Durdurulan Görevler
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~26)">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~30)">
-                            <i class="icon-arrows-cw"></i>  Çözüm Bildirdiğim Görevler
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~30)">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~true)">
-                            <i class="fa fa-check"></i>  Tamamladığım Görevler
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~true)">0</span>
-                    </li>
-                </ul>
+				<ul class="folder-list" style="padding: 0">
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~contains~'@userStatus.user.id')~and~isComplete~eq~false)">
+							<i class="icon-users"></i>  Üstlenilebileceğim Görevler
+						</a>
+						<span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~contains~'@userStatus.user.id')~and~isComplete~eq~false)">0</span>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30)">
+							<i class="icon-clock "></i>  Üstlendiğim Görevler
+						</a>
+						<span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30)">0</span>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~26)">
+							<i class="fa fa-pause "></i>  Durdurulan Görevler
+						</a>
+						<span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~26)">0</span>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~30)">
+							<i class="icon-arrows-cw"></i>  Çözüm Bildirdiğim Görevler
+						</a>
+						<span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~30)">0</span>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~true)">
+							<i class="fa fa-check"></i>  Tamamladığım Görevler
+						</a>
+						<span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~true)">0</span>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="5" data-query="(assignUserId~eq~'@userStatus.user.id'~and~mainTaskCode~neq~'@System.UIHelper.String.Null')">
+							<i class="fa fa-recycle"></i> İlişkili Görevler
+						</a>
+						<span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(assignUserId~eq~'@userStatus.user.id'~and~mainTaskCode~neq~'@System.UIHelper.String.Null')">0</span>
+					</li>
+				</ul>
                 <div class="space-25"></div>
                 <h5> GÖREV ÖNCELİĞİ </h5>
                 <ul class="folder-list" style="padding: 0">
