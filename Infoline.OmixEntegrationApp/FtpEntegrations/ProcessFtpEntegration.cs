@@ -32,10 +32,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
                                 var db = new WorkOfTimeDatabase();
                                 if (now.Hour == 1 && now.Minute == 00)
                                 {
-                                    new FtpMobitel().ExportFilesToDatabase(); ;
-                                    new FtpGenpa().ExportFilesToDatabase(); ;
-                                    new FtpKvk().ExportFilesToDatabase(); ;
-                                    new FtpPort().ExportFilesToDatabase(); ;
+                                    new FtpMobitel().ExportFilesToDatabase();
+                                    new FtpGenpa().ExportFilesToDatabase();
+                                    new FtpKvk().ExportFilesToDatabase();
+                                    new FtpPort().ExportFilesToDatabase();
                                 }
                             }
                             catch (Exception ex)
