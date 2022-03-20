@@ -20,5 +20,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_ProductBonusPrice>().Where(a => a.productBonusId == bonusId).Execute().ToArray();
             }
         }
+
+        public VWPRD_ProductBonusPrice GetVWPRD_ProductBonusPriceByProductBonusIdAndProductId(Guid? bonusId,Guid? productId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_ProductBonusPrice>().Where(a => a.productBonusId == bonusId && a.productId == productId).Execute().FirstOrDefault();
+            }
+        }
     }
 }

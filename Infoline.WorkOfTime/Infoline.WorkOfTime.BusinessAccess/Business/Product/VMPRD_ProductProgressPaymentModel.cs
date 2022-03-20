@@ -1,5 +1,6 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.Framework.Helper;
+using Infoline.WorkOfTime.BusinessAccess.Models;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
+        public double? count { get; set; } = 0;
+        public double? price { get; set; } = 0;
 
         public VMPRD_ProductProgressPaymentModel Load()
         {
@@ -54,21 +57,44 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return validate;
             }
-            if (progressPayment == null)
+            if (progressPayment != null)
             {
                 this.createdby = userId;
                 this.created = DateTime.Now;
-                rs = Insert(trans);
+                rs = Approve(userId, trans);
             }
-
             return rs;
         }
-        private ResultStatus Insert(DbTransaction trans = null)
+        private ResultStatus Approve(Guid? userId, DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
-            var transaction = trans ?? db.BeginTransaction();
             var result = new ResultStatus { result = true };
-
+            var progressPayment = db.GetVWPRD_ProductProgressPaymentById(this.id);
+            var productBonus = db.GetVWPRD_ProductBonus();
+            foreach (var item in productBonus)
+            {
+                //var productPrice = db.GetVWPRD_ProductBonusPriceByProductBonusIdAndProductId(item.id, progressPayment.productId);
+                var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query);
+                if (data.Count() > 0)
+                {
+                    this.count = data.Count();
+                    //this.price = this.price + (productPrice.unitPrice * this.count);
+                }
+            }
+            if (this.price > 0)
+            {
+                var productPayment = new PRD_ProductPayment
+                {
+                    created = DateTime.Now,
+                    createdby = userId,
+                    totalPrice = this.price,
+                    date = progressPayment.date,
+                    id = Guid.NewGuid(),
+                    companyId = progressPayment.companyId,
+                    productProgressPaymentId = progressPayment.id,
+                };
+                result = db.InsertPRD_ProductPayment(productPayment);
+            }
             return result;
         }
         public static SimpleQuery UpdateDataSourceFilterMix(SimpleQuery query, PageSecurity userStatus)

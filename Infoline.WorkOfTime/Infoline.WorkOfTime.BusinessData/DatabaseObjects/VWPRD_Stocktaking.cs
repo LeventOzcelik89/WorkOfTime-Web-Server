@@ -5,6 +5,7 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWPRD_Stocktaking : InfolineTable
     {
+        public string searchField { get; set;}
         public string code { get; set;}
         public DateTime? date { get; set;}
         public Guid? storageId { get; set;}
@@ -15,6 +16,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string changedby_Title { get; set;}
         public string storageId_Title { get; set;}
         public string responsibleUserId_Title { get; set;}
+        public string createdbyPhoto { get; set;}
         public string status_Title { get; set;}
     }
 }

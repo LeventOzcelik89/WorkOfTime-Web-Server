@@ -139,6 +139,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 progressPayment.imei = this.imei;
                 progressPayment.companyId = company.id;
                 progressPayment.productId = inventory.productId;
+                progressPayment.date = this.date;
                 progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approving;
                 var dbResult = db.InsertPRD_ProductProgressPayment(progressPayment);
                 if (!dbResult.result)

@@ -22,21 +22,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
     }
     partial class WorkOfTimeDatabase
     {
-        //public PRD_ProductMateriel GetPRD_ProductMaterielByProductIdAndMaterialId(Guid productId, Guid materialId, DbTransaction tran = null)
-        //{
-        //    using (var db = GetDB(tran))
-        //    {
-        //        return db.Table<PRD_ProductMateriel>().Where(x => x.productId == productId && x.materialId == materialId).Execute().FirstOrDefault();
-        //    }
-        //}
-
-        //public PRD_ProductMateriel[] GetPRD_ProductMaterielByMaterialId(Guid materialId, DbTransaction tran = null)
-        //{
-        //    using (var db = GetDB(tran))
-        //    {
-        //        return db.Table<PRD_ProductMateriel>().Where(x => x.materialId == materialId).Execute().ToArray();
-        //    }
-        //}
+        public PRD_ProductProgressPayment[] GetPRD_ProductProgressPaymentExistByDataQuery(string dataQuery)
+        {
+            using (var db = GetDB())
+            {
+                var query = $@"Select count(*) from(
+                            select companyId,productId,count(*) as quantity from PRD_ProductProgressPayment Group by companyId,productId 
+                            ) as b 
+                            Where" + dataQuery;
+                var queryExecute = db.ExecuteReader<PRD_ProductProgressPayment>(query.ToString()).ToArray();
+                return queryExecute;
+            }
+        }
 
     }
 }

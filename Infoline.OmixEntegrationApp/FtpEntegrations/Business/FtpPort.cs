@@ -40,6 +40,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
+                    var insertPortList = new List<PRD_EntegrationAction>();
                     if (sellThr != null && sellThr.Count() > 0)
                     {
                         foreach (var item in sellThr)
@@ -49,9 +50,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 var checkImei = db.GetPRD_EntegrationAction().Where(a => a.Imei == item.Imei && a.Quantity == 1).OrderByDescending(b => b.created).FirstOrDefault();
                                 if (checkImei == null)
                                 {
-                                    var InsertResult = db.InsertPRD_EntegrationAction(item);
-                                    if (!InsertResult.result)
-                                        Log.Info("SellIn Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, InsertResult.message);
+                                    insertPortList.Add(item);
                                 }
                                 else
                                 {
@@ -68,6 +67,12 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                             {
                                 Log.Info("Imei Numarası Boş");
                             }
+                        }
+                        if (insertPortList.Count() > 0)
+                        {
+                            var InsertResult = db.BulkInsertPRD_EntegrationAction(insertPortList);
+                            if (!InsertResult.result)
+                                Log.Info("SellIn Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, InsertResult.message);
                         }
                     }
                 }
