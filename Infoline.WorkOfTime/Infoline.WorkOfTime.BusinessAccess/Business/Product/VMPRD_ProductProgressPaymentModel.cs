@@ -71,14 +71,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var result = new ResultStatus { result = true };
             var progressPayment = db.GetVWPRD_ProductProgressPaymentById(this.id);
             var productBonus = db.GetVWPRD_ProductBonus();
+            var productBonusPrice = db.GetVWPRD_ProductBonusPrice();
             foreach (var item in productBonus)
             {
-                //var productPrice = db.GetVWPRD_ProductBonusPriceByProductBonusIdAndProductId(item.id, progressPayment.productId);
                 var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query);
                 if (data.Count() > 0)
                 {
+                    var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == progressPayment.productId).FirstOrDefault();
                     this.count = data.Count();
-                    //this.price = this.price + (productPrice.unitPrice * this.count);
+                    this.price = this.price + (bonusPrice.unitPrice * this.count);
                 }
             }
             if (this.price > 0)
@@ -92,6 +93,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     id = Guid.NewGuid(),
                     companyId = progressPayment.companyId,
                     productProgressPaymentId = progressPayment.id,
+                    hasThePayment = (int)EnumPRD_PRD_ProductPaymentHasThePayment.notPaid,
                 };
                 result = db.InsertPRD_ProductPayment(productPayment);
             }

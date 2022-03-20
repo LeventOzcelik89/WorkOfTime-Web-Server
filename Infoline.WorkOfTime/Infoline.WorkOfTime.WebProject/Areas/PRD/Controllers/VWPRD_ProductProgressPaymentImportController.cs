@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductProgressPaymentImportController : Controller
     {
-        [PageInfo("Bayi Hakediş Listesi", SHRoles.SistemYonetici,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Listesi", SHRoles.SistemYonetici,SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Index(string ids)
         {
             var _ids = new List<Guid>();
@@ -50,14 +50,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Hakediş Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Insert(VMPRD_ProductProgressPaymentImportModel model)
         {
             var data = model.Load();
             return View(data);
         }
 
-        [PageInfo("Hakediş Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VMPRD_ProductProgressPaymentImportModel item, bool? isPost)
         {
@@ -73,7 +73,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Excel Hakediş Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Excel Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost]
         public JsonResult Import(string model)
         {
@@ -89,14 +89,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Hakediş Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Update(VMPRD_ProductProgressPaymentImportModel item)
         {
             var data = item.Load();
             return View(data);
         }
 
-        [PageInfo("Hakediş Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMPRD_ProductProgressPaymentImportModel item, bool? isPost)
         {
@@ -112,7 +112,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Hakediş Sil", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Sil", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost]
         public JsonResult Delete(Guid id)
         {

@@ -26,7 +26,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB())
             {
-                var query = $@"Select count(*) from(
+                var query = $@"Select * from(
                             select companyId,productId,count(*) as quantity from PRD_ProductProgressPayment Group by companyId,productId 
                             ) as b 
                             Where" + dataQuery;
