@@ -287,7 +287,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         private IEnumerable<string[]> GetRawFile(string fileName)
         {
-            Log.Info(string.Format("Getting File  {0} on KVK Server", fileName));
+            Log.Info(string.Format("Getting File  {0} on Port Server", fileName));
             var listStringArray = new List<string[]>();
             var request = (FtpWebRequest)WebRequest.Create(fileName);
             request.Method = WebRequestMethods.Ftp.DownloadFile;
