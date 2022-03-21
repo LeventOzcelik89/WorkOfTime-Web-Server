@@ -33,7 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool isActive { get; set; }
     }
 
-    [EnumInfo(typeof(PRD_Stocktaking), "priority")]
+    [EnumInfo(typeof(PRD_Stocktaking), "status")]
     public enum EnumPRD_StocktakingStatus
     {
         [Description("Sayım Başladı"), Generic("color", "EF5352")]
