@@ -74,16 +74,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var productBonusPrice = db.GetVWPRD_ProductBonusPrice();
             foreach (var item in productBonus)
             {
-                var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query);
+                var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query,this.id);
                 if (data.Count() > 0)
                 {
                     var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == progressPayment.productId).FirstOrDefault();
-                    this.count = data.Count();
-                    this.price = this.price + (bonusPrice.unitPrice * this.count);
+                    this.price = this.price + (bonusPrice.unitPrice);
                 }
             }
-            if (this.price > 0)
-            {
+           
                 var productPayment = new PRD_ProductPayment
                 {
                     created = DateTime.Now,
@@ -91,7 +89,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     totalPrice = this.price,
                     date = progressPayment.date,
                     id = Guid.NewGuid(),
-                    count = (int)this.count,
+                    productId = progressPayment.productId,
                     companyId = progressPayment.companyId,
                     productProgressPaymentId = progressPayment.id,
                     hasThePayment = (int)EnumPRD_PRD_ProductPaymentHasThePayment.notPaid,
@@ -102,7 +100,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approved;
                     var dbresult = db.UpdatePRD_ProductProgressPayment(progressPayment);
                 }
-            }
             return result;
         }
         public static SimpleQuery UpdateDataSourceFilterMix(SimpleQuery query, PageSecurity userStatus)

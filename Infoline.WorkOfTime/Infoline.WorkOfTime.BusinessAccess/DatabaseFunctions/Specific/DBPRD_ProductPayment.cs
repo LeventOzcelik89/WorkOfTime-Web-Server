@@ -22,6 +22,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
     }
     partial class WorkOfTimeDatabase
     {
-
+     
     }
 }

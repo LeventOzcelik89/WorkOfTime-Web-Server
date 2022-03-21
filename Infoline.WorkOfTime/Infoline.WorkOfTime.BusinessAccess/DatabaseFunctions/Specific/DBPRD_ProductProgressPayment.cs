@@ -22,14 +22,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
     }
     partial class WorkOfTimeDatabase
     {
-        public PRD_ProductProgressPayment[] GetPRD_ProductProgressPaymentExistByDataQuery(string dataQuery)
+        public PRD_ProductProgressPayment[] GetPRD_ProductProgressPaymentExistByDataQuery(string dataQuery, Guid id)
         {
             using (var db = GetDB())
             {
                 var query = $@"Select * from(
-                            select companyId,productId,count(*) as quantity from PRD_ProductProgressPayment Group by companyId,productId 
-                            ) as b 
-                            Where " + dataQuery;
+                               select id,companyId,productId,count(*) as quantity from PRD_ProductProgressPayment Group by id,companyId,productId 
+                               ) as b
+                               where b.id = '" + id + "' and " + dataQuery;
                 var queryExecute = db.ExecuteReader<PRD_ProductProgressPayment>(query.ToString()).ToArray();
                 return queryExecute;
             }
