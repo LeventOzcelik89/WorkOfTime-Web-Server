@@ -10,204 +10,236 @@ using System.Threading.Tasks;
 
 namespace Infoline.WorkOfTime.Agent
 {
-    public class TaskPlanner
-    {
+	public class TaskPlanner
+	{
 
-        public TEN_Tenant _tenant { get; set; }
-        public WorkOfTimeDatabase _db { get; set; }
-        public DateTime _lastDate
-        {
-            get
-            {
-                return DateTime.Now.AddDays(-30);
-            }
-        }
+		public TEN_Tenant _tenant { get; set; }
+		public WorkOfTimeDatabase _db { get; set; }
+		public DateTime _lastDate
+		{
+			get
+			{
+				return DateTime.Now.AddDays(-30);
+			}
+		}
 
 
-        private bool enabled
-        {
-            get
-            {
-                return ConfigurationSettings.AppSettings.Get("RunTasks") == "1";
-            }
-        }
+		private bool enabled
+		{
+			get
+			{
+				return ConfigurationSettings.AppSettings.Get("RunTasks") == "1";
+			}
+		}
 
-        public TaskPlanner(TEN_Tenant tenant)
-        {
-            this._tenant = tenant;
-            this._db = tenant.GetDatabase();
-        }
+		public TaskPlanner(TEN_Tenant tenant)
+		{
+			this._tenant = tenant;
+			this._db = tenant.GetDatabase();
+		}
 
-        public void CreateTasks(DateTime dt)
-        {
+		public void CreateTasks(DateTime dt)
+		{
 
-            try
-            {
+			try
+			{
+				Log.Info("Aşama 1" + dt);
 
-                if (!enabled)
-                {
-                    Log.Info("Görev Oluşturma Modülü devre dışı !..");
-                    return;
-                }
+				if (!enabled)
+				{
+					Log.Info("Görev Oluşturma Modülü devre dışı !..");
+					return;
+				}
 
-                var counts = new int[] { 0, 0 };
-                var dbRes = new ResultStatus { result = true };
-                var now = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
+				var counts = new int[] { 0, 0 };
+				var dbRes = new ResultStatus { result = true };
+				var now = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
+				Log.Info("Aşama 2");
 
-                var creationTasks = new List<TaskSchedulerModel>();
-                var plans = _db.GetFTM_TaskPlan().Where(a => a.enabled == true).ToArray();
+				var creationTasks = new List<TaskSchedulerModel>();
+				var plans = _db.GetFTM_TaskPlan().Where(a => a.enabled == true).ToArray();
+				Log.Info("Aşama 3");
 
-                foreach (var plan in plans)
-                {
+				foreach (var plan in plans)
+				{
+					Log.Info("Aşama 4");
 
-                    var schedulerModel = new TaskSchedulerModel { db = this._db };
-                    schedulerModel.Load(plan.id);
+					var schedulerModel = new TaskSchedulerModel { db = this._db };
+					schedulerModel.Load(plan.id);
 
-                    if (!schedulerModel.TaskPlan.taskCreationTime.HasValue)
-                    {
-                        continue;
-                    }
+					if (!schedulerModel.TaskPlan.taskCreationTime.HasValue)
+					{
+						Log.Info("Aşama 5");
 
-                    schedulerModel.TaskPlan.LoadTasks(_lastDate);
+						continue;
+					}
 
-                    switch ((EnumFTM_TaskPlansTaskCreationTime)schedulerModel.TaskPlan.taskCreationTime)
-                    {
-                        case EnumFTM_TaskPlansTaskCreationTime.Hemen:
+					schedulerModel.TaskPlan.LoadTasks(_lastDate);
+					Log.Info("Aşama 6");
 
-                            continue;
-                        //  TaskPlan Insert edildiği anda yapılıyor.
+					switch ((EnumFTM_TaskPlansTaskCreationTime)schedulerModel.TaskPlan.taskCreationTime)
+					{
+						case EnumFTM_TaskPlansTaskCreationTime.Hemen:
+							Log.Info("Aşama 7 Hemen");
 
-                        case EnumFTM_TaskPlansTaskCreationTime.AyOnce:
+							continue;
+						//  TaskPlan Insert edildiği anda yapılıyor.
 
-                            schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(30)).ToArray();
-                            if (schedulerModel.TaskPlan._TaskList.Any())
-                            {
+						case EnumFTM_TaskPlansTaskCreationTime.AyOnce:
+							Log.Info("Aşama 7 Ay Önce");
 
-                                var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(30));
+							schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(30)).ToArray();
+							if (schedulerModel.TaskPlan._TaskList.Any())
+							{
 
-                                schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList
-                                    .Where(a => a.planStartDate.HasValue && !createdTasks.Select(b => b.planStartDate).Contains(a.planStartDate.Value)).ToArray();
+								var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(30));
 
-                                creationTasks.Add(schedulerModel);
+								schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList
+									.Where(a => a.planStartDate.HasValue && !createdTasks.Select(b => b.planStartDate).Contains(a.planStartDate.Value)).ToArray();
 
-                            }
+								creationTasks.Add(schedulerModel);
 
-                            break;
-                        case EnumFTM_TaskPlansTaskCreationTime.HaftaOnce:
+							}
 
-                            schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(7)).ToArray();
-                            if (schedulerModel.TaskPlan._TaskList.Any())
-                            {
+							break;
+						case EnumFTM_TaskPlansTaskCreationTime.HaftaOnce:
+							Log.Info("Aşama 7 Hafta Önce");
 
-                                var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(7));
+							schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(7)).ToArray();
+							if (schedulerModel.TaskPlan._TaskList.Any())
+							{
 
-                                schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList
-                                    .Where(a => a.planStartDate.HasValue && !createdTasks.Select(b => b.planStartDate).Contains(a.planStartDate.Value)).ToArray();
+								var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(7));
 
-                                creationTasks.Add(schedulerModel);
+								schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList
+									.Where(a => a.planStartDate.HasValue && !createdTasks.Select(b => b.planStartDate).Contains(a.planStartDate.Value)).ToArray();
 
-                            }
+								creationTasks.Add(schedulerModel);
 
-                            break;
-                        case EnumFTM_TaskPlansTaskCreationTime.GunOnce:
-                        case EnumFTM_TaskPlansTaskCreationTime.Gununde:
+							}
 
-                            schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(1)).ToArray();
-                            if (schedulerModel.TaskPlan._TaskList.Any())
-                            {
+							break;
+						case EnumFTM_TaskPlansTaskCreationTime.GunOnce:
+						case EnumFTM_TaskPlansTaskCreationTime.Gununde:
+							Log.Info("Aşama 7 Gününde");
 
-                                var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(1));
+							schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(1)).ToArray();
+							if (schedulerModel.TaskPlan._TaskList.Any())
+							{
 
-                                schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList
-                                    .Where(a => a.planStartDate.HasValue && !createdTasks.Select(b => b.planStartDate).Contains(a.planStartDate.Value)).ToArray();
+								var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(1));
 
-                                creationTasks.Add(schedulerModel);
+								schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList
+									.Where(a => a.planStartDate.HasValue && !createdTasks.Select(b => b.planStartDate).Contains(a.planStartDate.Value)).ToArray();
 
-                            }
+								creationTasks.Add(schedulerModel);
 
-                            break;
+							}
 
-                        default:
-                            break;
-                    }
+							break;
 
-                }
+						default:
+							break;
+					}
 
-                foreach (var schedule in creationTasks)
-                {
-                    var model = new VMFTM_TaskModel { db = this._db };
-                    if (schedule.TemplateModel.taskTemplateInventories.Count() == 0)
-                    {
-                        foreach (var task in schedule.TaskPlan._TaskList)
-                        {
+				}
 
-                            var _task = model.B_EntityDataCopyForMaterial(task.B_ConvertType<FTM_Task>())
-                                .AppendObjectToOther(schedule.TemplateModel);
+				foreach (var schedule in creationTasks)
+				{
+					Log.Info("Aşama 8");
 
-                            _task.id = Guid.NewGuid();
-                            _task.FTM_TaskSubjectTypeIds = schedule.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
+					var model = new VMFTM_TaskModel { db = this._db };
+					if (schedule.TemplateModel.taskTemplateInventories.Count() == 0)
+					{
+						Log.Info("Aşama 9");
 
-                            dbRes &= _task.InsertAll(Guid.Empty);
-                            if (dbRes.result)
-                            {
-                                counts[0]++;
-                            }
-                            else
-                            {
-                                counts[1]++;
-                            }
+						foreach (var task in schedule.TaskPlan._TaskList)
+						{
+							Log.Info("Aşama 10");
 
-                        }
-                    }
-                    else
-                    {
-                        foreach (var inventoryId in schedule.TemplateModel.taskTemplateInventories)
-                        {
-                            foreach (var task in schedule.TaskPlan._TaskList)
-                            {
-                                var _task = task
-                                    .B_ConvertType<FTM_Task>()
-                                    .B_ConvertType<VMFTM_TaskModel>()
-                                    .AppendObjectToOther(schedule.TemplateModel);
+							var _task = model.B_EntityDataCopyForMaterial(task.B_ConvertType<FTM_Task>())
+								.AppendObjectToOther(schedule.TemplateModel);
+							Log.Info("Aşama 11");
 
-                                _task.id = Guid.NewGuid();
-                                _task.fixtureId = inventoryId.inventoryId;
-                                _task.FTM_TaskSubjectTypeIds = schedule.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
+							_task.id = Guid.NewGuid();
+							_task.FTM_TaskSubjectTypeIds = schedule.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
+							Log.Info("Aşama 12");
 
-                                dbRes &= _task.InsertAll(Guid.Empty);
-                                if (dbRes.result)
-                                {
-                                    counts[0]++;
-                                }
-                                else
-                                {
-                                    counts[1]++;
-                                }
-                            }
-                        }
-                    }
-                }
+							dbRes &= _task.InsertAll(Guid.Empty);
+							if (dbRes.result)
+							{
+								Log.Info("Aşama 13 Başarılı");
 
-                if (counts[0] == 0 && counts[1] == 0)
-                {
-                    return;
-                }
+								counts[0]++;
+							}
+							else
+							{
+								Log.Info("Aşama 13 Başarısız");
 
-                if (counts[1] > 0 && counts[0] == 0)
-                {
-                    Log.Error("{3} Adet Planlanan Görevler oluşturulamadı. Mesaj: {2} ({0} {1})", _tenant.TenantName, _tenant.TenantCode, dbRes.message, counts[1]);
-                    return;
-                }
+								counts[1]++;
+							}
 
-                Log.Success("{2} Başarılı / {3} Başarısız Görev Yaratıldı. {0} {1}", _tenant.TenantName, _tenant.TenantCode, counts[0], counts[1]);
+						}
+					}
+					else
+					{
+						foreach (var inventoryId in schedule.TemplateModel.taskTemplateInventories)
+						{
+							Log.Info("Aşama 9");
 
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Takvim Görev Planlama çalıştırılırken sorun oluştu. Mesaj: {2} ({0} {1})", _tenant.TenantName, _tenant.TenantCode, ex.Message);
-            }
+							foreach (var task in schedule.TaskPlan._TaskList)
+							{
+								var _task = task
+									.B_ConvertType<FTM_Task>()
+									.B_ConvertType<VMFTM_TaskModel>()
+									.AppendObjectToOther(schedule.TemplateModel);
+								Log.Info("Aşama 10");
 
-        }
+								_task.id = Guid.NewGuid();
+								_task.fixtureId = inventoryId.inventoryId;
+								_task.FTM_TaskSubjectTypeIds = schedule.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
+								Log.Info("Aşama 11");
 
-    }
+								dbRes &= _task.InsertAll(Guid.Empty);
+								Log.Info("Aşama 12");
+
+								if (dbRes.result)
+								{
+									Log.Info("Aşama 13 Başarılı");
+
+									counts[0]++;
+								}
+								else
+								{
+									Log.Info("Aşama 13 Başarısız");
+
+									counts[1]++;
+								}
+							}
+						}
+					}
+				}
+
+				if (counts[0] == 0 && counts[1] == 0)
+				{
+					return;
+				}
+
+				if (counts[1] > 0 && counts[0] == 0)
+				{
+					Log.Error("{3} Adet Planlanan Görevler oluşturulamadı. Mesaj: {2} ({0} {1})", _tenant.TenantName, _tenant.TenantCode, dbRes.message, counts[1]);
+					return;
+				}
+
+				Log.Success("{2} Başarılı / {3} Başarısız Görev Yaratıldı. {0} {1}", _tenant.TenantName, _tenant.TenantCode, counts[0], counts[1]);
+
+			}
+			catch (Exception ex)
+			{
+				Log.Error("Takvim Görev Planlama çalıştırılırken sorun oluştu. Mesaj: {2} ({0} {1})", _tenant.TenantName, _tenant.TenantCode, ex.Message);
+			}
+
+		}
+
+	}
 }
