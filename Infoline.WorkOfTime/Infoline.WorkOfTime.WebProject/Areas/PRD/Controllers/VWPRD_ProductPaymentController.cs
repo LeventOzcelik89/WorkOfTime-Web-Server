@@ -41,5 +41,65 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    var data = db.GetVWPRD_ProductPaymentById(id);
 		    return View(data);
 		}
-	}
+        //[PageInfo("Hakediş Raporu Veri kaynağı", SHRoles.SistemYonetici)]
+        //public JsonResult ReportDataSource(Guid companyId, int year, int month)
+        //{
+        //    var model = new VMPRD_ProductPaymentModel();
+        //    var data = model.Data
+        //    var db = new WorkOfTimeDatabase();
+        //    var getCompany = db.GetCMP_CompanyById(companyId);
+        //    if (getCompany == null)
+        //    {
+        //        return Json(new ResultStatusUI
+        //        {
+        //            Result = false,
+        //            Object = "0",
+        //            FeedBack = new FeedBack().Warning("Böyle bir bayi bulunmamaktadır.")
+        //        }, JsonRequestBehavior.AllowGet);
+        //    }
+        //    var bounty = new List<VWPRD_ProductBounty>();
+        //    var getCompanyBounty = db.GetVWPRD_ProductBountyByPeriodAndCompanyId(month, year, companyId);
+        //    if (getCompanyBounty.Length == 0)
+        //    {
+        //        if (getCompany.pid.HasValue)
+        //        {
+        //            var getDistBounty = db.GetVWPRD_ProductBountyByPeriodAndCompanyId(month, year, getCompany.pid.Value);
+        //            if (getDistBounty.Length > 0)
+        //            {
+        //                bounty.AddRange(getDistBounty);
+        //            }
+        //            else
+        //            {
+        //                return Json(new ResultStatusUI
+        //                {
+        //                    Result = false,
+        //                    Object = "1",
+        //                    FeedBack = new FeedBack().Warning("Cariye veya distribütöre atanmış bu aya ait prim tanımı yoktur.")
+        //                }, JsonRequestBehavior.AllowGet);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            return Json(new ResultStatusUI
+        //            {
+        //                Result = false,
+        //                Object = "1",
+        //                FeedBack = new FeedBack().Warning("Cariye veya distribütöre atanmış bu aya ait prim tanımı yoktur.")
+        //            }, JsonRequestBehavior.AllowGet);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        bounty.AddRange(getCompanyBounty);
+        //    }
+            
+        //    //var returnObject = new
+        //    //{
+        //    //    counts,
+        //    //    grid,
+        //    //    total
+        //    //};
+        //    return Json(true, JsonRequestBehavior.AllowGet);
+        //}
+    }
 }

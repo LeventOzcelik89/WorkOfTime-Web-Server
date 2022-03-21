@@ -29,16 +29,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return this;
         }
 
-        private ResultStatus Validator()
+        private ResultStatus Validator(VWPRD_ProductProgressPayment model)
         {
             var result = new ResultStatus { result = true };
-            if (this.isActivated == null || this.isActivated == false)
+            if (model.isActivated == null || model.isActivated == false)
             {
                 result.message = "Ürün aktive edilmemiştir.";
                 result.result = false;
                 return result;
             }
-            if (this.isInventory == null || this.isInventory == false)
+            if (model.isInventory == null || model.isInventory == false)
             {
                 result.message = "Ürünün envanterde karşılığı bulunmamaktadır.";
                 result.result = false;
@@ -52,13 +52,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var progressPayment = db.GetVWPRD_ProductProgressPaymentById(this.id);
             var rs = new ResultStatus { result = true };
-            var validate = Validator();
-            if (!validate.result)
-            {
-                return validate;
-            }
             if (progressPayment != null)
             {
+                var validate = Validator(progressPayment);
+                if (!validate.result)
+                {
+                    return validate;
+                }
                 this.createdby = userId;
                 this.created = DateTime.Now;
                 rs = Approve(userId, trans);
@@ -69,7 +69,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
-            var progressPayment = db.GetVWPRD_ProductProgressPaymentById(this.id);
+            var progressPayment = db.GetPRD_ProductProgressPaymentById(this.id);
             var productBonus = db.GetVWPRD_ProductBonus();
             var productBonusPrice = db.GetVWPRD_ProductBonusPrice();
             foreach (var item in productBonus)
@@ -91,11 +91,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     totalPrice = this.price,
                     date = progressPayment.date,
                     id = Guid.NewGuid(),
+                    count = (int)this.count,
                     companyId = progressPayment.companyId,
                     productProgressPaymentId = progressPayment.id,
                     hasThePayment = (int)EnumPRD_PRD_ProductPaymentHasThePayment.notPaid,
                 };
                 result = db.InsertPRD_ProductPayment(productPayment);
+                if (result.result)
+                {
+                    progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approved;
+                    var dbresult = db.UpdatePRD_ProductProgressPayment(progressPayment);
+                }
             }
             return result;
         }

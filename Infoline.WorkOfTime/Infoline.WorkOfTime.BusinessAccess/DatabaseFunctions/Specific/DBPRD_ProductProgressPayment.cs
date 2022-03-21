@@ -29,7 +29,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var query = $@"Select * from(
                             select companyId,productId,count(*) as quantity from PRD_ProductProgressPayment Group by companyId,productId 
                             ) as b 
-                            Where" + dataQuery;
+                            Where " + dataQuery;
                 var queryExecute = db.ExecuteReader<PRD_ProductProgressPayment>(query.ToString()).ToArray();
                 return queryExecute;
             }

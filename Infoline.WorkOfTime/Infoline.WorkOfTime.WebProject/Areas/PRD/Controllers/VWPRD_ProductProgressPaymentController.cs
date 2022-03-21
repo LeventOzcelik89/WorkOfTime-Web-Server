@@ -46,7 +46,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
 		[PageInfo("Bayi Satış Onay", SHRoles.SistemYonetici)]
-		[HttpPost, ValidateAntiForgeryToken]
+		[HttpPost]
 		public JsonResult Approve(VMPRD_ProductProgressPaymentModel item)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];

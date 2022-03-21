@@ -1,28 +1,286 @@
 ﻿@{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 
 
-@(Html.Akilli()
-    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductPayment>("VWPRD_ProductPayment")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductPayment", new { area = "PRD" })).PageSize(25))
-    .Columns(x =>
-    {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.unitPrice).Title("unitPrice").Width(180);
-        x.Bound(y => y.totalPrice).Title("totalPrice").Width(180);
-        x.Bound(y => y.count).Title("count").Width(180);
-        x.Bound(y => y.date).Title("date").Width(180).Format(Extensions.DateFormatShort(true));
-        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
-        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
-        x.Bound(y => y.companyId_Title).Title("companyId_Title").Width(180);
-    })
-    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-    .ToolBar(x =>
-    {
-        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductPayment", new { area = "PRD" }));
-        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductPayment", new { area = "PRD" }));
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_ProductPayment", new { area = "PRD" }));
-        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductPayment", new { area = "PRD" }));
-    }))
+<div class="row">
+    <div class="ibox">
+        <div class="col-sm-12">
+            <div class="ibox-content clearfix">
+
+
+                <div class="col-sm-6">
+                    <label class="req">Cari Seçiniz</label>
+                    @(
+                      Html.Akilli()
+                      .DropDownList("companyId")
+                      .OptionLabel("Lütfen Firma Cari seçiniz..")
+                      .DataValueField("id")
+                      .DataTextField("fullName")
+                      .Template("#=TemplateEngine('companyTemplate',data)#")
+                      .Action(b => b.Action("DataSourceDropDownBayi", "VWCMP_Company", new { area = "CMP" }))
+                      .Sort(x => x.Add("fullName").Ascending())
+                      .Validate(Validations.Required)
+                      .Value(userStatus.user.CompanyId.ToString())
+                      .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+                      .Execute()
+                    )
+                </div>
+
+
+                <div class="col-sm-2">
+                    <label class="req">Ay Seçiniz</label>
+                    @(
+               Html.Akilli()
+             .DropDownList("month")
+               .OptionLabel("Ay Seçiniz..")
+               .DataValueField("id")
+               .DataTextField("title")
+               .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+               .Validate(Validations.Required)
+               .Value(DateTime.Now.Month.ToString())
+               .Execute()
+             )
+                </div>
+                <div class="col-sm-2">
+                    <label class="req">Yıl Seçiniz</label>
+                    @(
+               Html.Akilli()
+                .DropDownList("year")
+               .OptionLabel("Lütfen Yıl Seçiniz..")
+               .DataValueField("id")
+               .DataTextField("title")
+               .Action(b => b.Action("GetYears", "General", new { area = "" }))
+               .Validate(Validations.Required)
+               .Value(DateTime.Now.Year.ToString())
+               .Execute()
+             )
+                </div>
+                <div class="col-sm-2">
+                    <button onclick="page.load()" id="queryButton" style="width:100%;margin-top:26px" class="btn btn-primary btn-large">Sorgula</button><br />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="ibox" id="info">
+    <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+        Bilgilendirme : <strong> Yukarıdan verileri seçerek sorgula butonuna basınız... </strong>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox" style="display:none" id="table">
+            <div class="ibox-content clearfix">
+                <div class="forum-item active">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6">
+                            <div class="forum-icon">
+                                <i class="fa fa-money"></i>
+                            </div>
+                            <a href="#" class="forum-item-title" style="cursor:default">Toplam Hakediş Karşılaştırması</a>
+                            <div class="forum-sub-title">Distribütör, Aktivasyonlar ve Beyana Göre Hakediş Karşılaştırılması</div>
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
+                            <span id="totalEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Beyan Edilen Toplam Tutar</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
+                            <span id="fptEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Distribütöre Göre Toplam Tutar </small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
+                            <span id="titanEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Aktivasyonlara Göre Toplam Tutar</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <div id="totalGrid"></div>
+    </div>
+    <div class="col-sm-12" style="margin-top:10px">
+        <div id="reportGrid"></div>
+    </div>
+
+</div>
+<script>
+    var page = {
+        isBayi: function () {
+             @if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
+             {
+                 @Html.Raw("return false;")
+
+             }
+             else
+             {
+                   @Html.Raw("return true;")
+             }
+
+
+             },
+        qButton: $("queryButton"),
+        load: function () {
+
+            var companyId = null;
+            var company = null;
+            if (!page.isBayi()) {
+                companyId=$("#companyId").data("kendoDropDownList").dataItem();
+                company = companyId.id;
+            }
+
+            var month = $("#month").data("kendoDropDownList").dataItem();
+            var year = $("#year").data("kendoDropDownList").dataItem();
+            var validate = page.inputValidate(companyId, month, year);
+            if (validate.length > 0) {
+                return;
+            }
+
+
+             if (page.isBayi() == true) {
+                 company = '@Html.Raw(userStatus.user.CompanyId.ToString())';
+            }
+            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/ClaimReportDataSource", { companyId: company, year: year.id, month: month.id }, function (data) {
+                if (data.Result != undefined && !data.Result) {
+                    if (data.Object == "0") {
+                        swal("Veri Bulunamadı", "Böyle bir bayi yoktur", "warning");
+                        return;
+                    }
+                    if (data.Object == "1") {
+                        swal("Veri Bulunamadı", "Seçilen ay ve yıla ait bayi prim tanımı yoktur.", "warning");
+                        return;
+                    }
+                    if (data.Object == "2") {
+                        swal("Veri Bulunamadı", "Bayiye ait her hangi bir veri yoktur.", "warning");
+                        return;
+                    }
+                    if (data.Object == "3") {
+                        swal("Bu Ürün(ler)e ait prim tanımı yoktur", data.FeedBack.message, "warning");
+                        return;
+
+                    }
+                }
+                $("#info").hide();
+                $("#boxes").show();
+                $("#table").show();
+                var gridTotal = $("#reportGridTotal").data("kendoGrid");
+                if (gridTotal != undefined) {
+                    gridTotal.destroy();
+                }
+                var totalCols = [
+                    { field: 'bountyProduct', title: 'Ürün Adı', width: 250 },
+                    {
+                        field: 'bountyAmount', title: 'Prim Birim Bedel Tutarı', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.bountyAmount,"N2") + " ₺";
+                        }
+                    },
+                    {
+                        field: 'totalCount', title: 'Beyan Edilen Satış Miktarı', width: 150, format: '{0:N0}', template: function (item) {
+
+                            return kendo.toString(item.totalCount, "N0") + " Adet";
+                        }
+                    },
+                    {
+                        field: 'totalAmount', title: 'Beyana Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+
+                            return kendo.toString(item.totalAmount, "N2") + " ₺";
+                        }
+                    },
+                    {
+                        field: 'distCount', title: 'Distribütör Tarafından Onaylanan Miktar', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.distCount, "N0") + " Adet";
+                        }
+                    },
+                    {
+                        field: 'distAmount', title: 'Distribütör Tarafından Onaylanan Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            if (item.totalCount > item.distAmount) {
+                                return '<span class="text-danger">' + item.distAmount + ' ₺</span>'
+                            }
+                            return kendo.toString(item.distAmount, "N2") + " ₺";
+                        }
+                    },
+                    {
+                        field: 'titanCount', title: 'Aktivasyona Göre Satış Miktarı', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.titanCount, "N0") + " Adet";
+                        }},
+                    {
+                        field: 'titanAmount', title: 'Aktivasyona Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            if (item.totalCount > item.titanAmount) {
+                                return '<span class="text-danger">' + item.titanAmount + ' ₺ </span>'
+                            }
+                            return kendo.toString(item.titanAmount, "N2") + " ₺";
+                        }
+                    },
+
+                ];
+                $("#totalGrid").kendoGrid({
+                    toolbar: [{ name: "excel", text: "" }],
+                    excel: {
+                        fileName: "Hakediş_Raporu.xlsx"
+                    },
+                    dataSource: data.total,
+                    pageSize: 100,
+                    height: 540,
+                    sortable: true,
+                    resizable: true,
+                    selectable: true,
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    columns: totalCols
+                });
+                var totalG = $("#totalGrid").data("kendoGrid");
+                totalG.dataSource.page(1);
+
+                $("#total").text(kendo.toString(data.counts.total,"N0"));
+                $("#titan").text(kendo.toString(data.counts.titan,"N0"));
+                $("#dist").text(kendo.toString(data.counts.dist,"N0"));
+                $("#env").text(kendo.toString(data.counts.env,"N0"));
+                $("#totalEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.totalAmount).Sum(x => x),"N2") + " ₺");
+                $("#fptEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.distAmount).Sum(x => x),"N2") + " ₺");
+                $("#titanEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.titanAmount).Sum(x => x),"N2") + " ₺");
+            });
+        },
+        inputValidate: function (companyId, month, year) {
+            var errorList = [];
+
+            if (page.isBayi() == false) {
+                if (companyId == undefined || companyId.id == '') {
+                    errorList.push("Cari Boş Olamaz");
+                }
+            }
+
+            if (month == undefined || month.id == '') {
+                errorList.push("Ay Boş Olamaz");
+            }
+            if (year == undefined || year.id == '') {
+                errorList.push("Yıl Boş Olamaz");
+            }
+            if (errorList.length > 0) {
+                swal("Boş Alanlar Var", errorList.join("\n"), "warning");
+            }
+            return errorList;
+        }
+
+    }
+</script>

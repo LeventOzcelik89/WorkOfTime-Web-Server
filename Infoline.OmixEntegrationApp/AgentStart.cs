@@ -24,33 +24,14 @@ namespace Infoline.OmixEntegrationApp
 
         public void Run()
         {
-            //var taskProcessLogoEntegration = new Task(() =>
-            //{
-            //    new ProcessLogoEntegration().Run();
-            //});
-            //Tasks.Add(taskProcessLogoEntegration);
-
-            //var taskProcessTitanEntegration = new Task(() =>
-            //{
-            //    new ProcessTitanEntegration().Run();
-            //});
-            //Tasks.Add(taskProcessTitanEntegration);
-
-            var taskProcessFtpDistEntegration = new Task(() =>
-            {
-                new ProcessFtpEntegration().Run();
-            });
-            Tasks.Add(taskProcessFtpDistEntegration);
-
-            //taskProcessLogoEntegration.Start();
-            //taskProcessTitanEntegration.Start();
-            taskProcessFtpDistEntegration.Start();
-
+            //new ProcessLogoEntegration().Run();
+            new ProcessTitanEntegration().Run();
+            new ProcessFtpEntegration().Run();
         }
 
         protected override void OnStart(string[] args)
         {
-           
+
             //var startingDate= ConfigurationManager.AppSettings["WorkerStart"].ToString();
             //if (string.IsNullOrEmpty(startingDate))
             //{
