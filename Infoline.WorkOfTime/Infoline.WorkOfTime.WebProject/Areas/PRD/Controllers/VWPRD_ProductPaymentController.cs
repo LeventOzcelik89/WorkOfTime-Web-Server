@@ -14,13 +14,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductPaymentController : Controller
     {
-        [PageInfo("Hakediş Raporu", SHRoles.SistemYonetici)]
+        [PageInfo("Hakediş Raporu", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
         public ActionResult Index()
         {
             return View();
         }
 
-        [PageInfo("Hakediş Raporu Veri Kaynağı", SHRoles.SistemYonetici)]
+        [PageInfo("Hakediş Raporu Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -35,8 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Hakedişi Olan Bayi Dropdown Verileri")]
-        [AllowEveryone]
+        [PageInfo("Hakedişi Olan Bayi Dropdown Verileri", SHRoles.PrimHakediPersoneli)]
         public ContentResult DataSourceDropDownPaymentBayi([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -67,14 +66,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Hakediş Raporu Detay", SHRoles.SistemYonetici)]
-        public ActionResult Detail(Guid id)
-        {
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWPRD_ProductPaymentById(id);
-            return View(data);
-        }
-        [PageInfo("Hakediş Raporu Veri kaynağı", SHRoles.SistemYonetici)]
+        [PageInfo("Hakediş Raporu Veri kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
         public ContentResult ReportDataSource(Guid companyId, int year, int month)
         {
             var model = new VMPRD_ProductPaymentModel();
@@ -83,7 +75,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
 
-        [PageInfo("Hakediş Ödeme", SHRoles.SistemYonetici)]
+        [PageInfo("Hakediş Ödeme", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
         public JsonResult Approve(VMPRD_ProductPaymentModel item, string ids)
         {
             var userStatus = (PageSecurity)Session["userStatus"];

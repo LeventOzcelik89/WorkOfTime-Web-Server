@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductProgressPaymentImportController : Controller
     {
-        [PageInfo("Bayi Satış Listesi", SHRoles.SistemYonetici,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Listesi", SHRoles.SistemYonetici,SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         public ActionResult Index(string ids)
         {
             var _ids = new List<Guid>();
@@ -25,7 +25,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return View(_ids);
         }
 
-        [PageInfo("Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -40,7 +40,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Veri Kaynağı Dropdown", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Veri Kaynağı Dropdown", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -50,14 +50,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         public ActionResult Insert(VMPRD_ProductProgressPaymentImportModel model)
         {
             var data = model.Load();
             return View(data);
         }
 
-        [PageInfo("Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VMPRD_ProductProgressPaymentImportModel item, bool? isPost)
         {
@@ -73,7 +73,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Excel Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Excel Bayi Satış Oluştur", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         [HttpPost]
         public JsonResult Import(string model)
         {
@@ -89,14 +89,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         public ActionResult Update(VMPRD_ProductProgressPaymentImportModel item)
         {
             var data = item.Load();
             return View(data);
         }
 
-        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMPRD_ProductProgressPaymentImportModel item, bool? isPost)
         {
@@ -112,7 +112,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Bayi Satış Sil", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bayi Satış Sil", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakediPersoneli)]
         [HttpPost]
         public JsonResult Delete(Guid id)
         {
