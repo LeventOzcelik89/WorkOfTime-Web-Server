@@ -12,12 +12,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductBonusController : Controller
     {
-        [PageInfo("Prim Kuralları Liste", SHRoles.SistemYonetici,SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Prim Kuralları Liste", SHRoles.SistemYonetici,SHRoles.PrimHakedisPersoneli)]
         public ViewResult Index()
         {
             return View();
         }
-        [PageInfo("Veri Kaynağı",SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Veri Kaynağı",SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -30,7 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_ProductBonusCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Veri Kaynağı Dropdown", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Veri Kaynağı Dropdown", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -38,20 +38,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var data = db.GetVWPRD_ProductBonus(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Prim Kuralı Detay", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Prim Kuralı Detay", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ActionResult Detail(VMPRD_ProductBonusModel item)
         {
             var data = item.Load();
             return View(data);
         }
-        [PageInfo("Prim Kuralı Ekle", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Prim Kuralı Ekle", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ActionResult Insert(VMPRD_ProductBonusModel item)
         {
             var data = item.Load();
             return View(data);
         }
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Prim Kuralı Ekle", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Prim Kuralı Ekle", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public JsonResult Insert(VMPRD_ProductBonusModel item, bool? isPost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -65,14 +65,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Prim Kuralı Güncelle", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Prim Kuralı Güncelle", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ActionResult Update(VMPRD_ProductBonusModel item)
         {
             var data = item.Load();
             return View(data);
         }
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Prim Kuralı Güncelle", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Prim Kuralı Güncelle", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public JsonResult Update(VMPRD_ProductBonusModel item, bool? isPost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -87,7 +87,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        [PageInfo("Prim Kuralı Sİl", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Prim Kuralı Sİl", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public JsonResult Delete(Guid[] id)
         {
             var db = new WorkOfTimeDatabase();

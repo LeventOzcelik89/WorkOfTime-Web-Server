@@ -14,13 +14,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductPaymentController : Controller
     {
-        [PageInfo("Hakediş Raporu", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Hakediş Raporu", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ActionResult Index()
         {
             return View();
         }
 
-        [PageInfo("Hakediş Raporu Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Hakediş Raporu Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Hakedişi Olan Bayi Dropdown Verileri", SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Hakedişi Olan Bayi Dropdown Verileri", SHRoles.PrimHakedisPersoneli)]
         public ContentResult DataSourceDropDownPaymentBayi([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -66,7 +66,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Hakediş Raporu Veri kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Hakediş Raporu Veri kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ContentResult ReportDataSource(Guid companyId, int year, int month)
         {
             var model = new VMPRD_ProductPaymentModel();
@@ -75,7 +75,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
 
-        [PageInfo("Hakediş Ödeme", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Hakediş Ödeme", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public JsonResult Approve(VMPRD_ProductPaymentModel item, string ids)
         {
             var userStatus = (PageSecurity)Session["userStatus"];

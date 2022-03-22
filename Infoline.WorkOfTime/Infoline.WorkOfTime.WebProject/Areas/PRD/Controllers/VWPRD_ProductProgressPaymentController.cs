@@ -13,13 +13,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductProgressPaymentController : Controller
     {
-        [PageInfo("Bayi Satış Onay Listesi", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Bayi Satış Onay Listesi", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ActionResult Index()
         {
             return View();
         }
 
-        [PageInfo("Bayi Satış Onay Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Bayi Satış Onay Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ContentResult DataSourceMix([DataSourceRequest] DataSourceRequest request)
         {
 
@@ -32,7 +32,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Bayi Satış Onay Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Bayi Satış Onay Veri Kaynağı", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         public ContentResult DataSourceOperator([DataSourceRequest] DataSourceRequest request)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -45,7 +45,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
 
-        [PageInfo("Bayi Satış Onay", SHRoles.SistemYonetici, SHRoles.PrimHakediPersoneli)]
+        [PageInfo("Bayi Satış Onay", SHRoles.SistemYonetici, SHRoles.PrimHakedisPersoneli)]
         [HttpPost]
         public JsonResult Approve(VMPRD_ProductProgressPaymentModel item, string ids)
         {
