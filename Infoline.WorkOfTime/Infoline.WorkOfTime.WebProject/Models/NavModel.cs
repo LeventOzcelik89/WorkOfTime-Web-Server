@@ -379,6 +379,10 @@ namespace System.Web.Mvc
             {
                 menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
                 menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_TitanDeviceActivated/SellOutDashboard"));
+                menu.AddChild(new Menu("Prim Kural Tanımları", "/PRD/VWPRD_ProductBonus/Index"));
+                menu.AddChild(new Menu("Satış Tanımlama", "/PRD/VWPRD_ProductProgressPaymentImport/Index"));
+                menu.AddChild(new Menu("Satış Onaylama", "/PRD/VWPRD_ProductProgressPayment/Index"));
+                menu.AddChild(new Menu("Hakediş Tanımları", "/PRD/VWPRD_ProductPayment/Index"));
             }
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
