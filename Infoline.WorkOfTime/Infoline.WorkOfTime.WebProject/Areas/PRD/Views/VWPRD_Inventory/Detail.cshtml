@@ -600,9 +600,12 @@
                     </li>
                     @if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000)
                     {
-                        <li data-href="@Url.Action("Detail","PRD_TitanDeviceActivated", new { area = "FTM"})" data-toggle="tooltip" data-placement="top" title="Cihaz Bilgileri">
-                            <a data-toggle="tab" href="#devices" aria-expanded="false"><i class="fa fa fa-mobile-phone text-success fa-2x" aria-hidden="true"></i></a>
-                        </li>
+                        if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
+                        {
+                            <li data-href="@Url.Action("Detail","PRD_TitanDeviceActivated", new { area = "FTM"})" data-toggle="tooltip" data-placement="top" title="Cihaz Bilgileri">
+                                <a data-toggle="tab" href="#devices" aria-expanded="false"><i class="fa fa fa-mobile-phone text-success fa-2x" aria-hidden="true"></i></a>
+                            </li>
+                        }
                     }
 
                 </ul>
@@ -683,7 +686,7 @@
                                 //x.Custom().Text("<i title='Ürün Bakım Periyodunu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" } }).Url(Url.Action("Delete", "VWPRD_InventoryTask", new { area = "PRD" }));
                             }))
                     </div>
-                    <div  class="tab-pane" data-href="@Url.Action("DataSource","VWSV_Service",new { area="sv"})" id="oldServiceRecords">
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWSV_Service",new { area="sv"})" id="oldServiceRecords">
                         <h4><i class="fa icon-tools text-success"></i> GEÇMİŞ TEKNİK SERVİS KAYITLARI</h4>
 
                         @(Html.Akilli()
@@ -741,7 +744,7 @@
 
                         <div class="tab-pane" id="devices">
                             <h4><i class="fa fa-mobile-phone text-success"></i> Ürün Detayı </h4>
-                            @Html.Action("DetailForInventory", "VWPRD_TitanDeviceActivated", new { area = "PRD", InventoryId = Model.id ,Id=""})
+                            @Html.Action("DetailForInventory", "VWPRD_TitanDeviceActivated", new { area = "PRD", InventoryId = Model.id, Id = "" })
 
                         </div>
                     }
@@ -880,7 +883,7 @@
 
     var points = [];
     Actions.Data.forEach(function (item, i) {
-       
+
         var icon = (item.location == '@Model.location' ? "Marker_SonKonum" : "Guncel_Konum");
         //Harita.style.add(i + "d", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);
         //Harita.style.add(i + "c", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);
@@ -972,7 +975,7 @@
 
 </script>
 <style>
-    .fileupload-content{
-        max-height:600px!important;
+    .fileupload-content {
+        max-height: 600px !important;
     }
 </style>
