@@ -9,10 +9,12 @@ namespace Infoline.WorkOfTime.BusinessData
         public string fullName { get; set;}
         public string fullNameProduct { get; set;}
         public string searchField { get; set;}
+        public string productUnitId_Title { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string productId_Title { get; set;}
         public string productId_Image { get; set;}
+        public Guid? productUnitId { get; set;}
         public Guid? productId { get; set;}
         public string code { get; set;}
         public string serialcode { get; set;}
