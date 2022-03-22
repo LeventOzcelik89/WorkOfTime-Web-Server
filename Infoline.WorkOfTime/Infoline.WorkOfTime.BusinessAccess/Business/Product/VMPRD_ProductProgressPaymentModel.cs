@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result;
         }
 
-        public ResultStatus Save(Guid? userId,Guid? id, HttpRequestBase request = null, DbTransaction trans = null)
+        public ResultStatus Save(Guid? userId, Guid? id, HttpRequestBase request = null, DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
             var progressPayment = db.GetVWPRD_ProductProgressPaymentById(id.Value);
@@ -80,32 +80,37 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var productBonusPrice = db.GetVWPRD_ProductBonusPrice();
             foreach (var item in productBonus)
             {
-                var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query,this.id);
-                if (data.Count() > 0)
+                if (progressPayment.date >= item.startDate && progressPayment.date <= item.endDate)
                 {
-                    var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == progressPayment.productId).FirstOrDefault();
-                    this.price = this.price + (bonusPrice.unitPrice);
+                    var start = item.startDate.Value.ToString("yyyy-MM-dd HH:mm");
+                    var end = item.endDate.Value.ToString("yyyy-MM-dd HH:mm");
+                    var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query, progressPayment.productId, start, end);
+                    if (data.Count() > 0)
+                    {
+                        var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == progressPayment.productId).FirstOrDefault();
+                        this.price = this.price + (bonusPrice.unitPrice);
+                    }
                 }
             }
-           
-                var productPayment = new PRD_ProductPayment
-                {
-                    created = DateTime.Now,
-                    createdby = userId,
-                    totalPrice = this.price,
-                    date = progressPayment.date,
-                    id = Guid.NewGuid(),
-                    productId = progressPayment.productId,
-                    companyId = progressPayment.companyId,
-                    productProgressPaymentId = progressPayment.id,
-                    hasThePayment = (int)EnumPRD_PRD_ProductPaymentHasThePayment.notPaid,
-                };
-                result = db.InsertPRD_ProductPayment(productPayment);
-                if (result.result)
-                {
-                    progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approved;
-                    var dbresult = db.UpdatePRD_ProductProgressPayment(progressPayment);
-                }
+
+            var productPayment = new PRD_ProductPayment
+            {
+                created = DateTime.Now,
+                createdby = userId,
+                totalPrice = this.price,
+                date = progressPayment.date,
+                id = Guid.NewGuid(),
+                productId = progressPayment.productId,
+                companyId = progressPayment.companyId,
+                productProgressPaymentId = progressPayment.id,
+                hasThePayment = (int)EnumPRD_PRD_ProductPaymentHasThePayment.notPaid,
+            };
+            result = db.InsertPRD_ProductPayment(productPayment);
+            if (result.result)
+            {
+                progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approved;
+                var dbresult = db.UpdatePRD_ProductProgressPayment(progressPayment);
+            }
             return result;
         }
         public static SimpleQuery UpdateDataSourceFilterMix(SimpleQuery query, PageSecurity userStatus)

@@ -22,7 +22,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public PRD_EntegrationAction GetPRD_EntegrationActionByImei(string imei, DbTransaction tran = null)
+        public PRD_EntegrationAction GetPRD_EntegrationActionByImei(string imei,Guid? companyId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
 

@@ -106,17 +106,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 result.result = false;
                 result.message = this.companyCode + " bayi koduna ait bayi sistemde bulunmamaktadır.";
+                return result;
             }
             if (company.name != this.companyName)
             {
                 result.result = false;
                 result.message = "Girilen bayi adına ait bayi sistemde bulunmamaktadır.";
+                return result;
             }
             var inventory = db.GetPRD_InventoryByImei(this.imei);
             if (inventory == null)
             {
                 result.result = false;
                 result.message = this.imei + "imei numarasına ait bir ürün bulunamadı.";
+                return result;
             }
             var model = new PRD_ProductProgressPaymentImport();
             model.id = Guid.NewGuid();
@@ -131,7 +134,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var checkIsActivated = db.GetPRD_TitanDeviceActivatedByImei(this.imei);
                 var checkIsInventory = db.GetPRD_InventoryByImei(this.imei);
-                var checkIsFTP = db.GetPRD_EntegrationActionByImei(this.imei);
+                var checkIsFTP = db.GetPRD_EntegrationActionByImei(this.imei,this.companyId);
                 var progressPayment = new PRD_ProductProgressPayment();
                 progressPayment.created = DateTime.Now;
                 progressPayment.createdby = this.createdby;
