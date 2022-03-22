@@ -16,6 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private DbTransaction trans { get; set; }
         public string companyCode { get; set; }
         public string companyName { get; set; }
+        public CMP_Types[] CMP_Types { get; set; }
         public VMPRD_ProductProgressPaymentImportModel Load()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -30,6 +31,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.companyCode = company.code;
                 this.companyName = company.name;
             }
+            this.CMP_Types = db.GetCMP_Types();
             return this;
         }
 
