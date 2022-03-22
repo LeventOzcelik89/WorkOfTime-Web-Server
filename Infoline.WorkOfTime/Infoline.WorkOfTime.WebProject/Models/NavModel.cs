@@ -56,8 +56,6 @@ namespace System.Web.Mvc
                     if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
                     {
                         _root.Add(new Menu("Şirketlerim", "/CMP/VWCMP_Company/IndexCompany","fa fa-building"));
-                        _root.Add(new Menu("Hakediş Raporu", "/PRD/VWPRD_EntegrationImport/ClaimReport","fa fa-file"));
-                        _root.Add(new Menu("Hakediş Bildirimleri", "/PRD/VWPRD_EntegrationImport/Index", "fa fa-bell"));
                     }
                     _root.Add(GetProduction());
                     _root.Add(GetService());
@@ -388,14 +386,11 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Ürün Fiyat Listeleri", "/PRD/VWPRD_CompanyBasedPrice/Index"));
             menu.AddChild(new Menu("Ürün Stok Raporu", "/PRD/VWPRD_Product/StockReport"));
             menu.AddChild(new Menu("Şirketlerim", "/CMP/VWCMP_Company/IndexCompany"));
-            menu.AddChild(new Menu("Hakediş Raporu", "/PRD/VWPRD_EntegrationImport/ClaimReport"));
             menu.AddChild(new Menu("Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/IndexMy"));
 
             menu.AddChild(new Menu("Cari Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/Index"));
             menu.AddChild(new Menu("Araç Listesi", "/CMP/VWCMP_CompanyCars/Index"));
 
-            menu.AddChild(new Menu("Prim Tanımlamaları", "/PRD/VWPRD_ProductBounty/Index"));
-            menu.AddChild(new Menu("Hakediş Bildirimleri", "/PRD/VWPRD_EntegrationImport/Index"));
 
 
             return menu;
