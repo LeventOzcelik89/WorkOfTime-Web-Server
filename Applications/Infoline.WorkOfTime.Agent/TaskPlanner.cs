@@ -43,50 +43,41 @@ namespace Infoline.WorkOfTime.Agent
 
 			try
 			{
-				Log.Info("Aşama 1" + dt);
 
 				if (!enabled)
 				{
-					Log.Info("Görev Oluşturma Modülü devre dışı !..");
 					return;
 				}
 
 				var counts = new int[] { 0, 0 };
 				var dbRes = new ResultStatus { result = true };
 				var now = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
-				Log.Info("Aşama 2");
 
 				var creationTasks = new List<TaskSchedulerModel>();
 				var plans = _db.GetFTM_TaskPlan().Where(a => a.enabled == true).ToArray();
-				Log.Info("Aşama 3");
 
 				foreach (var plan in plans)
 				{
-					Log.Info("Aşama 4");
 
 					var schedulerModel = new TaskSchedulerModel { db = this._db };
 					schedulerModel.Load(plan.id);
 
 					if (!schedulerModel.TaskPlan.taskCreationTime.HasValue)
 					{
-						Log.Info("Aşama 5");
 
 						continue;
 					}
 
 					schedulerModel.TaskPlan.LoadTasks(_lastDate);
-					Log.Info("Aşama 6");
 
 					switch ((EnumFTM_TaskPlansTaskCreationTime)schedulerModel.TaskPlan.taskCreationTime)
 					{
 						case EnumFTM_TaskPlansTaskCreationTime.Hemen:
-							Log.Info("Aşama 7 Hemen");
 
 							continue;
 						//  TaskPlan Insert edildiği anda yapılıyor.
 
 						case EnumFTM_TaskPlansTaskCreationTime.AyOnce:
-							Log.Info("Aşama 7 Ay Önce");
 
 							schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(30)).ToArray();
 							if (schedulerModel.TaskPlan._TaskList.Any())
@@ -103,7 +94,6 @@ namespace Infoline.WorkOfTime.Agent
 
 							break;
 						case EnumFTM_TaskPlansTaskCreationTime.HaftaOnce:
-							Log.Info("Aşama 7 Hafta Önce");
 
 							schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(7)).ToArray();
 							if (schedulerModel.TaskPlan._TaskList.Any())
@@ -121,7 +111,6 @@ namespace Infoline.WorkOfTime.Agent
 							break;
 						case EnumFTM_TaskPlansTaskCreationTime.GunOnce:
 						case EnumFTM_TaskPlansTaskCreationTime.Gununde:
-							Log.Info("Aşama 7 Gününde");
 
 							schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(1)).ToArray();
 							if (schedulerModel.TaskPlan._TaskList.Any())
@@ -146,35 +135,28 @@ namespace Infoline.WorkOfTime.Agent
 
 				foreach (var schedule in creationTasks)
 				{
-					Log.Info("Aşama 8");
 
 					var model = new VMFTM_TaskModel { db = this._db };
 					if (schedule.TemplateModel.taskTemplateInventories.Count() == 0)
 					{
-						Log.Info("Aşama 9");
 
 						foreach (var task in schedule.TaskPlan._TaskList)
 						{
-							Log.Info("Aşama 10");
 
 							var _task = model.B_EntityDataCopyForMaterial(task.B_ConvertType<FTM_Task>())
 								.AppendObjectToOther(schedule.TemplateModel);
-							Log.Info("Aşama 11");
 
 							_task.id = Guid.NewGuid();
 							_task.FTM_TaskSubjectTypeIds = schedule.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
-							Log.Info("Aşama 12");
 
 							dbRes &= _task.InsertAll(Guid.Empty);
 							if (dbRes.result)
 							{
-								Log.Info("Aşama 13 Başarılı");
 
 								counts[0]++;
 							}
 							else
 							{
-								Log.Info("Aşama 13 Başarısız");
 
 								counts[1]++;
 							}
@@ -185,7 +167,6 @@ namespace Infoline.WorkOfTime.Agent
 					{
 						foreach (var inventoryId in schedule.TemplateModel.taskTemplateInventories)
 						{
-							Log.Info("Aşama 9");
 
 							foreach (var task in schedule.TaskPlan._TaskList)
 							{
@@ -193,25 +174,20 @@ namespace Infoline.WorkOfTime.Agent
 									.B_ConvertType<FTM_Task>()
 									.B_ConvertType<VMFTM_TaskModel>()
 									.AppendObjectToOther(schedule.TemplateModel);
-								Log.Info("Aşama 10");
 
 								_task.id = Guid.NewGuid();
 								_task.fixtureId = inventoryId.inventoryId;
 								_task.FTM_TaskSubjectTypeIds = schedule.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
-								Log.Info("Aşama 11");
 
 								dbRes &= _task.InsertAll(Guid.Empty);
-								Log.Info("Aşama 12");
 
 								if (dbRes.result)
 								{
-									Log.Info("Aşama 13 Başarılı");
 
 									counts[0]++;
 								}
 								else
 								{
-									Log.Info("Aşama 13 Başarısız");
 
 									counts[1]++;
 								}
