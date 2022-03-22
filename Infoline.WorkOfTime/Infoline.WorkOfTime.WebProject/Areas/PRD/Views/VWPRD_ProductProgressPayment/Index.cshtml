@@ -31,22 +31,17 @@
     }
     $(document)
         .on("selected:grid", "#VWPRD_ProductProgressPaymentMix", function (e, res) {
-            $('[data-button="mixApprove"]').hide();
-            if (res.isActivated == true && res.isInventory == true) {
-                $('[data-button="mixApprove"]').show();
-            }
-            else {
-                $('[data-button="mixApprove"]').hide();
-            }
+            var grid = $('#VWPRD_ProductProgressPaymentMix').data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).source;
+            $('[data-button="mixApprove"]')
+                .attr("data-href", "/PRD/VWPRD_ProductProgressPayment/Approve?ids=" + _selectedRows.join(","));
+            
         })
         .on("selected:grid", "#VWPRD_ProductProgressPaymentOperator", function (e, res) {
-            $('[data-button="operatorApprove"]').hide();
-            if (res.isActivated == true && res.isInventory == true) {
-                $('[data-button="operatorApprove"]').show();
-            }
-            else {
-                $('[data-button="operatorApprove"]').hide();
-            }
+            var grid = $('#VWPRD_ProductProgressPaymentOperator').data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).source;
+            $('[data-button="operatorApprove"]')
+                .attr("data-href", "/PRD/VWPRD_ProductProgressPayment/Approve?ids=" + _selectedRows.join(","));
         })
 </script>
 
@@ -68,6 +63,7 @@
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceMix", "VWPRD_ProductProgressPayment", new { area = "PRD" })).Filter(a => a.isProgressPayment == (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approving && a.CMPTypes_Title.Contains("Bayi") && a.CMPTypes_Title.Contains("Mix")).PageSize(25))
     .Columns(x =>
     {
+        x.Bound(y => y.id).Hidden(true);
         x.Bound(y => y.companyId_Title).Title("Bayi Adı").Width(180);
         x.Bound(y => y.productId_Title).Title("Ürün Adı").Width(180);
         x.Bound(y => y.imei).Title("Imei").Width(180);
@@ -77,7 +73,7 @@
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
     .ToolBar(x =>
     {
-        x.Custom().Text("<i data-original-title='Satış Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-button", "mixApprove" }, { "data-ask", "Satışı Onaylamak İstediğinizden Emin Misiniz ?" } }).Url(Url.Action("Approve", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Satış Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-button", "mixApprove" }, { "data-ask", "Satışı Onaylamak İstediğinizden Emin Misiniz ?" } }).Url(Url.Action("Approve", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
     }))
             </div>
         </div>
@@ -101,6 +97,7 @@
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceOperator", "VWPRD_ProductProgressPayment", new { area = "PRD" })).Filter(a=>a.isProgressPayment == (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approving &&a.CMPTypes_Title.Contains("Bayi") && !(a.CMPTypes_Title.Contains("Mix"))).PageSize(25))
     .Columns(x =>
     {
+        x.Bound(y => y.id).Hidden(true);
         x.Bound(y => y.companyId_Title).Title("Bayi Adı").Width(180);
         x.Bound(y => y.productId_Title).Title("Ürün Adı").Width(180);
         x.Bound(y => y.imei).Title("Imei").Width(180);
@@ -111,7 +108,7 @@
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
     .ToolBar(x =>
     {
-        x.Custom().Text("<i data-original-title='Satış Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-button", "operatorApprove" },{"data-ask","Satışı Onaylamak İstediğinizden Emin Misiniz ?" } }).Url(Url.Action("Approve", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Satış Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-button", "operatorApprove" },{"data-ask","Satışları Onaylamak İstediğinizden Emin Misiniz ?" } }).Url(Url.Action("Approve", "VWPRD_ProductProgressPayment", new { area = "PRD" }));
     }))
             </div>
         </div>

@@ -47,10 +47,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result;
         }
 
-        public ResultStatus Save(Guid? userId, HttpRequestBase request = null, DbTransaction trans = null)
+        public ResultStatus Save(Guid? userId,Guid? id, HttpRequestBase request = null, DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
-            var progressPayment = db.GetVWPRD_ProductProgressPaymentById(this.id);
+            var progressPayment = db.GetVWPRD_ProductProgressPaymentById(id.Value);
             var rs = new ResultStatus { result = true };
             if (progressPayment != null)
             {
@@ -61,7 +61,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
                 this.createdby = userId;
                 this.created = DateTime.Now;
+                this.id = progressPayment.id;
                 rs = Approve(userId, trans);
+            }
+            else
+            {
+                rs.message = "Satış Bulunamadı.";
+                rs.result = false;
             }
             return rs;
         }

@@ -4,7 +4,7 @@
     var userStatus = (PageSecurity)Session["userStatus"];
 }
 <script type="text/x-kendo-template" id="template">
-    <a  data-href="" data-button="ApprovedBut" id="ApprovedButton" data-ask="Hakedişi Onaylamak İstiyor Musunuz?"   data-method="GET" data-show="single" class="k-button hidden"><i class="fa fa-check" data-original-title="Ödendi Yap"></i></a>
+    <a  data-href="" data-button="ApprovedBut" id="ApprovedButton" data-ask="Hakedişi Onaylamak İstiyor Musunuz?"   data-method="GET" data-show="always" class="k-button"><i class="fa fa-check" data-original-title="Ödendi Yap"></i></a>
     <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
     <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span></a>
 </script>
@@ -13,15 +13,15 @@
         <div class="col-sm-12">
             <div class="ibox-content clearfix">
                 <div class="col-sm-6">
-                    <label class="req">Bayi Seçiniz</label>
+                    <label class="req">Hakedişi Olan Bayi Seçiniz</label>
                     @(
                        Html.Akilli()
                        .DropDownList("companyId")
-                       .OptionLabel("Lütfen Firma Cari seçiniz..")
+                       .OptionLabel("Lütfen Bayi seçiniz..")
                        .DataValueField("id")
                        .DataTextField("fullName")
                        .Template("#=TemplateEngine('companyTemplate',data)#")
-                       .Action(b => b.Action("DataSourceDropDownBayi", "VWCMP_Company", new { area = "CMP" }))
+                       .Action(b => b.Action("DataSourceDropDownPaymentBayi", "VWPRD_ProductPayment", new { area = "PRD" }))
                        .Sort(x => x.Add("fullName").Ascending())
                        .Validate(Validations.Required)
                        .Value(userStatus.user.CompanyId.ToString())
@@ -124,13 +124,14 @@
     var page = {
         qButton: $("queryButton"),
         load: function () {
+            debugger;
             var companyId = null;
             var company = null;
             companyId = $("#companyId").data("kendoDropDownList").dataItem();
             company = companyId.id;
             var month = $("#month").data("kendoDropDownList").dataItem();
             var year = $("#year").data("kendoDropDownList").dataItem();
-            var validate = page.inputValidate(month, year);
+            var validate = page.inputValidate(companyId, month, year);
             if (validate.length > 0) {
                 return;
             }
@@ -179,23 +180,17 @@
                     height: 580,
                     sortable: true,
                     resizable: true,
-                    selectable: 'single',
+                    selectable: 'multiple',
                     pageable: {
                         refresh: true,
                         pageSizes: true,
                         buttonCount: 5
                     },
                     change: function (e, resp) {
-                        $('#ApprovedButton').removeClass('hidden')
-                        var grid = $("#totalGrid").data("kendoGrid");
-                        var selectedItem = grid.dataItem(grid.select());
-                        if (selectedItem.hasThePayment == 1) {
-                            $('[data-button="ApprovedBut"]').hide();
-                        }
-                        else {
-                            $('[data-button="ApprovedBut"]').show();
-                        }
-                        $('[data-button="ApprovedBut"]').attr('data-href', '/PRD/VWPRD_ProductPayment/Approve?id=' + selectedItem.id + '');
+                        var grid = $('#totalGrid').data("kendoGrid");
+                        var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).source;
+                        $('[data-button="ApprovedBut"]')
+                            .attr("data-href", "/PRD/VWPRD_ProductPayment/Approve?ids=" + _selectedRows.join(","));
                     },
                     columns: totalCols
                 });
@@ -206,7 +201,7 @@
                 $("#ProductCount").text(kendo.toString(data.length != 0 ? data[0].totalQuantity : 0, "N0") + " Adet");
             });
         },
-        inputValidate: function (month, year) {
+        inputValidate: function (companyId, month, year) {
             var errorList = [];
             if (companyId == undefined || companyId.id == '') {
                 errorList.push("Bayi Boş Olamaz");
@@ -226,7 +221,7 @@
     $(document).on("success:swal", "#ApprovedButton", function () {
         setTimeout(function () {
             page.load()
-        },100)
+        }, 100)
     })
 
 </script>

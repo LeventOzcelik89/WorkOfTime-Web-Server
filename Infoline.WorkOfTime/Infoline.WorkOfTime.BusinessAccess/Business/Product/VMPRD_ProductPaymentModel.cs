@@ -28,18 +28,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
-        public ResultStatus Approve(VMPRD_ProductPaymentModel model,Guid? userId)
+        public ResultStatus Approve(VMPRD_ProductPaymentModel model, Guid id, Guid? userId)
         {
             db = db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
-            var data = db.GetPRD_ProductPaymentById(model.id);
-            if (data==null)
+            if (id == null)
             {
                 result.result = false;
                 result.message = "Hakediş Bulunamadı.";
                 return result;
             }
-            if (data.hasThePayment==(int)EnumPRD_PRD_ProductPaymentHasThePayment.paid)
+            model.id = id;
+            var data = db.GetPRD_ProductPaymentById(model.id);
+            if (data == null)
+            {
+                result.result = false;
+                result.message = "Hakediş Bulunamadı.";
+                return result;
+            }
+            if (data.hasThePayment == (int)EnumPRD_PRD_ProductPaymentHasThePayment.paid)
             {
                 result.result = false;
                 result.message = "Hakediş Daha Önce Onaylanmış.";
