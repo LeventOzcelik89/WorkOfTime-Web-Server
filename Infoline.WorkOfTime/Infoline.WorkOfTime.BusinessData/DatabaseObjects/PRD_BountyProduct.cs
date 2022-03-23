@@ -10,5 +10,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? inventoryId { get; set;}
         public double? price { get; set;}
         public string imei { get; set;}
+        public DateTime? salesDate { get; set;}
     }
 }

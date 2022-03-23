@@ -11,5 +11,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? additionalPrice { get; set;}
         public DateTime? paymentDate { get; set;}
         public short? status { get; set;}
+        public double? totalPrice { get; set;}
     }
 }

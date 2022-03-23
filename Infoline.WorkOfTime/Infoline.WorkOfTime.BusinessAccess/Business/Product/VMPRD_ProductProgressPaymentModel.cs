@@ -17,6 +17,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private DbTransaction trans { get; set; }
         public double? count { get; set; } = 0;
         public double? price { get; set; } = 0;
+        public double? additionalPrice { get; set; } = 0;
+        public Guid productBonusId { get; set; }
 
         public VMPRD_ProductProgressPaymentModel Load()
         {
@@ -77,7 +79,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var result = new ResultStatus { result = true };
             var dbResult = new ResultStatus { result = true };
             var progressPayment = db.GetPRD_ProductProgressPaymentById(this.id);
-            result = PaymentBounty(progressPayment,userId);
+            result = PaymentBounty(progressPayment, userId);
             if (result.result)
             {
                 progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approved;
@@ -86,7 +88,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result;
         }
 
-        public ResultStatus PaymentBounty(PRD_ProductProgressPayment model,Guid? userId) 
+        public ResultStatus PaymentBounty(PRD_ProductProgressPayment model, Guid? userId)
         {
             db = db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
@@ -94,32 +96,52 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var productBonusPrice = db.GetVWPRD_ProductBonusPrice();
             foreach (var item in productBonus)
             {
-                if (model.date >= item.startDate && model.date <= item.endDate)
+                var start = item.startDate.Value.ToString("yyyy-MM-dd HH:mm");
+                var end = item.endDate.Value.ToString("yyyy-MM-dd HH:mm");
+                var data = db.GetPRD_BountyProductExistByDataQuery(item.query, model.productId, start, end);
+                if (data.Count() > 0)
                 {
-                    var start = item.startDate.Value.ToString("yyyy-MM-dd HH:mm");
-                    var end = item.endDate.Value.ToString("yyyy-MM-dd HH:mm");
-                    var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query, model.productId, start, end);
-                    if (data.Count() > 0)
-                    {
-                        var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == model.productId).FirstOrDefault();
-                        this.price = this.price + (bonusPrice.unitPrice);
-                    }
+                    var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == model.productId).FirstOrDefault();
+                    this.price = this.price + (bonusPrice.unitPrice);
+                    this.additionalPrice = bonusPrice.present;
+                    this.productBonusId = item.id;
                 }
             }
-
-            var productPayment = new PRD_ProductPayment
+            var existBountyProduct = db.GetPRD_BountyProductByProductBonus(this.productBonusId);
+            if (existBountyProduct != null)
             {
-                created = DateTime.Now,
-                createdby = userId,
-                totalPrice = this.price,
-                date = model.date,
-                id = Guid.NewGuid(),
-                productId = model.productId,
-                companyId = model.companyId,
-                productProgressPaymentId = model.id,
-                hasThePayment = (int)EnumPRD_PRD_ProductPaymentHasThePayment.notPaid,
-            };
-            result = db.InsertPRD_ProductPayment(productPayment);
+                var bounty = new PRD_Bounty
+                {
+                    created = DateTime.Now,
+                    createdby = userId,
+                    productTotalPrice = this.price,
+                    additionalPrice = this.additionalPrice,
+                    totalPrice = this.price + this.additionalPrice,
+                    companyId = model.companyId,
+                    id = Guid.NewGuid(),
+                    paymentDate = DateTime.Now,
+                    productBonusId = this.productBonusId,
+                    status = (int)EnumPRD_BountyStatus.notPayment,
+                };
+                var bountyProduct = new PRD_BountyProduct
+                {
+                    id = Guid.NewGuid(),
+                    bountyId = bounty.id,
+                    imei = model.imei,
+                    price = this.price,
+                    productId = model.productId,
+                    salesDate = model.date,
+                };
+
+            }
+            else
+            {
+                var bountyProducts = db.GetPRD_BountyProductsByProductBonus(existBountyProduct.productBonusId.Value);
+                foreach (var item in bountyProducts)
+                {
+                    item.productBonusId = this.productBonusId;
+                }
+            }
             return result;
         }
         public static SimpleQuery UpdateDataSourceFilterMix(SimpleQuery query, PageSecurity userStatus)

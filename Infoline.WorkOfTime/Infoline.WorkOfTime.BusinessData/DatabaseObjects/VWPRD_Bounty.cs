@@ -11,9 +11,11 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? additionalPrice { get; set;}
         public DateTime? paymentDate { get; set;}
         public short? status { get; set;}
+        public double? totalPrice { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string productBonusId_Title { get; set;}
         public string companyId_Title { get; set;}
+        public string status_Title { get; set;}
     }
 }
