@@ -36,17 +36,21 @@ namespace System.Web.Mvc
             public string Description { get; set; }
             public string Info { get; set; }
         }
+
         public static string GetSchema(Type excelClass, string tableName = "")
         {
             return Infoline.Helper.Json.Serialize(GetColumnInfo(excelClass, tableName));
         }
+
         public static ColumnInfo[] GetColumnInfo(Type excelClass, string tableName = "")
         {
+
             var list = new List<ColumnInfo>();
             foreach (var item in excelClass.GetProperties().OrderBy(a => a.MetadataToken))
             {
                 var column = new ColumnInfo();
                 column.Name = item.Name;
+
                 if (item.PropertyType.IsGenericType && item.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
                     column.Type = item.PropertyType.GetGenericArguments()[0].Name;
@@ -55,25 +59,32 @@ namespace System.Web.Mvc
                 {
                     column.Type = item.PropertyType.Name;
                 }
+
                 column.Alias = item.GetCustomAttribute<ColumnInfoAttribute>().Alias;
                 column.DefaultValue = item.GetCustomAttribute<ColumnInfoAttribute>().DefaultValue;
                 column.Required = item.GetCustomAttribute<ColumnInfoAttribute>().Required;
                 column.Unique = item.GetCustomAttribute<ColumnInfoAttribute>().IsUnique;
                 column.Info = item.GetCustomAttribute<ColumnInfoAttribute>().Info;
+
                 if (column.Type == "DateTime")
                 {
                     column.Description = " Örnek : (12.03.1996)";
                 }
+
                 if (column.Type == "Double")
                 {
                     column.Description = " Örnek : (1234.45)";
                 }
+
                 if (column.Type == "Boolean")
                 {
                     column.Description = " (1 veya 0)";
                 }
+
+
                 list.Add(column);
             }
+
             if (!string.IsNullOrEmpty(tableName) && TenantConfig.Tenant.Config.CustomProperty.ContainsKey(tableName))
             {
                 var props = TenantConfig.Tenant.Config.CustomProperty[tableName];
