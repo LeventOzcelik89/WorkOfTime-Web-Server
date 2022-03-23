@@ -70,18 +70,25 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             try
             {
                 var db = new WorkOfTimeDatabase();
-                var barcode = context.Request["barcode"];
-                var productData = db.GetVWPRD_ProductByCode(barcode);
+                string[] barcodes = context.Request["barcode"].Split(',');
+
+                if(barcodes.Length == 0)
+                {
+                    RenderResponse(context, new ResultStatus() { result = false, message = "Lütfen Kod Giriniz" });
+                }
+
+
+                var productData = db.GetVWPRD_ProductByCode(barcodes[0]);
                 if (productData != null)
                 {
                     RenderResponse(context, new { stocktakingItemType = 0, data = productData });
                 }
                 else
                 {
-                    var inventoryData = db.GetVWPRD_InventoryBySerialOrCode(barcode);
-                    if (inventoryData != null)
+                    var inventoryData = db.GetVWPRD_InventoryBySerialCodesOrCodes(barcodes);
+                    if (inventoryData.Length > 0)
                     {
-                        RenderResponse(context, new { stocktakingItemType = 1, data = inventoryData });
+                        RenderResponse(context, new { stocktakingItemType = 1, data = inventoryData.GroupBy(a => a.productId).FirstOrDefault().ToArray() });
                     }
                     else
                     {

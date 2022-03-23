@@ -122,5 +122,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWPRD_Inventory[] GetVWPRD_InventoryBySerialCodesOrCodes(string[] codes, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_Inventory>().Where(x => x.serialcode.In(codes) || x.code.In(codes)).Execute().ToArray();
+            }
+        }
+
     }
 }
