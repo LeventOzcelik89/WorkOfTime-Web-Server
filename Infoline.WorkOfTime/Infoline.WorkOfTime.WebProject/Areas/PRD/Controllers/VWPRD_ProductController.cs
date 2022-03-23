@@ -177,7 +177,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var enumBarcodeTypeArray = EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductbarcodeType>().ToArray();
 
 			var products = Helper.Json.Deserialize<PRD_ProductExcel[]>(model);
-			var uniqueColumn = ExcelImportHelper.GetColumnInfo(typeof(PRD_ProductExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
+			var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(PRD_ProductExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
 
 			var currencyTL = currenciesDB.Where(a => a.code.Replace(" ", "").ToLower(culture) == "TL".ToLower(culture)).FirstOrDefault();
 

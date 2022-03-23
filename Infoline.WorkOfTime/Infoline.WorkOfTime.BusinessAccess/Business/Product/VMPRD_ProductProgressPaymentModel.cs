@@ -75,19 +75,33 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
+            var dbResult = new ResultStatus { result = true };
             var progressPayment = db.GetPRD_ProductProgressPaymentById(this.id);
+            result = PaymentBounty(progressPayment,userId);
+            if (result.result)
+            {
+                progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approved;
+                dbResult = db.UpdatePRD_ProductProgressPayment(progressPayment);
+            }
+            return result;
+        }
+
+        public ResultStatus PaymentBounty(PRD_ProductProgressPayment model,Guid? userId) 
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
             var productBonus = db.GetVWPRD_ProductBonus();
             var productBonusPrice = db.GetVWPRD_ProductBonusPrice();
             foreach (var item in productBonus)
             {
-                if (progressPayment.date >= item.startDate && progressPayment.date <= item.endDate)
+                if (model.date >= item.startDate && model.date <= item.endDate)
                 {
                     var start = item.startDate.Value.ToString("yyyy-MM-dd HH:mm");
                     var end = item.endDate.Value.ToString("yyyy-MM-dd HH:mm");
-                    var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query, progressPayment.productId, start, end);
+                    var data = db.GetPRD_ProductProgressPaymentExistByDataQuery(item.query, model.productId, start, end);
                     if (data.Count() > 0)
                     {
-                        var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == progressPayment.productId).FirstOrDefault();
+                        var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == model.productId).FirstOrDefault();
                         this.price = this.price + (bonusPrice.unitPrice);
                     }
                 }
@@ -98,19 +112,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 created = DateTime.Now,
                 createdby = userId,
                 totalPrice = this.price,
-                date = progressPayment.date,
+                date = model.date,
                 id = Guid.NewGuid(),
-                productId = progressPayment.productId,
-                companyId = progressPayment.companyId,
-                productProgressPaymentId = progressPayment.id,
+                productId = model.productId,
+                companyId = model.companyId,
+                productProgressPaymentId = model.id,
                 hasThePayment = (int)EnumPRD_PRD_ProductPaymentHasThePayment.notPaid,
             };
             result = db.InsertPRD_ProductPayment(productPayment);
-            if (result.result)
-            {
-                progressPayment.isProgressPayment = (int)EnumPRD_ProductProgressPaymentIsProgressPayment.approved;
-                var dbresult = db.UpdatePRD_ProductProgressPayment(progressPayment);
-            }
             return result;
         }
         public static SimpleQuery UpdateDataSourceFilterMix(SimpleQuery query, PageSecurity userStatus)

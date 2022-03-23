@@ -310,7 +310,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 additionalProperties = TenantConfig.Tenant.Config.CustomProperty["CMP_Company"];
             }
-            var uniqueColumn = ExcelImportHelper.GetColumnInfo(typeof(CMP_CompanyExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
+            var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(CMP_CompanyExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
             var existError = new List<ExcelResult>();
             var excelResult = new ExcelResult
             {
@@ -527,7 +527,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var excelCompanies = Helper.Json.Deserialize<CMP_OtherCompanyExcel[]>(model);
             var additionalKeyValuePairs = Helper.Json.Deserialize<List<Dictionary<string, string>>>(model);
             var additionalProperties = new string[] { };
-            var uniqueColumn = ExcelImportHelper.GetColumnInfo(typeof(CMP_OtherCompanyExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
+            var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(CMP_OtherCompanyExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
             if (TenantConfig.Tenant.Config.CustomProperty.ContainsKey("CMP_Company"))
             {
                 additionalProperties = TenantConfig.Tenant.Config.CustomProperty["CMP_Company"];

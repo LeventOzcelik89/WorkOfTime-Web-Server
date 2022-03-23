@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             var excelDatas = Helper.Json.Deserialize<PRD_StockTaskPlanExcel[]>(model);
 
-            var uniqueColumn = ExcelImportHelper.GetColumnInfo(typeof(PRD_StockTaskPlanExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
+            var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(PRD_StockTaskPlanExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
 
             var existError = new List<ExcelResult>();
             var excelResult = new ExcelResult

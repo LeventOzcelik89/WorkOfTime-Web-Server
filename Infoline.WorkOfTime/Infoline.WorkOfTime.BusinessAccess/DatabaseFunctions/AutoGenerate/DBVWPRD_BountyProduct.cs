@@ -14,56 +14,56 @@ namespace Infoline.WorkOfTime.BusinessAccess
     partial class WorkOfTimeDatabase
     {
         /// <summary>
-        /// VWSYS_BlockMail tablosundan tüm kayıtları çeken fonksiyondur
+        /// VWPRD_BountyProduct tablosundan tüm kayıtları çeken fonksiyondur
         /// </summary>
         /// <param name="tran">Mevcut dışında farklı bir transection kullanılacak ise bu parametreye gönderilir.</param>
-        /// <returns>VWSYS_BlockMail dizi objesini geri döndürür.</returns>
-        public VWSYS_BlockMail[] GetVWSYS_BlockMail(DbTransaction tran = null)
+        /// <returns>VWPRD_BountyProduct dizi objesini geri döndürür.</returns>
+        public VWPRD_BountyProduct[] GetVWPRD_BountyProduct(DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWSYS_BlockMail>().OrderByDesc(a => a.created).Execute().ToArray();
+                return db.Table<VWPRD_BountyProduct>().OrderByDesc(a => a.created).Execute().ToArray();
             }
         }
 
         /// <summary>
-        /// VWSYS_BlockMail tablosundan simpleQuery objesi filtresi sonucunda gelen kayıtları çeken fonksiyondur. Sayfa giridnde kullanılmaktadır.
+        /// VWPRD_BountyProduct tablosundan simpleQuery objesi filtresi sonucunda gelen kayıtları çeken fonksiyondur. Sayfa giridnde kullanılmaktadır.
         /// </summary>
         /// <param name="simpleQuery">Filtre parametreleri olarak obje doldurularak gönderilir.</param>
         /// <param name="tran">Mevcut dışında farklı bir transection kullanılacak ise bu parametreye gönderilir.</param>
-         /// <returns>Filtre Sonucu VWSYS_BlockMail dizi objesini geri döndürür.</returns>
-        public VWSYS_BlockMail[] GetVWSYS_BlockMail(SimpleQuery simpleQuery, DbTransaction tran = null)
+         /// <returns>Filtre Sonucu VWPRD_BountyProduct dizi objesini geri döndürür.</returns>
+        public VWPRD_BountyProduct[] GetVWPRD_BountyProduct(SimpleQuery simpleQuery, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
 
-                return db.Table<VWSYS_BlockMail>().ExecuteSimpleQuery(simpleQuery).ToArray();
+                return db.Table<VWPRD_BountyProduct>().ExecuteSimpleQuery(simpleQuery).ToArray();
             }
         }
         /// <summary>
-        /// VWSYS_BlockMail tablosundan BEXP Objesi filtresi sonucunda gelen kayıtların toplam adedini veren fonksiyondur.
+        /// VWPRD_BountyProduct tablosundan BEXP Objesi filtresi sonucunda gelen kayıtların toplam adedini veren fonksiyondur.
         /// </summary>
         /// <param name="conditionExpression">Filtre parametreleri olarak obje doldurularak gönderilir.</param>
         /// <returns>Filtre Sonucu Tablo adedini döndürür, sayı(int) olarak.</returns>
-        public int GetVWSYS_BlockMailCount(BEXP conditionExpression)
+        public int GetVWPRD_BountyProductCount(BEXP conditionExpression)
         {
             using (var db = GetDB())
             {
-                return db.Table("VWSYS_BlockMail").Where(conditionExpression).Count();
+                return db.Table("VWPRD_BountyProduct").Where(conditionExpression).Count();
             }
         }
         /// <summary>
-        /// VWSYS_BlockMail tablosundan, id si gönderilen kaydın bilgilerini döndüren fonksiyondur.
+        /// VWPRD_BountyProduct tablosundan, id si gönderilen kaydın bilgilerini döndüren fonksiyondur.
         /// </summary>
-        /// <param name="id">VWSYS_BlockMail tablo id'si verilir.</param>
+        /// <param name="id">VWPRD_BountyProduct tablo id'si verilir.</param>
         /// <param name="tran">Mevcut dışında farklı bir transection kullanılacak ise bu parametreye gönderilir.</param>
-        /// <returns>Filtre Sonucu VWSYS_BlockMail Objesini geri döndürür.</returns>
-        public VWSYS_BlockMail GetVWSYS_BlockMailById(Guid id, DbTransaction tran = null)
+        /// <returns>Filtre Sonucu VWPRD_BountyProduct Objesini geri döndürür.</returns>
+        public VWPRD_BountyProduct GetVWPRD_BountyProductById(Guid id, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
 
             {
-                return db.Table<VWSYS_BlockMail>().Where(a => a.id == id).Execute().FirstOrDefault();
+                return db.Table<VWPRD_BountyProduct>().Where(a => a.id == id).Execute().FirstOrDefault();
             }
         }
 
