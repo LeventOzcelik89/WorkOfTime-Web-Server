@@ -140,8 +140,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             {
                 Log.Error("GENPA : " + e.ToString());
             };
-            var db = GetDbConnection();
-            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in directoryItems)
             {
@@ -252,6 +250,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.InventoryId = inventory?.id;
                         item.CustomerOperatorId = company;
                         sellThrs.Add(item);
+                        if (!string.IsNullOrEmpty(message))
+                        {
+                            NotificationLogger.SaveError(DateTime.Now, message, item);
+                        }
                     }
                     catch (Exception e)
                     {
