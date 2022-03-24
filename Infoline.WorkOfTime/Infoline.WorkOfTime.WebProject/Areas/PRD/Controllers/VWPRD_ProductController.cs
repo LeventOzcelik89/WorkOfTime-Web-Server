@@ -154,6 +154,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
+		[AllowEveryone]
+		[PageInfo("Ürün QR Kodlarının Yazdırılması", SHRoles.Personel)]
+		public ActionResult PrintQrCodes([DataSourceRequest] DataSourceRequest request, int? type = 4, int? isLogo = 1)
+		{
+			var model = new List<VWPRD_Product>();
+			try
+			{
+				var db = new WorkOfTimeDatabase();
+				request.Page = 1;
+				request.PageSize = int.MaxValue;
+				var condition = KendoToExpression.Convert(request);
+				model = db.GetVWPRD_Product(condition).ToList();
+				ViewBag.type = type;
+				ViewBag.logo = isLogo;
+			}
+			catch { }
+
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/Default/PrintQrCodes.cshtml", model);
+		}
+
 		[HttpPost]
 		[PageInfo("Excel'den Ürün Ekleme", SHRoles.DepoSorumlusu, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
 		public JsonResult Import(string model)

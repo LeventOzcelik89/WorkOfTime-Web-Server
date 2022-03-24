@@ -25,5 +25,11 @@ namespace Infoline.WorkOfTime.BusinessData
         public string taskCreationTime_Title { get; set;}
         public string templateId_Title { get; set;}
         public Guid? customerId { get; set;}
+        public short? taskType { get; set;}
+        public string helperUserIds { get; set;}
+        public string assignableUserIds { get; set;}
+        public string customerId_Title { get; set;}
+        public Guid? customerStorageId { get; set;}
+        public int? estimatedTaskMinute { get; set;}
     }
 }
