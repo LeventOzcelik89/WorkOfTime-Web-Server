@@ -163,13 +163,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (result.result == true)
             {
                 if (trans == null) transaction.Commit();
-                return new ResultStatus { result = true, message = "Hakediş Güncelleme işlemi başarılı." };
+                return new ResultStatus { result = true, message = "Temlik tanımlama işlemi başarılı." };
             }
             else
             {
                 Log.Error(result.message);
                 if (trans == null) transaction.Rollback();
-                return new ResultStatus { result = false, message = "Hakediş Güncelleme işlemi başarısız." };
+                return new ResultStatus { result = false, message = "Temlik tanımlama işlemi başarısız." };
             }
         }
         public ResultStatus Delete(DbTransaction trans = null)
@@ -180,7 +180,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var productImport = db.GetPRD_ProductBonusById(this.id);
             if (productImport == null)
             {
-                return new ResultStatus { result = false, message = "Hakediş zaten silinmiş." };
+                return new ResultStatus { result = false, message = "Temlik zaten silinmiş." };
             }
             dbres &= db.DeletePRD_ProductProgressPaymentImport(productImport.id);
             if (dbres.result == true)
@@ -189,7 +189,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Hakediş silme işlemi başarılı oldu."
+                    message = "Temlik silme işlemi başarılı oldu."
                 };
             }
             else
@@ -199,7 +199,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Hakediş silme işlemi başarısız oldu."
+                    message = "Temlik silme işlemi başarısız oldu."
                 };
             }
         }

@@ -40,12 +40,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 result.result = false;
                 return result;
             }
-            if (model.isInventory == null || model.isInventory == false)
-            {
-                result.message = "Ürünün envanterde karşılığı bulunmamaktadır.";
-                result.result = false;
-                return result;
-            }
             return result;
         }
 
