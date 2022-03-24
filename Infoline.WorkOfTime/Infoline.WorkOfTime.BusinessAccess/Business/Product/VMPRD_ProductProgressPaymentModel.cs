@@ -96,52 +96,44 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var productBonusPrice = db.GetVWPRD_ProductBonusPrice();
             foreach (var item in productBonus)
             {
-                var start = item.startDate.Value.ToString("yyyy-MM-dd HH:mm");
-                var end = item.endDate.Value.ToString("yyyy-MM-dd HH:mm");
-                var data = db.GetPRD_BountyProductExistByDataQuery(item.query, model.productId, start, end);
-                if (data.Count() > 0)
+                if (model.date >= item.startDate && model.date <= item.endDate)
                 {
-                    var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == model.productId).FirstOrDefault();
-                    this.price = this.price + (bonusPrice.unitPrice);
-                    this.additionalPrice = bonusPrice.present;
-                    this.productBonusId = item.id;
+                    var start = item.startDate.Value.ToString("yyyy-MM-dd HH:mm");
+                    var end = item.endDate.Value.ToString("yyyy-MM-dd HH:mm");
+                    var data = db.GetPRD_BountyProductExistByDataQuery(item.query, model.productId, start, end);
+                    if (data.Count() > 0)
+                    {
+                        var bonusPrice = productBonusPrice.Where(a => a.productBonusId == item.id && a.productId == model.productId).FirstOrDefault();
+                        this.price = this.price + (bonusPrice.unitPrice);
+                        this.additionalPrice = bonusPrice.present;
+                        this.productBonusId = item.id;
+                    }
                 }
             }
-            var existBountyProduct = db.GetPRD_BountyProductByProductBonus(this.productBonusId);
-            if (existBountyProduct != null)
+            var bounty = new PRD_Bounty
             {
-                var bounty = new PRD_Bounty
-                {
-                    created = DateTime.Now,
-                    createdby = userId,
-                    productTotalPrice = this.price,
-                    additionalPrice = this.additionalPrice,
-                    totalPrice = this.price + this.additionalPrice,
-                    companyId = model.companyId,
-                    id = Guid.NewGuid(),
-                    paymentDate = DateTime.Now,
-                    productBonusId = this.productBonusId,
-                    status = (int)EnumPRD_BountyStatus.notPayment,
-                };
-                var bountyProduct = new PRD_BountyProduct
-                {
-                    id = Guid.NewGuid(),
-                    bountyId = bounty.id,
-                    imei = model.imei,
-                    price = this.price,
-                    productId = model.productId,
-                    salesDate = model.date,
-                };
-
-            }
-            else
+                created = DateTime.Now,
+                createdby = userId,
+                productTotalPrice = this.price,
+                additionalPrice = this.additionalPrice,
+                totalPrice = this.price + this.additionalPrice,
+                companyId = model.companyId,
+                id = Guid.NewGuid(),
+                paymentDate = DateTime.Now,
+                productBonusId = this.productBonusId,
+                status = (int)EnumPRD_BountyStatus.notPayment,
+            };
+            var bountyProduct = new PRD_BountyProduct
             {
-                var bountyProducts = db.GetPRD_BountyProductsByProductBonus(existBountyProduct.productBonusId.Value);
-                foreach (var item in bountyProducts)
-                {
-                    item.productBonusId = this.productBonusId;
-                }
-            }
+                id = Guid.NewGuid(),
+                bountyId = bounty.id,
+                imei = model.imei,
+                price = this.price,
+                productId = model.productId,
+                salesDate = model.date,
+            };
+            result &= db.InsertPRD_Bounty(bounty);
+            result &= db.InsertPRD_BountyProduct(bountyProduct);
             return result;
         }
         public static SimpleQuery UpdateDataSourceFilterMix(SimpleQuery query, PageSecurity userStatus)

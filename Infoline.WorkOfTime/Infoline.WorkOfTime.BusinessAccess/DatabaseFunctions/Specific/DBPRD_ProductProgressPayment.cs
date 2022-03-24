@@ -27,10 +27,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB())
             {
                 var query = $@"Select * from(
-                               Select companyId, productId, count(*) as quantity,CAST(MONTH(salesDate) AS VARCHAR(2)) +'-' + CAST(YEAR(salesDate) AS VARCHAR(4)) AS dates 
-                               from VWPRD_BountyProduct 
-                               Group by companyId, productId,CAST(MONTH(salesDate) AS VARCHAR(2)) +'-' + CAST(YEAR(salesDate) AS VARCHAR(4))) as b 
-                               where " + dataQuery + " and dates between CAST(MONTH('" + startDate + "') AS VARCHAR(2)) + '-' + CAST(YEAR('" + startDate + "') AS VARCHAR(4)) and CAST(MONTH('" + endDate + "') AS VARCHAR(2)) + '-' + CAST(YEAR('" + endDate + "') AS VARCHAR(4))";
+                               select companyId, productId, CAST(MONTH(date) AS VARCHAR(2)) +'-' + CAST(YEAR(date) AS VARCHAR(4)) AS dates, count(*) as quantity from PRD_ProductProgressPayment Group by companyId, productId, CAST(MONTH(date) AS VARCHAR(2)) +'-' + CAST(YEAR(date) AS VARCHAR(4))) as b" +
+                            " where b.productId = '" + productId + "' and " + dataQuery + " and dates between CAST(MONTH('" + startDate + "') AS VARCHAR(2)) + '-' + CAST(YEAR('" + startDate + "') AS VARCHAR(4)) and CAST(MONTH('" + endDate + "') AS VARCHAR(2)) + '-' + CAST(YEAR('" + endDate + "') AS VARCHAR(4))";
                 var queryExecute = db.ExecuteReader<PRD_ProductProgressPayment>(query.ToString()).ToArray();
                 return queryExecute;
             }
