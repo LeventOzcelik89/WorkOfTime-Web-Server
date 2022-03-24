@@ -482,13 +482,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 "CMP_Company", new[]
                 {
                     new FileBase("İşletme Logosu", "*.jpeg,*.png,*.jpg,*.jpeg",  1,
-                                                                                 new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli},
-                                                                                 new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli},
-                                                                                 new string[]{ SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli}),
+                                                                                 new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli, SHRoles.SahaGorevMusteri},
+                                                                                 new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli,SHRoles.SahaGorevMusteri},
+                                                                                 new string[]{ SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli,SHRoles.SahaGorevMusteri}),
                     new FileBase("İşletme Diğer Dosyalar", "*.jpeg,*.png,*.jpg,*.jpeg",  99,
-                                                                                 new string[]{ SHRoles.Personel },
-                                                                                 new string[]{ SHRoles.Personel },
-                                                                                 new string[]{ SHRoles.Personel})
+                                                                                 new string[]{ SHRoles.Personel,SHRoles.SahaGorevMusteri },
+                                                                                 new string[]{ SHRoles.Personel,SHRoles.SahaGorevMusteri },
+                                                                                 new string[]{ SHRoles.Personel,SHRoles.SahaGorevMusteri})
                 }
             },
              {
