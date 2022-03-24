@@ -43,7 +43,11 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             {
                 Log.Warning("Start Process File: {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
                 var db = GetDbConnection();
-                result = db.InsertPRD_EntegrationFiles(entegrationFile);
+                var filesList = db.GetPRD_EntegrationFiles().Where(a => a.FileName == entegrationFile.FileName).FirstOrDefault();
+                if (filesList == null)
+                {
+                    result = db.InsertPRD_EntegrationFiles(entegrationFile);
+                }
                 if (!result.result)
                 {
                     Log.Error("There was a problem while data recording...: " + result.message);
@@ -141,8 +145,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in directoryItems)
             {
-                if (entegrationFilesInDb.Any(x => x.FileName == (file.Name)))
-                    continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
                     id = Guid.NewGuid(),
