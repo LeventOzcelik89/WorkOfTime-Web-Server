@@ -522,4 +522,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
 	}
+	public class ProductQrClass
+	{
+		public int? height { get; set; }
+		public int? width { get; set; }
+		public string logo { get; set; }
+		public string phone { get; set; }
+		public string fax { get; set; }
+		public string weburl { get; set; }
+		public ProductFilterClass[] products { get; set; }
+		public ProductFilterClass product { get; set; }
+	}
+
+	public class ProductFilterClass
+	{
+		public Guid id { get; set; }
+		public string code { get; set; }
+		public string fullName { get; set; }
+	}
 }
