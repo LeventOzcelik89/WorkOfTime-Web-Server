@@ -1,0 +1,103 @@
+﻿@model IEnumerable<Infoline.WorkOfTime.BusinessData.VWPRD_Product>
+@{
+	Layout = null;
+	Layout = null;
+	var i = 0;
+	var type = (int)ViewBag.type;
+}
+
+<html>
+<head>
+	<meta name="viewport" content="width=device-width" />
+	<title>QR Code Yazdır</title>
+
+	<!--Default-->
+	<link href="~/content/themes/css/bootstrap.min.css" rel="stylesheet">
+	<link href="~/Content/Themes/css/plugins/jQueryUI/jquery-ui.css" rel="stylesheet" />
+	<!--Default-->
+	<!--Default-->
+	<script src="~/content/themes/js/jquery-2.1.1.js"></script>
+	<script src="~/Content/Themes/js/jquery-ui-1.10.4.min.js"></script>
+	<!--Default-->
+	<!--Kendo-->
+	<script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+	<script src="~/Content/Kendo/js/kendo.aspnetmvc.min.js"></script>
+
+	<script src="~/Content/Kendo/js/messages/kendo.messages.en-US.min.js"></script>
+	<script src="~/Content/Kendo/js/messages/kendo.messages.tr-TR.min.js"></script>
+	<script src="~/Content/Kendo/js/cultures/kendo.culture.tr-TR.min.js"></script>
+	<script src="~/Content/Kendo/js/cultures/kendo.culture.en-US.min.js"></script>
+	<!--Kendo-->
+
+	<style type="text/css">
+		.qrcode-wrapperNew {
+			border: 1px solid rgba(128, 128, 128, 0.22);
+			float: left;
+			padding-bottom: 10px;
+			height: 170px;
+		}
+
+		.qrcode-text {
+			font-size: 10px;
+			text-align: center;
+		}
+	</style>
+
+	@if (type == 100 || type == 3)
+	{
+		<style type="text/css">
+			.qrCodeNew {
+				transform: translate(-75%, 0);
+				margin-left: 50%;
+			}
+		</style>
+	}
+	else
+	{
+		<style type="text/css">
+			.qrCodeNew {
+				transform: translate(-75%, 0);
+				margin-left: 58%;
+				padding-bottom: 10px;
+				padding-top: 10px;
+			}
+		</style>
+	}
+
+	<script type="text/javascript">
+		$(document)
+			.on("ready", function () {
+				print();
+			})
+	</script>
+
+</head>
+<body>
+	<div style="width: @(type == 100 ? 3800 : type == 3 ? 1130 : 900)px;">
+		@foreach (var item in Model.OrderByDescending(c => c.created))
+		{
+			if (item.code == null)
+			{
+				continue;
+			}
+			i++;
+			<div class="qrcode-wrapperNew" style="width:@(type == 100 ? 4 : type == 3 ? 13 : 25)%;height:@(type == 100 ? 139 : type == 3 ? 139 : 139)px !important;">
+				<div data-id="qrId">
+					<div class="qrCodeNew">
+						@(Html.Kendo().QRCode()
+                        .Name("qrCode_" + i)
+                        .Value(item.code)
+                        .Size(100)
+                        )
+					</div>
+					<div class="qrcode-text" style="">@item.fullName</div>
+				</div>
+			</div>
+			if (i % (type == 100 ? 25 : type == 3 ? 7 : 4) == 0)
+			{
+				<div class="clearfix"></div>
+			}
+		}
+	</div>
+</body>
+</html>
