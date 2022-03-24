@@ -70,7 +70,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             try
             {
                 var db = new WorkOfTimeDatabase();
-                string[] barcodes = context.Request["barcode"].Split(',');
+                string[] barcodes = context.Request["barcode"].Split('\r');
 
                 if(barcodes.Length == 0)
                 {
