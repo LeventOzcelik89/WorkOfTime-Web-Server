@@ -48,7 +48,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return View(data.ToArray());
         }
 
-        [PageInfo("Kullanıcılar Methodu", SHRoles.Personel)]
+        [PageInfo("Kullanıcılar Methodu", SHRoles.Personel,SHRoles.HakEdisBayiPersoneli)]
         public JsonResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

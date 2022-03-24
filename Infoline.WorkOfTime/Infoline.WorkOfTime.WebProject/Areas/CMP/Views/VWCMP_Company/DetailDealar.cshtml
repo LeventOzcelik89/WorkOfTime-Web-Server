@@ -426,7 +426,9 @@
                     <li data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Firma Şube/Depo/Kısımları">
                         <a data-toggle="tab" href="#VWCMP_Storages" aria-expanded="true"><i class="icon-home-4 text-success fa-2x"></i></a>
                     </li>
-                    
+                    <li data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Firma Personelleri">
+                        <a data-toggle="tab" href="#VWSH_Users" aria-expanded="false"><i class="icon-adult text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
                     <li data-href="@Url.Action("DataSource", "VWCMP_Company", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Bağlı Firmalar">
                         <a data-toggle="tab" href="#VWCMP_Companys" aria-expanded="false"><i class="icon-building text-success fa-2x" aria-hidden="true"></i></a>
                     </li>
@@ -526,7 +528,7 @@
 
                         </script>
                     </div>
-                    
+
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Company", new { area = "CMP" })" id="VWCMP_Companys">
                         <h4><i class="text-success icon-building"></i> BAĞLI FİRMALAR </h4>
                         @(Html.Akilli()
@@ -605,6 +607,62 @@
                                 </div>
                             </div>
                         }
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" id="VWSH_Users">
+                        <h4><i class="icon-adult text-success"></i> PERSONEL LİSTESİ </h4>
+                        @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWSH_User>("VWSH_UserActive")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_User", new { area = "SH" }))
+            .Filter(a => a.CompanyId == Model.id && a.IsWorking == true).PageSize(25).Sort(a => a.Add(c => c.FullName)))
+            .Columns(x =>
+            {
+                if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                {
+                    x.Bound(y => y.FullName).Title("Personel Bilgileri").ClientTemplate("#=TemplateEngine('personelTemplate',data)#");
+                    x.Bound(y => y.code).Title("Personel Kodu").Width(180).Hidden(true);
+                    x.Bound(y => y.loginname).Title("TC Kimlik No").Width(180).Hidden(true);
+                    x.Bound(y => y.firstname).Title("Ad").Width(180).Hidden(true);
+                    x.Bound(y => y.lastname).Title("Soyad").Width(180).Hidden(true);
+                    x.Bound(y => y.title).Title("Ünvan").Hidden(true);
+                    x.Bound(y => y.Department_Title).Title("Çalıştığı Departman").Width(180).Hidden(true);
+                    x.Bound(y => y.birthday).Title("Doğum Tarihi").Width(180).Format(Extensions.DateFormatShort(true)).Hidden(true);
+                    x.Bound(y => y.cellphone).Title("Şahsi Cep Telefonu").Width(180).Hidden(true);
+                    x.Bound(y => y.email).Title("Email").Width(180).Hidden(true);
+                    x.Bound(y => y.address).Title("Adres").Width(180).Hidden(true);
+                    x.Bound(y => y.CompanyPerson_Title).Title("Sigortadaki Ünvan").Width(180).Hidden(true);
+                    x.Bound(y => y.companyCellPhone).Title("Şirket Cep Telefonu").Width(180).Hidden(true);
+                    x.Bound(y => y.JobStartDate).Title("İşe Giriş Tarihi").Format(Extensions.DateFormatShort(true)).Hidden(true);
+                    x.Bound(y => y.PersonWorkingCount).Title("Toplam Çalışılan Gün").Hidden(true);
+                    x.Bound(y => y.PermitYearlyDeserved).Title("Hak Edilen Yıllık İzin").Hidden(true);
+                    x.Bound(y => y.PermitYearlyUsed).Title("Kullanılan Yıllık İzin").Hidden(true);
+                    x.Bound(y => y.PermitYearlyUsable).Title("Kalan Yıllık İzin").Hidden(true);
+                }
+                else
+                {
+                    x.Bound(y => y.FullName).Title("Adı Soyadı");
+                    x.Bound(y => y.title).Title("Ünvanı").Width(200);
+                    x.Bound(y => y.cellphone).Title("Cep Telefonu").Width(200);
+                    x.Bound(y => y.phone).Title("Sabit Telefon").Width(200);
+                    x.Bound(y => y.email).Title("Eposta Adresi").Width(200);
+                }
+            })
+            .Scrollable(x => x.Height(350))
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .ToolBar(x =>
+            {
+                if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                {
+                    x.Custom().Text("<i data-original-title='Personel Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "" } }).Url(Url.Action("Update", "VWSH_User", new { area = "SH" }));
+                    x.Custom().Text("<i data-original-title='Personel Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWSH_User", new { area = "SH" }));
+                }
+                else
+                {
+                    x.Custom().Text("<i data-original-title='Personel Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-show", "always" }, { "data-method", "get" } }).Url(Url.Action("InsertCustomer", "VWSH_User", new { area = "SH", companyId = Model.id }));
+                    x.Custom().Text("<i data-original-title='Personel Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-show", "single" }, { "data-method", "get" } }).Url(Url.Action("UpdateCustomer", "VWSH_User", new { area = "SH" }));
+                    x.Custom().Text("<i class='icon-mail-1'  data-original-title='Oturum Bilgisi (KullanıcıAdı,Şifre) Paylaş'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Oturum bilgisi paylaşmak istediğinizden eminmisiniz.Kullanıcı bu bilgilerle sistemde oturum açabilecektir." } }).Url(Url.Action("SendPassword", "VWSH_User", new { area = "SH" }));
+                    x.Custom().Text("<i title='Personeli Sİl' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_User", new { area = "SH" }));
+                }
+            }))
                     </div>
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" id="VWPA_Accounts">
                         <h4><i class="text-success icon-bank"></i> BANKA VE KASA İŞLEMLERİ </h4>
