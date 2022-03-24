@@ -1,4 +1,5 @@
-﻿@{
+﻿@model string
+@{
 	ViewBag.Title = "Görevler ve Planlanmış Görevler Yönetimi";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -27,7 +28,25 @@
 				_calendar.GetTasks();
 			}
 		})
+		.on("change", '[name="type"][type="radio"]', function (c) {
+			debugger;
+			var type = $(this).val();
 
+			$("#type").val(type);
+
+			//if (type == "0") {
+			//	$("#planLater0").prop('checked', true);
+			//	$("#planLater1").prop('checked', false);
+
+			//}
+			//else {
+			//	$("#planLater0").prop('checked', false);
+			//	$("#planLater1").prop('checked', true);
+			//}
+
+
+		})
+		
 </script>
 
 <style type="text/css">
@@ -101,7 +120,7 @@
 	}
 
 	.levelLegend1 {
-		background: #f818f1;
+		background: #00dcff85;
 		margin-left: 0px !important;
 	}
 
@@ -131,6 +150,10 @@
 
 	.levelLegend8 {
 		background-color: #25ef0c;
+	}
+
+	.levelLegend9 {
+		background-color: #99b2b5;
 	}
 
 	.legendTable {
@@ -171,13 +194,13 @@
 	}
 </style>
 
-
+@Html.Hidden("type");
 <div class="ibox m-b-none">
 	<div class="ibox-title" style="padding: 22px 15px 43px !important;">
 
 		<div class="col-md-8" style="margin-top: -11px;margin-left: 331px;">
 			<div class="col-md-12">
-				<div class="col-md-5">
+				<div class="col-md-4">
 					<div class="form-group">
 						@(
                                        Html.Akilli()
@@ -192,7 +215,7 @@
                                    )
 					</div>
 				</div>
-				<div class="col-md-5">
+				<div class="col-md-4">
 					<div class="form-group">
 						@(
                                        Html.Akilli()
@@ -206,6 +229,21 @@
                                        .Sort(x => x.Add("FullName").Ascending())
                                        .Execute()
                                    )
+					</div>
+				</div>
+
+				<div class="col-md-2">
+					<div class="form-group">
+								<div class="radio akilliRadioGrup clearfix" style="margin-top: 5px;margin-left: 18px;">
+									<input checked="checked" data-val="true" data-val-number="The field planLater must be a number." id="planLater0" name="type" type="radio" value="0" autocomplete="off">						
+									<label for="planLater0" tabindex="0" class="radio-label">
+										Görev
+									</label>
+									<input id="planLater1" name="type" type="radio" value="1" autocomplete="off">						
+									<label for="planLater1" tabindex="0" class="radio-label">
+										Plan
+									</label>
+								</div>
 					</div>
 				</div>
 				<div class="col-md-2">
@@ -228,7 +266,8 @@
 			<table class="legendTable">
 				<tbody>
 					<tr>
-						<td>Plana Bağlı <b>Görev</b> <span class="levelLegend1"></span></td>
+						<td>Planlanmış <b>Görev</b> <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Planlanmış ve görevi açılmamışlar"></i> <span class="levelLegend9"></span></td>
+						<td>Plana Bağlı <b>Görev</b> <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Planlanmış ve görevi açılmış olanlar"></i><span class="levelLegend1"></span></td>
 						<td>Personel Ataması <b>Bekleniyor</b> <span class="levelLegend2"></span></td>
 						<td>Görev Üstlenilmeyi <b>Bekleniyor</b> <span class="levelLegend3"></span></td>
 						<td>Görev <b>Devam Ediyor</b> <span class="levelLegend4"></span></td>
@@ -245,7 +284,7 @@
 
 <script id="eventTemplate2" type="text/x-kendo-template">
 
-	#if(taskPlanId != null){#
+	#if(taskPlanId != null && lastOperationStatus != 999){#
 	<div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #" style="background-color:#=returnColor()#">
 	#}
 	else
@@ -370,6 +409,12 @@
 				resizeEnd: function (e) {
 					e.preventDefault();
 
+					if (e.event.lastOperationStatus == 999) {
+						MesajWarning("Planlanmış ve açılmamış bir görev güncellenemez.", "İşlem Başarısız")
+						return;
+					}
+
+
 					if (e.event.lastOperationStatus >= '@((int)EnumFTM_TaskOperationStatus.GorevBaslandi)')
 					{
 				     MesajWarning("Devam eden görevin Plan tarihlerini güncelleyemezsiniz.", "İşlem Başarısız")
@@ -411,6 +456,11 @@
 		},
 		UpdateTask: function (event, slot) {
 
+			if (event.lastOperationStatus == 999) {
+				MesajWarning("Planlanmış ve açılmamış bir görev güncellenemez.", "İşlem Başarısız")
+				return;
+			}
+
 			if (event.lastOperationStatus >= '@((int)EnumFTM_TaskOperationStatus.GorevBaslandi)') {
 				MesajWarning("Devam eden görevin Plan tarihlerini güncelleyemezsiniz.", "İşlem Başarısız")
 				return;
@@ -450,7 +500,13 @@
 
         ShowTask: function (uid) {
 
-            var dataItem = _calendar.elem.occurrenceByUid(uid);
+			var dataItem = _calendar.elem.occurrenceByUid(uid);
+			debugger;
+
+			if (!dataItem.isTask) {
+				Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarPlanDetail?id=' + dataItem.taskPlanId + '&planStartDate=' + kendo.toString(dataItem.planStartDate, 'yyyy-MM-dd HH:mm:00') + '&dueDate=' + kendo.toString(dataItem.dueDate, 'yyyy-MM-dd HH:mm:00'), null, $('<a data-method="GET" />'), 'type-info');
+				return;
+			}
 
             if (dataItem.IsTemplate == true) {
                 Kendo_GetRequest('/FTM/VWFTM_TaskPlan/InsertMultiple?id=' + dataItem.taskPlanId, null, $('<a data-method="GET" />'), 'type-info');
@@ -541,6 +597,9 @@
 		else if (_key == '@((int)EnumFTM_TaskOperationStatus.CozumOnaylandi)') {
 			color = "#25ef0c";
 		}
+		else if (_key == 999) {
+			color = "#99b2b5";
+		}
 		else {
 			color = "#0818d9";
 		}
@@ -553,7 +612,7 @@
 
 	function returnColor() {
 		var color = "";
-		color = "#f818f1";
+		color = "#00dcff85";
 		return color;
 	}
 
@@ -569,13 +628,18 @@
 
     }
 
-    function GetOperation(_key) {
-
+	function GetOperation(_key) {
+		debugger;
         var item = $.Enumerable.From(_calendar.data.taskOperation).Where(a => { return a.Key == _key; }).FirstOrDefault();
 
-        if (item == null) {
+
+		if (item == null && _key != 999) {
             return '';
-        }
+		}
+
+		if (_key == 999) {
+			return '<span data-toggle="tooltip" title="Planlanmış Görev" class="operation">' + '<i style="color: #f9f9f9" class="fa fa-tasks"></i>' + '</span>';
+		}
 
         return '<span data-toggle="tooltip" title="' + item.Value + '" class="operation">' + '<i style="color: #' + item.Generic.color + '" class="' + item.Generic.icon + '"></i>' + '</span>';
 
@@ -617,7 +681,8 @@
 
 	$("#DashBoardFilter").click(function () {
 		var userIds = $("#userIds").val();
-		GetJsonDataFromUrl('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds }, function (res) {
+		var type = $("#type").val();
+		GetJsonDataFromUrl('/FTM/VWFTM_TaskPlan/CalendarDataSource', { userIds: userIds, type : type }, function (res) {
 			$("#TaskCalendar").html(null)
 			_calendar.CreateScheduler();
 			_calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
