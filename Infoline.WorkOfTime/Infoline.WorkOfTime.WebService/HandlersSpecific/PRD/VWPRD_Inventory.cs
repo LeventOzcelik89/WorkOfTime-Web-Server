@@ -145,8 +145,12 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 {
                     RenderResponse(context, new ResultStatus() { result = false, message = "Envanter veya Ürün Bulunamadı" });
                 }
+                else
+                {
 
                 RenderResponse(context, data);
+                }
+
             }
             catch (Exception ex)
             {
