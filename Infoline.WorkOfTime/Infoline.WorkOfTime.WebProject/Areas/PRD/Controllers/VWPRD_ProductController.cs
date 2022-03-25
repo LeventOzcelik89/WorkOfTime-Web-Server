@@ -595,7 +595,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 				products = model.Select(x => new ProductFilterClass
 				{
 					id = x.id,
-					code = TurkishCharacterToEnglish(x.code),
+					code = x.code != null ? TurkishCharacterToEnglish(x.code) : x.code,
 					fullName = x.fullName,
 				}).OrderBy(c => c.code).ToArray(),
 			};
@@ -659,7 +659,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 				product = new ProductFilterClass()
 				{
 					id = model.id,
-					code = TurkishCharacterToEnglish(model.code),
+					code = model.code != null ? TurkishCharacterToEnglish(model.code) : model.code,
 					fullName = model.fullName
 				}
 			};
