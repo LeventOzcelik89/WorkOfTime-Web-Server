@@ -10,7 +10,14 @@
 			var uid = $(this).attr('data-uid');
 			var elem = $('#scheduler').data('kendoScheduler');
 			var dataItem = elem.occurrenceByUid(uid);
-			Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem.taskId, null, $('<a data-method="GET" />'), 'type-info');
+
+			if (!dataItem.isTask) {
+				Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarPlanDetail?id=' + dataItem.taskPlanId + '&planStartDate=' + kendo.toString(dataItem.start, 'yyyy-MM-dd HH:mm:00') + '&dueDate=' + kendo.toString(dataItem.end, 'yyyy-MM-dd HH:mm:00'), null, $('<a data-method="GET" />'), 'type-info');
+			}
+			else {
+				Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem.taskId, null, $('<a data-method="GET" />'), 'type-info');
+			}
+
 		})
 
 	function onChangeGroup(e) {
@@ -30,6 +37,8 @@
 	}
 
 </script>
+
+@Html.Hidden("type")
 
 <div class="row clearfix">
 	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -53,7 +62,7 @@
 						</div>
 					</div>
 
-					<div class="col-md-5">
+					<div class="col-md-3">
 						<div class="form-group">
 							@(
                                        Html.Akilli()
@@ -67,6 +76,21 @@
                                        .Sort(x => x.Add("FullName").Ascending())
                                        .Execute()
                                    )
+						</div>
+					</div>
+
+					<div class="col-md-2">
+						<div class="form-group">
+							<div class="radio akilliRadioGrup clearfix" style="margin-top: 5px;margin-left: 18px;">
+								<input checked="checked" data-val="true" data-val-number="The field planLater must be a number." id="planLater0" name="type" type="radio" value="0" autocomplete="off">
+								<label for="planLater0" tabindex="0" class="radio-label" style="width: 117px;text-align: center;">
+									Görevler
+								</label>
+								<input id="planLater1" name="type" type="radio" value="1" autocomplete="off">
+								<label for="planLater1" tabindex="0" class="radio-label" style="width: 117px;text-align: center;">
+									Planlar
+								</label>
+							</div>
 						</div>
 					</div>
 
@@ -104,6 +128,9 @@
 			<div class="ibox-title">
 				<div class="col-md-9">
 					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color: #ff0000" class="fa fa-circle"></i><span style="margin-left:1px;"> Planlanmış Görev <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="" data-original-title="Planlanmış ve görevi açılmamışlar"></i></span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
 						<i style="color:#23c6c8" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenilmeyi Bekleniyor</span>
 					</span>
 					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
@@ -114,12 +141,11 @@
 					</span>
 				</div>
 				<div class="col-md-3">
-					
+
 				</div>
 			</div>
 			<div class="ibox-content">
 				<div id="scheduler"></div>
-
 			</div>
 		</div>
 	</div>
@@ -237,7 +263,7 @@
                     </span>
 	                #}#
 	            </td>
-	            
+
 	            <td style="width:8%;vertical-align: inherit;">
 	                <a data-task="Insert" data-href="/FTM/VWFTM_Task/Update?id=#=id#"><i style="font-size: 30px;margin-right: 64px;" class="fa fa-arrow-right" data-toggle="tooltip" data-placement="top" title="Göreve Atama Yap" st=""></i></a><br>
 	            </td>
@@ -249,11 +275,11 @@
 
 <script type="text/javascript">
 
-    var _Grid = {
-        init: function () {
+	var _Grid = {
+		init: function () {
 			this.GetTasks();
-        },
-        GetTasks: function () {
+		},
+		GetTasks: function () {
 
 			$.ajax({
 				dataType: 'JSON',
@@ -330,13 +356,17 @@
 					$('body').loadingModal('destroy');
 				},
 			});
-        }
-    };
+		}
+	};
 
-    $(document)
+	$(document)
 		.on('ready', function () {
-            _Grid.init();
+			_Grid.init();
 			createScheduler(null, null);
+		})
+		.on("change", '[name="type"][type="radio"]', function (c) {
+			var type = $(this).val();
+			$("#type").val(type);
 		});
 
 </script>
@@ -345,13 +375,20 @@
 <script>
 
 
-	function createScheduler(startDate, userIds) {
+	function createScheduler(startDate, userIds, type) {
 
 		if (startDate != null) {
 			startDate = kendo.toString(startDate, "yyyy/MM/dd 00:00:00");
 		}
+		
+		var typeEvent = $("#type").val();
+		var typeData = 0;
 
-		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserNewReport', { start: startDate, userIds: userIds }, function (res) {
+		if (typeEvent == "1") {
+			typeData = 1;
+		}
+		
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserNewReport', { start: startDate, userIds: userIds, type: typeData }, function (res) {
 
 			if (startDate == null) {
 				startDate = new Date();
@@ -372,7 +409,7 @@
 					eventHeight: 10,
 					//majorTick: 60,
 					localization: "tr-TR",
-					views: ["timeline","day", "agenda"],
+					views: ["timeline", "day", "agenda"],
 					scroll: true,
 					eventTemplate: $("#event-template").html(),
 					dataSource: resObjects,
@@ -477,9 +514,10 @@
 		$("#scheduler").removeAttr("class")
 		$("#scheduler").removeAttr("role")
 		$("#scheduler").removeAttr("style")
+		var type = $("#type");
 
 
-		createScheduler(startDate, userIds);
+		createScheduler(startDate, userIds, type);
 
 
 	})

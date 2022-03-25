@@ -1378,6 +1378,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			public string customer { get; set; }
 			public Guid attendees { get; set; }
 			public Guid taskId { get; set; }
+			public Guid taskPlanId { get; set; }
 			public string taskCode { get; set; }
 			public string customerStorage_Title { get; set; }
 			public string taskType_Title { get; set; }
