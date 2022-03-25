@@ -30,87 +30,107 @@
 			</dl>
 
 			@*<dl class="dl-horizontal">
-					<dt>Görev Tipi:</dt>
-					<dd><i class='@type.Generic["icon"]' style="font-size:14px;" data-toggle='tooltip' data-placement='bottom'></i>  @Model. </dd>
-				</dl>*@
+			<dt>Görev Tipi:</dt>
+			<dd><i class='@type.Generic["icon"]' style="font-size:14px;" data-toggle='tooltip' data-placement='bottom'></i>  @Model. </dd>
+		</dl>*@
 
 			<dl class="dl-horizontal">
-				<dt>Görevi Oluşturan:</dt>
+				<dt>Planı Oluşturan:</dt>
 				<dd>@Model.createdby_Title</dd>
 			</dl>
 
 			@*<dl class="dl-horizontal">
-					<dt>Görev Açıklaması:</dt>
-					<dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description ?? "-")</span></dd>
-				</dl>
-				<dl class="dl-horizontal">
-					<dt>Son Operasyon:</dt>
-					<dd><span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@(Model.lastOperationStatus_Title)</u></strong></span></dd>
-				</dl>*@
+			<dt>Görev Açıklaması:</dt>
+			<dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description ?? "-")</span></dd>
+		</dl>
+		<dl class="dl-horizontal">
+			<dt>Son Operasyon:</dt>
+			<dd><span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@(Model.lastOperationStatus_Title)</u></strong></span></dd>
+		</dl>*@
 
 			<dl class="dl-horizontal">
 				<dt>Plan Oluşturulma Tarihi</dt>
 				<dd>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</dd>
 			</dl>
-			@*<dl class="dl-horizontal">
-					<dt>Son Operasyon Tarihi :</dt>
-					<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate) </dd>
-				</dl>
 
-				<dl class="dl-horizontal">
-					<dt>Görev Öncelik Durumu: </dt>
-					<dd> @Model.priority_Title </dd>
-				</dl>*@
-
-
-			@*<dl class="dl-horizontal">
-					<dt>Görevli İşletmem:</dt>
-					<dd>
-						<span>@Model.company_Title </span>
-						@if (Model.companyId.HasValue)
+			<dl class="dl-horizontal">
+				<dt>Görevli Personeller:</dt>
+				<dd class="project-people">
+					@if (Model.taskUsers.Count() > 0)
+					{
+						foreach (var user in Model.taskUsers)
 						{
-							<a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
+							<a href="#">
+								<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+							</a>
 						}
+					}
+					else
+					{
+						<span>Görevli Personel Bulunmamaktadır</span>
+					}
 
-					</dd>
-				</dl>*@
+				</dd>
+			</dl>
+			@*<dl class="dl-horizontal">
+			<dt>Son Operasyon Tarihi :</dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate) </dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Görev Öncelik Durumu: </dt>
+			<dd> @Model.priority_Title </dd>
+		</dl>*@
+
 
 			@*<dl class="dl-horizontal">
-					<dt>Araç:</dt>
-					<dd>
-						<span>@(Model.plate ?? "-")</span>
-						@if (Model.companyCarId.HasValue)
-						{
-							<a href="/CMP/VWCMP_CompanyCars/Detail?id=@Model.companyCarId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
-						}
-					</dd>
-				</dl>*@
-
-			@*@if (Model.taskSubjectType_Title != null)
+			<dt>Görevli İşletmem:</dt>
+			<dd>
+				<span>@Model.company_Title </span>
+				@if (Model.companyId.HasValue)
 				{
-					<dl class="dl-horizontal">
-						<dt>Görev Konuları:</dt>
-						<dd>
-							<span>@(Html.Raw(String.Join(" ",Model.taskSubjectType_Title.Split(',').Select(x =>"<span style='background-color: #ffffff; color: #9a9797; border: 1px solid;' class='badge badge-warning'>" + x + "</span>").ToArray()))) </span>
-						</dd>
-					</dl>
-				}*@
-
-			@*@if (!String.IsNullOrEmpty(Model.subjectId_LevelTitle))
-				{
-					<dl class="dl-horizontal clearfix">
-						<dt>Görev Seviye:</dt>
-						<dd><span>@Model.subjectId_LevelTitle</span></dd>
-					</dl>
+					<a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
 				}
 
-				@if (!String.IsNullOrEmpty(Model.scopeId_levelTitle))
+			</dd>
+		</dl>*@
+
+			@*<dl class="dl-horizontal">
+			<dt>Araç:</dt>
+			<dd>
+				<span>@(Model.plate ?? "-")</span>
+				@if (Model.companyCarId.HasValue)
 				{
-					<dl class="dl-horizontal clearfix">
-						<dt>Bölge Seviye:</dt>
-						<dd><span>@Model.scopeId_levelTitle</span></dd>
-					</dl>
-				}*@
+					<a href="/CMP/VWCMP_CompanyCars/Detail?id=@Model.companyCarId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+				}
+			</dd>
+		</dl>*@
+
+			@*@if (Model.taskSubjectType_Title != null)
+		{
+			<dl class="dl-horizontal">
+				<dt>Görev Konuları:</dt>
+				<dd>
+					<span>@(Html.Raw(String.Join(" ",Model.taskSubjectType_Title.Split(',').Select(x =>"<span style='background-color: #ffffff; color: #9a9797; border: 1px solid;' class='badge badge-warning'>" + x + "</span>").ToArray()))) </span>
+				</dd>
+			</dl>
+		}*@
+
+			@*@if (!String.IsNullOrEmpty(Model.subjectId_LevelTitle))
+		{
+			<dl class="dl-horizontal clearfix">
+				<dt>Görev Seviye:</dt>
+				<dd><span>@Model.subjectId_LevelTitle</span></dd>
+			</dl>
+		}
+
+		@if (!String.IsNullOrEmpty(Model.scopeId_levelTitle))
+		{
+			<dl class="dl-horizontal clearfix">
+				<dt>Bölge Seviye:</dt>
+				<dd><span>@Model.scopeId_levelTitle</span></dd>
+			</dl>
+		}*@
 
 		</div>
 
@@ -160,25 +180,7 @@
 
 			</dl>
 
-			<dl class="dl-horizontal">
-				<dt>Görevli Personeller:</dt>
-				<dd class="project-people">
-					@if (Model.taskUsers.Count() > 0)
-					{
-						foreach (var user in Model.taskUsers)
-						{
-							<a href="#">
-								<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
-							</a>
-						}
-					}
-					else
-					{
-						<span>Görevli Personel Bulunmamaktadır</span>
-					}
-
-				</dd>
-			</dl>
+			
 
 			<dl class="dl-horizontal">
 				<dt>Yardımcı Personeller:</dt>
