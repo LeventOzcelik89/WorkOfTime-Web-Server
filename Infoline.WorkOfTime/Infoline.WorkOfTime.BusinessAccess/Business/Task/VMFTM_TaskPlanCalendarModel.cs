@@ -7,6 +7,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 	public class VMFTM_TaskPlanCalendarModel : VWFTM_Task
     {
         public bool IsTemplate { get; set; } = false;
+		public bool isTask { get; set; }
 		public VMFTM_TaskPlanCalendarModel()
         {
             if (!this.planStartDate.HasValue)
