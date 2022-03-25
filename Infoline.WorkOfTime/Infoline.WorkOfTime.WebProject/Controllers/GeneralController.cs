@@ -78,6 +78,19 @@ namespace Infoline.WorkOfTime.Controllers
 			return Json(rs, JsonRequestBehavior.AllowGet);
 		}
 
+		public JsonResult GetVWFTM_TaskPlanCustomers()
+		{
+			var db = new WorkOfTimeDatabase();
+			var taskPlans = db.GetVWFTM_TaskPlanJustCustomerQuery();
+
+			var rs = taskPlans.GroupBy(a => a.customerId_Title).Select(c => new
+			{
+				Name = c.Key,
+				Id = c.Select(f => f.customerId).FirstOrDefault()
+			});
+			return Json(rs, JsonRequestBehavior.AllowGet);
+		}
+
 		public JsonResult GetINV_PermitTypeName()
 		{
 			var db = new WorkOfTimeDatabase();

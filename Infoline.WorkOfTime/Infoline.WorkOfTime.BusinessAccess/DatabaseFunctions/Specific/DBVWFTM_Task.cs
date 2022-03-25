@@ -140,6 +140,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
+		public VWFTM_TaskPlan[] GetVWFTM_TaskPlanJustCustomerQuery()
+		{
+			using (var db = GetDB())
+			{
+				return db.ExecuteReader<VWFTM_TaskPlan>("Select customerId,customerId_Title from VWFTM_TaskPlan with(nolock)").ToArray();
+			}
+		}
 
 		public VWFTM_Task[] GetVWFTM_TaskByCustomerStorageId(Guid storage, Guid userId, DbTransaction tran = null)
 		{

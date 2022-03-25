@@ -93,12 +93,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					}).ToList();
 				}
 
-
 				if (this.monthFrequency.HasValue)
 				{
 					var monthFrequencyEnum = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanMonthFrequency>().Where(a => a.Key == this.monthFrequency.Value.ToString()).Select(b => b.Value).FirstOrDefault();
 					this._MonthFrequency.Add(monthFrequencyEnum);
 				}
+			}
+
+			if (!this.frequencyInterval.HasValue)
+			{
+				this.frequencyInterval = 1;
 			}
 
 			var timeCounter = new DateTime(2000, 1, 1, 0, 0, 0);
