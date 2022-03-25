@@ -538,7 +538,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[AllowEveryone]
 		[PageInfo("Envanterlerin QR Kodlarının Yazdırılması", SHRoles.Personel)]
-		public ActionResult PrintQrCodes([DataSourceRequest] DataSourceRequest request, int? type = 4, int? isLogo = 1)
+		public ActionResult ProductPrintQrCodes([DataSourceRequest] DataSourceRequest request, int? type = 4, int? isLogo = 1)
 		{
 			var model = new List<VWPRD_Product>();
 			try
@@ -572,7 +572,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[AllowEveryone]
 		[PageInfo("Envanterlerin QR Kodlarının Yazdırılması Logo ve Boyutlu", SHRoles.Personel)]
-		public ActionResult PrintQrCodesSizes([DataSourceRequest] DataSourceRequest request, int? height = 30, int? width = 50)
+		public ActionResult ProductPrintQrCodesSizes([DataSourceRequest] DataSourceRequest request, int? height = 30, int? width = 50)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			VWPRD_Product[] model = new VWPRD_Product[0];
@@ -639,7 +639,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[AllowEveryone]
 		[PageInfo("Envanterin QR Kodunu Yazdırılması Logo ve Boyutlu", SHRoles.Personel)]
-		public ActionResult PrintQrCodeSize(Guid id, int? height = 30, int? width = 50)
+		public ActionResult ProductPrintQrCodeSize(Guid id, int? height = 30, int? width = 50)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			VWPRD_Product model = new VWPRD_Product();
