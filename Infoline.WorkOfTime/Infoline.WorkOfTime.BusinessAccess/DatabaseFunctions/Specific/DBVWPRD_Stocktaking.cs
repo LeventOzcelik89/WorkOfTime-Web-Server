@@ -38,10 +38,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         [Description("Sayım Başladı"), Generic("color", "EF5352")]
         SayimBasladi = 0,
-        [Description("Stoklara İşlendi"), Generic("color", "F8AC59")]
-        StoklaraIslendi = 1,
         [Description("Sayım Tamamlandı"), Generic("color", "1ab394")]
-        SayimTamamlandi = 2,
+        SayimTamamlandi = 1,
+        [Description("Stoklara İşlendi"), Generic("color", "F8AC59")]
+        StoklaraIslendi = 2,
     }
 
     partial class WorkOfTimeDatabase

@@ -74,7 +74,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
             this.code = BusinessExtensions.B_GetIdCode();
-            this.status = (int)EnumPRD_StocktakingStatus.SayimBasladi;
             var dbresult = db.InsertPRD_Stocktaking(this.B_ConvertType<PRD_Stocktaking>(), this.trans);
             dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
             {
