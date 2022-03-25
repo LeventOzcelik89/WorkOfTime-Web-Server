@@ -154,6 +154,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
+		[AllowEveryone]
+		[PageInfo("Ürün QR Kodlarının Yazdırılması", SHRoles.Personel)]
+		public ActionResult PrintQrCodes([DataSourceRequest] DataSourceRequest request, int? type = 4, int? isLogo = 1)
+		{
+			var model = new List<VWPRD_Product>();
+			try
+			{
+				var db = new WorkOfTimeDatabase();
+				request.Page = 1;
+				request.PageSize = int.MaxValue;
+				var condition = KendoToExpression.Convert(request);
+				model = db.GetVWPRD_Product(condition).ToList();
+				ViewBag.type = type;
+				ViewBag.logo = isLogo;
+			}
+			catch { }
+
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/Default/PrintQrCodes.cshtml", model);
+		}
+
 		[HttpPost]
 		[PageInfo("Excel'den Ürün Ekleme", SHRoles.DepoSorumlusu, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
 		public JsonResult Import(string model)
@@ -514,6 +534,177 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		{
 			var model = new StockReportModel().Load();
 			return View(model);
+		}
+
+		[AllowEveryone]
+		[PageInfo("Envanterlerin QR Kodlarının Yazdırılması", SHRoles.Personel)]
+		public ActionResult ProductPrintQrCodes([DataSourceRequest] DataSourceRequest request, int? type = 4, int? isLogo = 1)
+		{
+			var model = new List<VWPRD_Product>();
+			try
+			{
+				var db = new WorkOfTimeDatabase();
+				request.Page = 1;
+				request.PageSize = int.MaxValue;
+				var condition = KendoToExpression.Convert(request);
+				model = db.GetVWPRD_Product(condition).ToList();
+				model.Each(a => a.code = a.code != null ? TurkishCharacterToEnglish(a.code) : a.code);
+				ViewBag.type = type;
+				ViewBag.logo = isLogo;
+			}
+			catch { }
+
+
+			if (TenantConfig.Tenant.TenantCode == 1137)
+			{
+				if (type == 9)
+				{
+					return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/1137/PrintQrCodesV2.cshtml", model);
+				}
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/1137/PrintQrCodes.cshtml", model);
+			}
+			else
+			{
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/Default/PrintQrCodes.cshtml", model);
+			}
+		}
+
+
+		[AllowEveryone]
+		[PageInfo("Envanterlerin QR Kodlarının Yazdırılması Logo ve Boyutlu", SHRoles.Personel)]
+		public ActionResult ProductPrintQrCodesSizes([DataSourceRequest] DataSourceRequest request, int? height = 30, int? width = 50)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			VWPRD_Product[] model = new VWPRD_Product[0];
+
+			try
+			{
+				var db = new WorkOfTimeDatabase();
+				request.Page = 1;
+				request.PageSize = int.MaxValue;
+				var condition = KendoToExpression.Convert(request);
+				model = db.GetVWPRD_Product(condition);
+			}
+			catch { }
+
+
+			var data = new ProductQrClass
+			{
+				height = height,
+				width = width,
+				products = model.Select(x => new ProductFilterClass
+				{
+					id = x.id,
+					code = x.code != null ? TurkishCharacterToEnglish(x.code) : x.code,
+					fullName = x.fullName,
+				}).OrderBy(c => c.code).ToArray(),
+			};
+
+			if (userStatus != null && userStatus.user.CompanyId.HasValue)
+			{
+				var db = new WorkOfTimeDatabase();
+				var companyInformation = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+				if (companyInformation != null)
+				{
+					data.fax = companyInformation.fax;
+					data.logo = "/Content/Customers/" + TenantConfig.Tenant.TenantCode + "/images/logo.png";
+					data.phone = companyInformation.phone;
+					if (TenantConfig.Tenant.TenantCode == 1139)
+					{
+						data.weburl = "www.callay.com.tr";
+						data.logo = "/Content/Customers/1139/images/callayqr.png";
+					}
+					if (TenantConfig.Tenant.TenantCode == 1130)
+					{
+						data.weburl = "vaven.com.tr/";
+					}
+
+					if (TenantConfig.Tenant.TenantCode == 1137)
+					{
+						data.weburl = "www.erkantarim.com";
+					}
+				}
+			}
+
+
+			if (TenantConfig.Tenant.TenantCode == 1137)
+			{
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/1137/PrintQrCodesSizes.cshtml", data);
+			}
+			else
+			{
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/Default/PrintQrCodesSizes.cshtml", data);
+			}
+		}
+
+		[AllowEveryone]
+		[PageInfo("Envanterin QR Kodunu Yazdırılması Logo ve Boyutlu", SHRoles.Personel)]
+		public ActionResult ProductPrintQrCodeSize(Guid id, int? height = 30, int? width = 50)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			VWPRD_Product model = new VWPRD_Product();
+
+			try
+			{
+				var db = new WorkOfTimeDatabase();
+				model = db.GetVWPRD_ProductById(id);
+			}
+			catch { }
+
+
+			var data = new ProductQrClass
+			{
+				height = height,
+				width = width,
+				product = new ProductFilterClass()
+				{
+					id = model.id,
+					code = model.code != null ? TurkishCharacterToEnglish(model.code) : model.code,
+					fullName = model.fullName
+				}
+			};
+
+			if (userStatus != null && userStatus.user.CompanyId.HasValue)
+			{
+				var db = new WorkOfTimeDatabase();
+				var companyInformation = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+				if (companyInformation != null)
+				{
+					data.fax = companyInformation.fax;
+					data.logo = "/Content/Customers/" + TenantConfig.Tenant.TenantCode + "/images/logo.png";
+					data.phone = companyInformation.phone;
+					if (TenantConfig.Tenant.TenantCode == 1139)
+					{
+						data.weburl = "www.callay.com.tr";
+						data.logo = "/Content/Customers/1139/images/callayqr.png";
+					}
+					if (TenantConfig.Tenant.TenantCode == 1130)
+					{
+						data.weburl = "vaven.com.tr/";
+					}
+				}
+			}
+
+			if (TenantConfig.Tenant.TenantCode == 1137)
+			{
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/1137/PrintQrCodeSize.cshtml", data);
+			}
+			else
+			{
+				return PartialView("~/Areas/PRD/Views/VWPRD_Product/Print/Default/PrintQrCodeSize.cshtml", data);
+			}
+		}
+
+		public string TurkishCharacterToEnglish(string text)
+		{
+			char[] turkishChars = { 'ı', 'ğ', 'İ', 'Ğ', 'ç', 'Ç', 'ş', 'Ş', 'ö', 'Ö', 'ü', 'Ü' };
+			char[] englishChars = { 'i', 'g', 'I', 'G', 'c', 'C', 's', 'S', 'o', 'O', 'u', 'U' };
+
+			// Match chars
+			for (int i = 0; i < turkishChars.Length; i++)
+				text = text.Replace(turkishChars[i], englishChars[i]);
+
+			return text;
 		}
 	}
 }

@@ -1,10 +1,12 @@
 ﻿@using Infoline.WorkOfTime.BusinessAccess
+
 @model List<Guid?>
 @{
-	ViewBag.Title = "Hoş Geldiniz ";
-	Layout = "~/Views/Shared/_Layout.cshtml";
-	var userStatus = (PageSecurity)Session["userStatus"];
-	var now = DateTime.Now;
+    ViewBag.Title = "Hoş Geldiniz ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var now = DateTime.Now;
+    var companyId = userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : Guid.NewGuid();
 }
 
 
@@ -58,7 +60,7 @@
 		$(".theme-config").addClass("hide")
 	});
 
-	
+
 
 
 </script>
@@ -307,15 +309,15 @@
 </script>
 
 <script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
-	#if(description!=null){#
-	#if(description.length >= 25){#
-	<div style="font-size:13px;">#=description.substring(0,50)#...</div>
-	#}
-	else
-	{#
-	<div style="font-size:13px;">#=description#</div>
-	#}#
-	#}#
+    #if(description!=null){#
+    #if(description.length >= 25){#
+    <div style="font-size:13px;">#=description.substring(0,50)#...</div>
+    #}
+    else
+    {#
+    <div style="font-size:13px;">#=description#</div>
+    #}#
+    #}#
 </script>
 
 <script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
@@ -435,34 +437,39 @@
 @Html.Action("Dashboard", "VWFTM_Task", new { area = "FTM" })
 
 <section style="margin-bottom: 20px;">
-	<div class="tabs-container">
-		<ul class="nav nav-tabs">
-			<li class="active" data-toggle="tooltip" data-placement="top" title="Şube/Depo/Kısım Haritası">
-				<a data-toggle="tab" href="#VWCMP_StoragesMap" aria-expanded="true">
-					<i class="icon-map text-success fa-2x"></i>
-				</a>
-			</li>
-			<li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWFTM_Task", new {area="FTM" })" data-placement="top" title="Arıza Bakım Kayıtları">
-				<a data-toggle="tab" href="#ftmTaskGrid" aria-expanded="true">
-					<i class="icon-wrench text-success fa-2x"></i>
-				</a>
-			</li>
-			<li data-href="@Url.Action("DataSource","VWPRD_Inventory", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Sahip Olduğum Envanterler">
-				<a data-toggle="tab" href="#inventoryGrid" aria-expanded="true">
-					<i class="icon-cubes text-success fa-2x"></i>
-				</a>
-			</li>
+    <div class="tabs-container">
+        <ul class="nav nav-tabs">
+            <li class="active" data-toggle="tooltip" data-placement="top" title="Şube/Depo/Kısım Haritası">
+                <a data-toggle="tab" href="#VWCMP_StoragesMap" aria-expanded="true">
+                    <i class="icon-map text-success fa-2x"></i>
+                </a>
+            </li>
+            <li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWFTM_Task", new {area="FTM" })" data-placement="top" title="Arıza Bakım Kayıtları">
+                <a data-toggle="tab" href="#ftmTaskGrid" aria-expanded="true">
+                    <i class="icon-wrench text-success fa-2x"></i>
+                </a>
+            </li>
+            <li data-href="@Url.Action("DataSource","VWPRD_Inventory", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Sahip Olduğum Envanterler">
+                <a data-toggle="tab" href="#inventoryGrid" aria-expanded="true">
+                    <i class="icon-cubes text-success fa-2x"></i>
+                </a>
+            </li>
+            <li data-href="@Url.Action("Index","Files", string.Empty)" data-toggle="tooltip" data-placement="top" title="Şirket Evraklarım">
+                <a data-toggle="tab" href="#sysFilesGrid" aria-expanded="true">
+                    <i class="icon-attach text-success fa-2x"></i>
+                </a>
+            </li>
 
-		</ul>
-		<div class="tab-content">
-			<div class="tab-pane active" id="VWCMP_StoragesMap">
-				<h4><i class="icon-map text-success"></i> FİRMANIN ŞUBE/DEPO/KISIM HARİTASI</h4>
-				<div id="Harita"></div>
-			</div>
-			
-			<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "INV" })" id="ftmTaskGrid">
-				<h4><i class="icon-wrench text-success"></i> ARIZA BAKIM KAYITLARI </h4>
-				@(Html.Akilli()
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="VWCMP_StoragesMap">
+                <h4><i class="icon-map text-success"></i> FİRMANIN ŞUBE/DEPO/KISIM HARİTASI</h4>
+                <div id="Harita"></div>
+            </div>
+
+            <div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "INV" })" id="ftmTaskGrid">
+                <h4><i class="icon-wrench text-success"></i> ARIZA BAKIM KAYITLARI </h4>
+                @(Html.Akilli()
 					.Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
 					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" }))
 					.Filter(a => a.customerId == userStatus.user.CompanyId)
@@ -506,13 +513,11 @@
 						x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
 					})
                  )
-			</div>
+            </div>
 
-
-
-			<div class="tab-pane " data-href="@Url.Action("DataSource", "VWPRD_Inventory", new {area="CMP" })" id="inventoryGrid">
-				<h4><i class="icon-cubes text-success"></i>  SAHİP OLDUĞUM ENVANTERLER </h4>
-				@(Html.Akilli()
+            <div class="tab-pane " data-href="@Url.Action("DataSource", "VWPRD_Inventory", new {area="CMP" })" id="inventoryGrid">
+                <h4><i class="icon-cubes text-success"></i>  SAHİP OLDUĞUM ENVANTERLER </h4>
+                @(Html.Akilli()
                 .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" }))
                 .Filter(a => a.lastActionDataCompanyId == userStatus.user.CompanyId)
@@ -535,9 +540,16 @@
                     x.Custom().Text("<i data-original-title='Arıza Kaydı Oluştur' class='fa fa-wrench'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-idColumnKey", "fixtureId" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM" }));
                     //x.Custom().Text("<i title='Görev Oluştur' class='fa fa-wrench'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "default" }, { "data-method", "GET" },{"data-idColumnKey","fixtureIds" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM" }));
                 }))
-			</div>
-		</div>
-	</div>
+            </div>
+
+            <div class="tab-pane" id="sysFilesGrid">
+                <h4><i class="text-success icon-attach"></i> FİRMA DOSYALARI VE EVRAKLARI </h4>
+                @Html.Action("Preview", "Files", new { area = "", DataId = companyId, DataTable = "CMP_Company", Filter = false })
+                @*@Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Contact", DataIds = ((Guid[])ViewBag.ContactIds), Filter = false })
+                @Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Presentation", DataIds = ((Guid[])ViewBag.PresentationIds), Filter = false })*@
+            </div>
+        </div>
+    </div>
 </section>
 
 
@@ -662,7 +674,7 @@
                             });
 
                         temp.find('#TaskInsert').on('click', function () {
-                     
+
 							Kendo_GetRequest("/FTM/VWFTM_Task/Insert?customerStorageId=" + item.id +"&customerId="+item.companyId, null, $('<button data-task="Insert"></button>'))
                         });
 
@@ -805,58 +817,58 @@
 
 <script type="text/template" id="TaskAreaTemplate">
 
-	<form id="form" class="form-horizontal" data-formtype="Ajax" method="post" role="form" action="/CMP/VWCMP_Storage/Insert">
+    <form id="form" class="form-horizontal" data-formtype="Ajax" method="post" role="form" action="/CMP/VWCMP_Storage/Insert">
 
-		<input name="id" type="hidden" value="{{id}}" />
-		<input name="companyId" type="hidden" value="@userStatus.user.CompanyId" />
-		<input name="location" type="hidden" value="{{location}}" />
-		<input name="locationType" type="hidden" value="@((int)EnumCMP_StorageLocationType.Alan)" />
+        <input name="id" type="hidden" value="{{id}}" />
+        <input name="companyId" type="hidden" value="@userStatus.user.CompanyId" />
+        <input name="location" type="hidden" value="{{location}}" />
+        <input name="locationType" type="hidden" value="@((int)EnumCMP_StorageLocationType.Alan)" />
 
-		<h3 class="text-center text-danger {{hide}}" data-target="updated" style="margin: 10px 0px 30px 0px;">
-			Kaydedilmemiş Depo
-		</h3>
+        <h3 class="text-center text-danger {{hide}}" data-target="updated" style="margin: 10px 0px 30px 0px;">
+            Kaydedilmemiş Depo
+        </h3>
 
-		<div class="form-group">
-			<div class="col-md-12">
-				<label>Oluşturma Tarihi</label>
-			</div>
-			<div class="col-md-12">
-				<input class="form-control" name="created" type="datetime" readonly value="{{created}}" />
-			</div>
-		</div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <label>Oluşturma Tarihi</label>
+            </div>
+            <div class="col-md-12">
+                <input class="form-control" name="created" type="datetime" readonly value="{{created}}" />
+            </div>
+        </div>
 
-		<div class="form-group" {{codeHide}}>
-			<div class="col-md-12">
-				<label>Kodu</label>
-			</div>
-			<div class="col-md-12">
-				<input class="form-control" data-type="text" maxlength="50" name="code" value="{{code}}" disabled="disabled" />
-			</div>
-		</div>
+        <div class="form-group" {{codeHide}}>
+            <div class="col-md-12">
+                <label>Kodu</label>
+            </div>
+            <div class="col-md-12">
+                <input class="form-control" data-type="text" maxlength="50" name="code" value="{{code}}" disabled="disabled" />
+            </div>
+        </div>
 
-		<div class="form-group">
-			<div class="col-md-12">
-				<label>Depo Adı</label>
-			</div>
-			<div class="col-md-12">
-				<input class="form-control" data-type="text" name="name" required value="{{name}}" />
-			</div>
-		</div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <label>Depo Adı</label>
+            </div>
+            <div class="col-md-12">
+                <input class="form-control" data-type="text" name="name" required value="{{name}}" />
+            </div>
+        </div>
 
-		@*<div class="form-group">
-			<div class="col-md-12">
-				<label>Depo  Açıklaması</label>
-			</div>
-			<div class="col-md-12">
-				<input class="form-control" data-type="text" name="description" value="{{description}}" />
-			</div>
-		</div>*@
+        @*<div class="form-group">
+                <div class="col-md-12">
+                    <label>Depo  Açıklaması</label>
+                </div>
+                <div class="col-md-12">
+                    <input class="form-control" data-type="text" name="description" value="{{description}}" />
+                </div>
+            </div>*@
 
-		<div class="buttons text-right">
-			<button class="btn btn-md btn-success" type="submit">Kaydet</button>
-			<button class="btn btn-md btn-primary" type="button" id="TaskInsert" data-method="GET">
-				<i class="fa fa-plus-circle"></i> Görev Oluştur
-			</button>
-		</div>
-	</form>
+        <div class="buttons text-right">
+            <button class="btn btn-md btn-success" type="submit">Kaydet</button>
+            <button class="btn btn-md btn-primary" type="button" id="TaskInsert" data-method="GET">
+                <i class="fa fa-plus-circle"></i> Görev Oluştur
+            </button>
+        </div>
+    </form>
 </script>
