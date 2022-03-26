@@ -1722,7 +1722,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				{
 					var personPlans = plans.Where(a => a.assignableUserIds.Contains(planUser.id.ToString().ToUpper()));
 
-					foreach (var plan in personPlans.Where(a=>a.id == new Guid("69b47ef8-a349-47e0-8e00-10763071ee7e")))
+					foreach (var plan in personPlans)
 					{
 						var times = new VMFTM_TaskPlanModel().GetPlanTaskTimes(plan);
 
