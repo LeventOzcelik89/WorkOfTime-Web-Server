@@ -1,0 +1,69 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWFVR_Favorites
+@{
+    ViewBag.Title = "Favori Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+<div class="col-md-12">
+    <div class="statbox widget box box-shadow">
+        <div class="widget-header">
+            <h4>@ViewBag.Title</h4>
+        </div>
+        <div class="widget-content widget-content-area">
+            @using (Html.BeginForm("Insert", "VWFVR_Favorites", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWFVR_FavoritesInsert" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(model => model.id)
+
+                <div class="form-group hide">
+                    <label for="userId">Kullanıcı</label>
+                    @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.userId)
+			      .OptionLabel("Lütfen Kullanıcı seçiniz..")
+			      .DataTextField("firstname")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" ,userStatus.user.id}))
+			      .Sort(x => x.Add("firstname").Ascending())
+			      .Execute()
+			)
+                </div>
+
+                <div class="form-group">
+                    <label for="url">Sayfa Adresi</label>
+                    @Html.TextBoxFor(model => model.Action, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"placeholder", "Lütfen Sayfa Adresi giriniz.."},
+                        {"readonly","readonly" }
+                    }).Validate(Validations.TextEverywhere(true))
+                </div>
+
+
+
+                <div class="form-group">
+                    <label for="title">Sayfa Adı</label>
+                    @Html.TextBoxFor(model => model.Description, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"placeholder", "Lütfen Sayfa Adı giriniz.."}
+                    }).Validate(Validations.TextEverywhere(true))
+                </div>
+
+
+
+                <div class="buttons">
+                    <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+                    <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+                </div>
+
+            }
+        </div>
+    </div>
+</div>

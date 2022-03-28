@@ -9,7 +9,7 @@ using System.Linq;
 using System.Web.Mvc;
 namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 {
-	public class FVR_FavoritesController : Controller
+	public class VWFVR_FavoritesController : Controller
 	{
 		[PageInfo("Favoriler", SHRoles.Personel)]
 		public ActionResult Index()
@@ -44,9 +44,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    var db = new WorkOfTimeDatabase();
 		    var data = db.GetVWFVR_Favorites(condition);
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
-			var db = new WorkOfTimeDatabase();
-			var data = db.GetFVR_Favorites(condition);
-			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
 
@@ -55,9 +52,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		{
 			var db = new WorkOfTimeDatabase();
 			var data = db.GetFVR_FavoritesById(id);
-			return View(data);
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWFVR_FavoritesById(id);
 		    return View(data);
 		}
 
@@ -65,15 +59,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		[PageInfo("Favori Ekleme", SHRoles.Personel)]
 		public ActionResult Insert()
 		{
-			var data = new FVR_Favorites { id = Guid.NewGuid() };
-			return View(data);
-		    var data = new VWFVR_Favorites { id = Guid.NewGuid() };
-		    return View(data);
+			return View();
 		}
 
 		[PageInfo("Favori Ekleme", SHRoles.Personel)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(VWFVR_Favorites item)
+		public JsonResult Insert(FVR_Favorites item)
 		{
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -86,19 +77,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 				Result = dbresult.result,
 				FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
 			};
-
-			return Json(result, JsonRequestBehavior.AllowGet);
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertVWFVR_Favorites(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-		    };
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
@@ -106,9 +84,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 
 		public ActionResult Update(Guid id)
 		{
-			var db = new WorkOfTimeDatabase();
-			var data = db.GetFVR_FavoritesById(id);
-			return View(data);
 		    var db = new WorkOfTimeDatabase();
 		    var data = db.GetVWFVR_FavoritesById(id);
 		    return View(data);
@@ -117,8 +92,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 
 		[HttpPost, ValidateAntiForgeryToken]
         [PageInfo("Favori Güncelleme")]
-        public JsonResult Update(VWFVR_Favorites item)
-		[PageInfo("Favori Güncelleme")]
 		public JsonResult Update(FVR_Favorites item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -128,27 +101,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    item.changed = DateTime.Now;
 		    item.changedby = userStatus.user.id;
 		
-		    var dbresult = db.UpdateVWFVR_Favorites(item);
+		    var dbresult = db.UpdateFVR_Favorites(item);
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
 		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
 		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
-			var db = new WorkOfTimeDatabase();
-			var userStatus = (PageSecurity)Session["userStatus"];
-			var feedback = new FeedBack();
-
-			item.changed = DateTime.Now;
-			item.changedby = userStatus.user.id;
-
-			var dbresult = db.UpdateFVR_Favorites(item);
-			var result = new ResultStatusUI
-			{
-				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-			};
 
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
@@ -161,29 +119,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    var db = new WorkOfTimeDatabase();
 		    var feedback = new FeedBack();
 		
-		    var item = id.Select(a => new VWFVR_Favorites { id = new Guid(a) });
+		    var item = id.Select(a => new FVR_Favorites { id = new Guid(a) });
 		
-		    var dbresult = db.BulkDeleteVWFVR_Favorites(item);
+		    var dbresult = db.BulkDeleteFVR_Favorites(item);
 		
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
 		        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
 		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
-			var db = new WorkOfTimeDatabase();
-			var feedback = new FeedBack();
-
-			var item = id.Select(a => new FVR_Favorites { id = new Guid(a) });
-
-			var dbresult = db.BulkDeleteFVR_Favorites(item);
-
-			var result = new ResultStatusUI
-			{
-				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
-			};
 
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
@@ -193,9 +137,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 			BEXP filter = null;
 			filter |= new BEXP
 			{
-				Operand1 = (COL)"createdby",
+				Operand1 = (COL)"userId",
 				Operator = BinaryOperator.Equal,
-				Operand2 = (VAL)string.Format("%{0}%", userStatus.user.id.ToString())
+				Operand2 = (VAL)string.Format("{0}", userStatus.user.id.ToString())
 			};
 
 			query.Filter &= filter;

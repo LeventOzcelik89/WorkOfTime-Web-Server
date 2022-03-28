@@ -93,6 +93,10 @@
     .text-notify {
         color: #1c84c6;
     }
+
+    #VWFVR_Favorite > .k-header{
+        display: none;
+    }
 </style>
 
 <script>
@@ -526,12 +530,12 @@
                     <div class="dropdown-menu dropdown-messages" id="" style="background:#e7eaef">
                         <div class="">
                             @(Html.Akilli()
-                            .Grid<Infoline.WorkOfTime.BusinessData.VWFVR_Favorites>("FVR_Favorite")
-                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "FVR_Favorites", new { area = "FVR" }))
-                            .PageSize(25))
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWFVR_Favorites>("VWFVR_Favorite")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFVR_Favorites", new { area = "FVR" }))
+                            .PageSize(15))
                             .Columns(x =>
                             {
-                                x.Bound(y => y.createdby_Title).Filterable(false).Sortable(false).Title("").ClientTemplate("#=TemplateEngine('VWFVR_FavoritesTemplate',data)#").Width(90);
+                                x.Bound(y => y.createdby_Title).Filterable(false).Sortable(false).Title("Favoriler").ClientTemplate("#=TemplateEngine('VWFVR_FavoritesTemplate',data)#").Width(90);
                             })
                             .NoRecords(a => a.Template("Kayıtlı favori bulunamadı."))
                             .Scrollable(x => x.Height(200))
@@ -644,18 +648,18 @@
 <script type="text/x-kendo-template" id="VWFVR_FavoritesTemplate">
      <div class="dropdown-item">
         <div class="">
-            <div class="media">
+            <div class="media" style="display: flex;align-items: center;justify-content: space-between;">
                 <div class="user-img">
-                    <div class="avatar avatar-xl" style="width:27px;height:27px;">
+                    <div class="avatar avatar-xl">
                         <span class="avatar-title rounded-circle"><i class="icon-star"></i></span>
                     </div>
                 </div>
-                <a class="media-body" href="#:Action#">
+                <a class="media-body" href="#:Action#" style="padding: 8px 0 0;width: 100%;margin-left: 10px;">
                     <div class="">
-                        <h5 class="usr-name">#=userId_Title#</h5>
+                        <h5 class="usr-name">#=(Description != null ? Description : "Sayfa Adı Bulunamadı")#</h5>
                     </div>
                 </a>
-                <a class="icon-status" style="margin-right: 6px;" data-delete="#=id#">
+                <a class="icon-status" style="padding: 8px 0 0;" data-delete="#=id#">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </a>
             </div>
@@ -665,7 +669,8 @@
 <script type="text/javascript">
     $(document).on("click", '[data-delete]', function (e) {
         var id = $(this).data("delete");
-        GetJsonDataFromUrl("/SH/VWFVR_Favorites/Delete", { id: id }, function (e) { $("#VWFVR_Favorite").data("handler").dataSource.read(); }, "Favori siliniyor", null, $("#VWFVR_Favorites"));
+        debugger;
+        GetJsonDataFromUrl("/FVR/VWFVR_Favorites/Delete", { id: id }, function (e) { $("#VWFVR_Favorite").data("handler").dataSource.read(); }, "Favori siliniyor", null, $("#VWFVR_Favorite"));
     });
     $(document).on("success", "#VWSH_FavoritesInsert", function (e) {
         $("#VWFVR_Favorite").data("kendoGrid").dataSource.read();
