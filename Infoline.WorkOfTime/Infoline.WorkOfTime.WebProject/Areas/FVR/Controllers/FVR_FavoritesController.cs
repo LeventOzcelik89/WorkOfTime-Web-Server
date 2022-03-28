@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    var condition = KendoToExpression.Convert(request);
 
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetFVR_Favorites(condition);
+		    var data = db.GetVWFVR_Favorites(condition);
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
@@ -48,7 +48,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
         public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetFVR_FavoritesById(id);
+		    var data = db.GetVWFVR_FavoritesById(id);
 		    return View(data);
 		}
 
@@ -56,20 +56,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
         [PageInfo("Favori Ekleme", SHRoles.Personel)]
         public ActionResult Insert()
 		{
-		    var data = new FVR_Favorites { id = Guid.NewGuid() };
+		    var data = new VWFVR_Favorites { id = Guid.NewGuid() };
 		    return View(data);
 		}
 
 		[PageInfo("Favori Ekleme", SHRoles.Personel)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(FVR_Favorites item)
+		public JsonResult Insert(VWFVR_Favorites item)
 		{
 		    var db = new WorkOfTimeDatabase();
 		    var userStatus = (PageSecurity)Session["userStatus"];
 		    var feedback = new FeedBack();
 		    item.created = DateTime.Now;
 		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertFVR_Favorites(item);
+		    var dbresult = db.InsertVWFVR_Favorites(item);
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
@@ -83,14 +83,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetFVR_FavoritesById(id);
+		    var data = db.GetVWFVR_FavoritesById(id);
 		    return View(data);
 		}
 
 
 		[HttpPost, ValidateAntiForgeryToken]
         [PageInfo("Favori Güncelleme")]
-        public JsonResult Update(FVR_Favorites item)
+        public JsonResult Update(VWFVR_Favorites item)
 		{
 		    var db = new WorkOfTimeDatabase();
 		    var userStatus = (PageSecurity)Session["userStatus"];
@@ -99,7 +99,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    item.changed = DateTime.Now;
 		    item.changedby = userStatus.user.id;
 		
-		    var dbresult = db.UpdateFVR_Favorites(item);
+		    var dbresult = db.UpdateVWFVR_Favorites(item);
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
@@ -117,9 +117,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    var db = new WorkOfTimeDatabase();
 		    var feedback = new FeedBack();
 		
-		    var item = id.Select(a => new FVR_Favorites { id = new Guid(a) });
+		    var item = id.Select(a => new VWFVR_Favorites { id = new Guid(a) });
 		
-		    var dbresult = db.BulkDeleteFVR_Favorites(item);
+		    var dbresult = db.BulkDeleteVWFVR_Favorites(item);
 		
 		    var result = new ResultStatusUI
 		    {
