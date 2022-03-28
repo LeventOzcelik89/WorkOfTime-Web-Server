@@ -1265,12 +1265,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			}), "application/json");
 		}
 
-
+		//BURADAYIM
 		[PageInfo("Günlük Kullanıcı Raporunun Methodu", SHRoles.Personel)]
-		public JsonResult DailyUserReport(DateTime? start, List<Guid?> userIds, Guid? customer, Guid? customerStorage)
+		public JsonResult DailyUserReport(DateTime? start, List<Guid?> userIds, Guid? customer, Guid? customerStorage, int? type)
 		{
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
+			var dailyReport = new List<DailyPersonalReportPersonalData>();
+			var dailyReportData = new List<DailyPersonalReportModel>();
+			var dailyReportDatas = new List<DailyPersonalReportPersonalData>();
+
+			if (!type.HasValue)
+			{
+				type = 0;
+			}
+
 			if (start == null)
 			{
 				start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
@@ -1278,207 +1287,308 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			var task = new List<VWFTM_Task>();
 			var taskOperation = new List<VWFTM_TaskOperation>();
 			var taskIds = new List<Guid>();
-			if (userIds.Count(x => x.HasValue) == 0)
+
+
+			if (type.Value == 0)
 			{
-				taskOperation = db.GetVWFTM_TaskOperationByCreated(start.Value, null).ToList();
-				var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, null).ToList();
-				task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
-				task.AddRange(task2);
-			}
-			else
-			{
-				taskOperation = db.GetVWFTM_TaskOperationByCreated(start.Value, userIds).ToList();
-				var removedUserIds = new List<Guid?>();
-				if (taskOperation.Count() > 0)
+				if (userIds.Count(x => x.HasValue) == 0)
 				{
-					removedUserIds.AddRange(userIds);
-					var ids = taskOperation.GroupBy(x => x.userId).Select(x => x).ToList();
-					foreach (var removeIds in ids)
-					{
-						removedUserIds.Remove(removeIds.Key);
-					}
-				}
-				var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, userIds.ToList());
-				task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
-				if (taskOperation.Count() > 0 && removedUserIds.Count() > 0)
-				{
-					var users = db.GetVWSH_UserByIds(userIds.Where(x => x.HasValue).Select(x => x.Value).ToArray());
-					task.AddRange(users.Select(x => new VWFTM_Task
-					{
-						id = Guid.NewGuid(),
-						assignUserId = x.id,
-						assignUser_Title = x.FullName,
-						created = DateTime.Now.AddYears(-1)
-					}));
-				}
-				task.AddRange(task2);
-			}
-			if (customer.HasValue)
-			{
-				task = task.Where(x => x.customerId == customer.Value).ToList();
-			}
-			if (customerStorage.HasValue)
-			{
-				task = task.Where(x => x.customerStorageId == customerStorage.Value).ToList();
-			}
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
-			{
-				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-				if (authoritys.Count() > 0)
-					task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToList();
-			}
-			var dailyReport = new List<DailyPersonalReportPersonalData>();
-			var dailyReportData = new List<DailyPersonalReportModel>();
-			var i = 0;
-			int isItOver = 0;
-			foreach (var taskItem in task)
-			{
-				i++;
-				var operation = taskOperation.Where(x => x.taskId == taskItem.id && (x.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi || x.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || x.status == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi));
-				if (operation.Count() > 0)
-				{
-					var startDate = operation.Where(a => a.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi && a.created.HasValue).Select(a => a.created.Value).FirstOrDefault();
-					var endDate = new DateTime();
-					var lastOperation = operation.Where(a => (a.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.status == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.created.HasValue).OrderBy(x => x.created).LastOrDefault();
-					if (lastOperation == null)
-					{
-						endDate = startDate.AddHours(1);
-						isItOver = 0;
-					}
-					else
-					{
-						if (lastOperation.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi)
-						{
-							endDate = lastOperation.created.Value;
-							isItOver = 2;
-						}
-						else
-						{
-							endDate = lastOperation.created.Value;
-							isItOver = 1;
-						}
-					}
-					dailyReportData.Add(new DailyPersonalReportModel
-					{
-						id = i,
-						start = startDate,
-						end = endDate,
-						attendees = taskItem.assignUserId.Value,
-						customer = taskItem.customer_Title ?? "-",
-						title = "",
-						taskId = taskItem.id,
-						taskCode = taskItem.code,
-						taskDescription = taskItem.description,
-						customerStorage_Title = taskItem.customerStorage_Title,
-						taskType_Title = taskItem.type_Title,
-						lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
-						color = isItOver == 0 ? "#f8ac59" : isItOver == 1 ? "#22e93f" : "#1ab394",
-						taskStatus_Title = isItOver == 0 ? "Görev Devam Etmekte." : isItOver == 1 ? "Çözüm Onaylandı." : "Çözüm Bildirildi.",
-					});
-					dailyReport.Add(new DailyPersonalReportPersonalData
-					{
-						dataSource = dailyReportData.Where(x => x.taskId == taskItem.id && x.attendees == taskItem.assignUserId.Value).ToList(),
-						text = operation.Select(x => x.user_Title).FirstOrDefault(),
-						value = taskItem.assignUserId.Value
-					});
+					taskOperation = db.GetVWFTM_TaskOperationByCreated(start.Value, null).ToList();
+					var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, null).ToList();
+					task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
+					task.AddRange(task2);
 				}
 				else
 				{
-					var startDate = new DateTime();
-					var endDate = new DateTime();
-					bool taskStarted = false;
-					if (!taskItem.planStartDate.HasValue)
+					taskOperation = db.GetVWFTM_TaskOperationByCreated(start.Value, userIds).ToList();
+					var removedUserIds = new List<Guid?>();
+					if (taskOperation.Count() > 0)
 					{
-						startDate = new DateTime(DateTime.Now.Year + 5, DateTime.Now.Month, DateTime.Now.Day, 7, 0, 0, 0);
-					}
-					else
-					{
-						startDate = taskItem.planStartDate.Value;
-					}
-					if (!taskItem.dueDate.HasValue)
-					{
-						endDate = startDate.AddHours(1);
-					}
-					else
-					{
-						endDate = taskItem.dueDate.Value;
-					}
-					var userId = new Guid();
-					var userName = "";
-					if (taskItem.assignUserId.HasValue)
-					{
-						userId = taskItem.assignUserId.Value;
-						userName = taskItem.assignUser_Title;
-						taskStarted = true;
-					}
-					else
-					{
-						userId = Guid.Parse(taskItem.assignableUserIds);
-						userName = taskItem.assignableUserTitles;
-						taskStarted = false;
-					}
-					if (taskItem.planLater.HasValue && taskItem.planLater.Value == (int)EnumFTM_TaskPlanLater.Hayir)
-					{
-						dailyReportData.Add(new DailyPersonalReportModel
+						removedUserIds.AddRange(userIds);
+						var ids = taskOperation.GroupBy(x => x.userId).Select(x => x).ToList();
+						foreach (var removeIds in ids)
 						{
-							id = i,
-							start = startDate,
-							end = endDate,
-							attendees = userId,
-							customer = taskItem.customer_Title ?? "-",
-							title = "",
-							taskId = taskItem.id,
-							taskCode = taskItem.code,
-							taskDescription = taskItem.description,
-							customerStorage_Title = taskItem.customerStorage_Title,
-							taskType_Title = taskItem.type_Title,
-							lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
-							color = !taskStarted ? "#23c6c8" : "#1c84c6",
-							taskStatus_Title = !taskStarted ? "Görev Üstlenilmeyi Bekleniyor." : "Görev Üstlenildi.",
-						});
+							removedUserIds.Remove(removeIds.Key);
+						}
 					}
-					if (taskItem.planLater.HasValue && taskItem.planLater.Value == (int)EnumFTM_TaskPlanLater.Evet)
+					var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, userIds.ToList());
+					task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
+					if (taskOperation.Count() > 0 && removedUserIds.Count() > 0)
 					{
-						dailyReportData.Add(new DailyPersonalReportModel
+						var users = db.GetVWSH_UserByIds(userIds.Where(x => x.HasValue).Select(x => x.Value).ToArray());
+						task.AddRange(users.Select(x => new VWFTM_Task
 						{
-							id = i,
-							start = startDate,
-							end = endDate,
-							attendees = userId,
-							customer = taskItem.customer_Title ?? "-",
-							title = "",
-							taskId = taskItem.id,
-							taskCode = taskItem.code,
-							taskDescription = taskItem.description,
-							customerStorage_Title = taskItem.customerStorage_Title,
-							taskType_Title = taskItem.type_Title,
-							lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
-							color = taskItem.planLater == 1 ? "#ff0000" : "#1c84c6",
-							taskStatus_Title = taskItem.planLater == 1 ? "Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekliyor." : "Görev Üstlenildi.",
-						});
+							id = Guid.NewGuid(),
+							assignUserId = x.id,
+							assignUser_Title = x.FullName,
+							created = DateTime.Now.AddYears(-1)
+						}));
 					}
-					dailyReport.Add(new DailyPersonalReportPersonalData
-					{
-						dataSource = dailyReportData.Where(x => x.taskId == taskItem.id && x.attendees == userId).ToList(),
-						text = userName,
-						value = userId
-					});
+					task.AddRange(task2);
 				}
-			}
-			if (dailyReport.Count() <= 0)
-			{
-				return Json(new ResultStatusUI
+				if (customer.HasValue)
 				{
-					FeedBack = new FeedBack().Warning("Kayıt Bulunamadı.", false)
-				}, JsonRequestBehavior.AllowGet);
+					task = task.Where(x => x.customerId == customer.Value).ToList();
+				}
+				if (customerStorage.HasValue)
+				{
+					task = task.Where(x => x.customerStorageId == customerStorage.Value).ToList();
+				}
+				if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+				{
+					var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+					if (authoritys.Count() > 0)
+						task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToList();
+				}
+				var i = 0;
+				int isItOver = 0;
+				foreach (var taskItem in task)
+				{
+					i++;
+					var operation = taskOperation.Where(x => x.taskId == taskItem.id && (x.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi || x.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || x.status == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi));
+					if (operation.Count() > 0)
+					{
+						var startDate = operation.Where(a => a.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi && a.created.HasValue).Select(a => a.created.Value).FirstOrDefault();
+						var endDate = new DateTime();
+						var lastOperation = operation.Where(a => (a.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.status == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.created.HasValue).OrderBy(x => x.created).LastOrDefault();
+						if (lastOperation == null)
+						{
+							endDate = startDate.AddHours(1);
+							isItOver = 0;
+						}
+						else
+						{
+							if (lastOperation.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi)
+							{
+								endDate = lastOperation.created.Value;
+								isItOver = 2;
+							}
+							else
+							{
+								endDate = lastOperation.created.Value;
+								isItOver = 1;
+							}
+						}
+						dailyReportData.Add(new DailyPersonalReportModel
+						{
+							id = i,
+							start = startDate,
+							end = endDate,
+							attendees = taskItem.assignUserId.Value,
+							customer = taskItem.customer_Title ?? "-",
+							title = "",
+							taskId = taskItem.id,
+							taskCode = taskItem.code,
+							taskDescription = taskItem.description,
+							customerStorage_Title = taskItem.customerStorage_Title,
+							taskType_Title = taskItem.type_Title,
+							lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
+							color = isItOver == 0 ? "#f8ac59" : isItOver == 1 ? "#22e93f" : "#1ab394",
+							taskStatus_Title = isItOver == 0 ? "Görev Devam Etmekte." : isItOver == 1 ? "Çözüm Onaylandı." : "Çözüm Bildirildi.",
+							isTask = true
+						});
+						dailyReport.Add(new DailyPersonalReportPersonalData
+						{
+							dataSource = dailyReportData.Where(x => x.taskId == taskItem.id && x.attendees == taskItem.assignUserId.Value).ToList(),
+							text = operation.Select(x => x.user_Title).FirstOrDefault(),
+							value = taskItem.assignUserId.Value
+						});
+					}
+					else
+					{
+						var startDate = new DateTime();
+						var endDate = new DateTime();
+						bool taskStarted = false;
+						if (!taskItem.planStartDate.HasValue)
+						{
+							startDate = new DateTime(DateTime.Now.Year + 5, DateTime.Now.Month, DateTime.Now.Day, 7, 0, 0, 0);
+						}
+						else
+						{
+							startDate = taskItem.planStartDate.Value;
+						}
+						if (!taskItem.dueDate.HasValue)
+						{
+							endDate = startDate.AddHours(1);
+						}
+						else
+						{
+							endDate = taskItem.dueDate.Value;
+						}
+						var userId = new Guid();
+						var userName = "";
+						if (taskItem.assignUserId.HasValue)
+						{
+							userId = taskItem.assignUserId.Value;
+							userName = taskItem.assignUser_Title;
+							taskStarted = true;
+						}
+						else
+						{
+							userId = Guid.Parse(taskItem.assignableUserIds);
+							userName = taskItem.assignableUserTitles;
+							taskStarted = false;
+						}
+						if (taskItem.planLater.HasValue && taskItem.planLater.Value == (int)EnumFTM_TaskPlanLater.Hayir)
+						{
+							dailyReportData.Add(new DailyPersonalReportModel
+							{
+								id = i,
+								start = startDate,
+								end = endDate,
+								attendees = userId,
+								customer = taskItem.customer_Title ?? "-",
+								title = "",
+								taskId = taskItem.id,
+								taskCode = taskItem.code,
+								taskDescription = taskItem.description,
+								customerStorage_Title = taskItem.customerStorage_Title,
+								taskType_Title = taskItem.type_Title,
+								lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
+								color = !taskStarted ? "#23c6c8" : "#1c84c6",
+								taskStatus_Title = !taskStarted ? "Görev Üstlenilmeyi Bekleniyor." : "Görev Üstlenildi.",
+								isTask = true
+
+							});
+						}
+						if (taskItem.planLater.HasValue && taskItem.planLater.Value == (int)EnumFTM_TaskPlanLater.Evet)
+						{
+							dailyReportData.Add(new DailyPersonalReportModel
+							{
+								id = i,
+								start = startDate,
+								end = endDate,
+								attendees = userId,
+								customer = taskItem.customer_Title ?? "-",
+								title = "",
+								taskId = taskItem.id,
+								taskCode = taskItem.code,
+								taskDescription = taskItem.description,
+								customerStorage_Title = taskItem.customerStorage_Title,
+								taskType_Title = taskItem.type_Title,
+								lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
+								color = taskItem.planLater == 1 ? "#ff0000" : "#1c84c6",
+								taskStatus_Title = taskItem.planLater == 1 ? "Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekliyor." : "Görev Üstlenildi.",
+								isTask = true
+
+							});
+						}
+						dailyReport.Add(new DailyPersonalReportPersonalData
+						{
+							dataSource = dailyReportData.Where(x => x.taskId == taskItem.id && x.attendees == userId).ToList(),
+							text = userName,
+							value = userId
+						});
+					}
+				}
+				if (dailyReport.Count() <= 0)
+				{
+					return Json(new ResultStatusUI
+					{
+						FeedBack = new FeedBack().Warning("Kayıt Bulunamadı.", false)
+					}, JsonRequestBehavior.AllowGet);
+				}
+				dailyReportDatas = dailyReport.GroupBy(a => a.text).Select(c => new DailyPersonalReportPersonalData
+				{
+					text = c.Key,
+					color = c.Select(a => a.color).FirstOrDefault(),
+					value = c.Select(a => a.value).FirstOrDefault(),
+					dataSource = c.SelectMany(b => b.dataSource).ToList()
+				}).ToList();
+
 			}
-			var dailyReportDatas = dailyReport.GroupBy(a => a.text).Select(c => new DailyPersonalReportPersonalData
+			else
 			{
-				text = c.Key,
-				color = c.Select(a => a.color).FirstOrDefault(),
-				value = c.Select(a => a.value).FirstOrDefault(),
-				dataSource = c.SelectMany(b => b.dataSource).ToList()
-			});
+				var query = "SELECT * FROM VWFTM_TaskPlan WITH (NOLOCK)";
+
+				if (userIds.Where(a => a == null).Count() == 0)
+				{
+					query += " WHERE  ";
+					var count = 0;
+
+					count = 0;
+					foreach (var userId in userIds)
+					{
+						count++;
+
+						if (count == 1)
+						{
+							query += " (assignableUserIds LIKE '%" + userId + "%' ) OR ";
+							query += " (helperUserIds LIKE '%" + userId + "%' )";
+						}
+
+						query += " OR (assignableUserIds LIKE '%" + userId + "%' )";
+						query += " OR (helperUserIds LIKE '%" + userId + "%' )";
+					}
+				}
+
+				var plans = db.GetVWFTM_TaskPlanByQuery(query);
+
+				plans = plans.Where(c => c.assignableUserIds != null).ToArray();
+
+				var planAssignableUsers = plans.Select(a => a.assignableUserIds.Split(',').Select(b => new Guid(b))).ToList();
+
+
+				var planAssinableUserIds = planAssignableUsers.GroupBy(a => a.FirstOrDefault()).Select(b => b.Key).ToArray();
+
+				var assignableUsers = db.GetVWSH_UserByIds(planAssinableUserIds);
+
+
+
+				foreach (var planUser in assignableUsers)
+				{
+					var personPlans = plans.Where(a => a.assignableUserIds.Contains(planUser.id.ToString().ToUpper()));
+
+					foreach (var plan in personPlans)
+					{
+						var times = new VMFTM_TaskPlanModel().GetPlanTaskTimes(plan);
+
+						foreach (var date in times)
+						{
+							var planStartDate = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0);
+							var planEndDate = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0);
+							planEndDate = planEndDate.AddMinutes(plan.estimatedTaskMinute.HasValue ? plan.estimatedTaskMinute.Value : 30);
+							dailyReportData = new List<DailyPersonalReportModel>();
+							dailyReportData.Add(new DailyPersonalReportModel
+							{
+								id = 1,
+								start = planStartDate,
+								end = planEndDate,
+								attendees = planUser.id,
+								customer = plan.customerId_Title,
+								title = "",
+								taskPlanId = plan.id,
+								//taskCode = taskItem.code,
+								//taskDescription = plan.,
+								//customerStorage_Title = taskItem.customerStorage_Title,
+								taskType_Title = "Arıza",
+								lastOperationStatus_Title = "Planın görevinin oluşturulması bekleniyor.",
+								color = "#ff0000",
+								taskStatus_Title = "Planın görevinin oluşturulması bekleniyor",
+								isTask = false
+							});
+
+
+							dailyReport.Add(new DailyPersonalReportPersonalData
+							{
+								dataSource = dailyReportData.Where(x => x.attendees == planUser.id).ToList(),
+								text = planUser.FullName,
+								value = planUser.id
+							});
+
+						}
+					}
+				}
+
+				dailyReportDatas = dailyReport.GroupBy(a => a.text).Select(c => new DailyPersonalReportPersonalData
+				{
+					text = c.Key,
+					color = c.Select(a => a.color).FirstOrDefault(),
+					value = c.Select(a => a.value).FirstOrDefault(),
+					dataSource = c.SelectMany(b => b.dataSource).ToList()
+				}).ToList();
+			}
+
 			return Json(dailyReportDatas, JsonRequestBehavior.AllowGet);
 		}
 
@@ -1589,7 +1699,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 							taskType_Title = taskItem.type_Title,
 							lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
 							color = "#f8ac59",
-							taskStatus_Title = "Görev Devam Etmekte."
+							taskStatus_Title = "Görev Devam Etmekte.",
+							isTask = true
 						});
 						dailyReport.Add(new DailyPersonalReportPersonalData
 						{
@@ -1655,6 +1766,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 								lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
 								color = !taskStarted ? "#23c6c8" : "#1c84c6",
 								taskStatus_Title = !taskStarted ? "Görev Üstlenilmeyi Bekleniyor." : "Görev Üstlenildi.",
+								isTask = true
 							});
 						}
 						dailyReport.Add(new DailyPersonalReportPersonalData
@@ -1709,14 +1821,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
 				plans = plans.Where(c => c.assignableUserIds != null).ToArray();
 
-				var planAssignableUsers = plans.Select(a => a.assignableUserIds.Split(',').Select(b=> new Guid(b))).ToList();
+				var planAssignableUsers = plans.Select(a => a.assignableUserIds.Split(',').Select(b => new Guid(b))).ToList();
 
 
 				var planAssinableUserIds = planAssignableUsers.GroupBy(a => a.FirstOrDefault()).Select(b => b.Key).ToArray();
 
 				var assignableUsers = db.GetVWSH_UserByIds(planAssinableUserIds);
 
-				
+
 
 				foreach (var planUser in assignableUsers)
 				{
@@ -1747,7 +1859,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 								taskType_Title = "Arıza",
 								lastOperationStatus_Title = "Planın görevinin oluşturulması bekleniyor.",
 								color = "#ff0000",
-								taskStatus_Title = "Planın görevinin oluşturulması bekleniyor"
+								taskStatus_Title = "Planın görevinin oluşturulması bekleniyor",
+								isTask = true
 							});
 
 

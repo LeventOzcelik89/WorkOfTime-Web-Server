@@ -33,10 +33,18 @@
 			var uid = $(this).attr('data-uid');
 			var elem = $('#scheduler').data('kendoScheduler');
 			var dataItem = elem.occurrenceByUid(uid);
-			Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem.taskId, null, $('<a data-method="GET" />'), 'type-info');
+
+			if (!dataItem.isTask) {
+				Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarPlanDetail?id=' + dataItem.taskPlanId + '&planStartDate=' + kendo.toString(dataItem.start, 'yyyy-MM-dd HH:mm:00') + '&dueDate=' + kendo.toString(dataItem.end, 'yyyy-MM-dd HH:mm:00'), null, $('<a data-method="GET" />'), 'type-info');
+			}
+			else {
+				Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem.taskId, null, $('<a data-method="GET" />'), 'type-info');
+			}
+
 		})
 </script>
 
+@Html.Hidden("type")
 
 <div class="row clearfix">
 	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -112,7 +120,7 @@
 						</div>
 					</div>
 
-					<div class="col-md-5">
+					<div class="col-md-4">
 						<div class="form-group">
 							@(
                                        Html.Akilli()
@@ -129,7 +137,22 @@
 						</div>
 					</div>
 
-					<div class="col-md-3 pull-right">
+					<div class="col-md-2">
+						<div class="form-group">
+							<div class="radio akilliRadioGrup clearfix" style="margin-top: 5px;margin-left: 18px;">
+								<input checked="checked" data-val="true" data-val-number="The field planLater must be a number." id="planLater0" name="type" type="radio" value="0" autocomplete="off">
+								<label for="planLater0" tabindex="0" class="radio-label" style="width: 117px;text-align: center;">
+									Görevler
+								</label>
+								<input id="planLater1" name="type" type="radio" value="1" autocomplete="off">
+								<label for="planLater1" tabindex="0" class="radio-label" style="width: 117px;text-align: center;">
+									Planlar
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-md-2 pull-right">
 						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
 					</div>
 				</div>
@@ -191,7 +214,17 @@
 		var startDate = $('#startDate').data('kendoDatePicker').value();
 		var scheduler = $("#scheduler").data("kendoScheduler");
 
-		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+
+		var typeEvent = $("#type").val();
+
+		var typeData = 0;
+
+		if (typeEvent == "1") {
+			typeData = 1;
+		}
+
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage, type: typeData }, function (res) {
 
 			if (startDate == null) {
 				startDate = new Date();
@@ -207,7 +240,7 @@
 			$("#scheduler").removeAttr("style")
 
 
-			createScheduler(startDate, userIds, customer, customerStorage);
+			createScheduler(startDate, userIds, customer, customerStorage, typeData);
 
 			//if (res != null) {
 			//	var resObjects = $.Enumerable.From(res).SelectMany(a => { return a.dataSource; }).ToArray();
@@ -238,13 +271,13 @@
 		}
 	}
 
-	function createScheduler(startDate, userIds, customer, customerStorage) {
+	function createScheduler(startDate, userIds, customer, customerStorage,type) {
 
 		if (startDate != null) {
 			startDate = kendo.toString(startDate, "yyyy/MM/dd 00:00:00");
 		}
 
-		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage, type:type }, function (res) {
 
 			if (startDate == null) {
 				startDate = new Date();
@@ -318,6 +351,10 @@
 		.on('ready', function (e) {
 			createScheduler(null, null);
 		})
+		.on("change", '[name="type"][type="radio"]', function (c) {
+			var type = $(this).val();
+			$("#type").val(type);
+		});
 </script>
 
 <script id="event-template" type="text/x-kendo-template">

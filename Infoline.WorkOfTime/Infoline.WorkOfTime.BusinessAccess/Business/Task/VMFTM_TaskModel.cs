@@ -1386,6 +1386,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			public string lastOperationStatus_Title { get; set; }
 			public string color { get; set; }
 			public string taskStatus_Title { get; set; }
+			public bool isTask { get; set; }
 		}
 		public class DailyPersonalReportPersonalData
 		{
