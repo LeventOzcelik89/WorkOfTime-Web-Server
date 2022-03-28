@@ -1265,7 +1265,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			}), "application/json");
 		}
 
-		//BURADAYIM
 		[PageInfo("Günlük Kullanıcı Raporunun Methodu", SHRoles.Personel)]
 		public JsonResult DailyUserReport(DateTime? start, List<Guid?> userIds, Guid? customer, Guid? customerStorage, int? type)
 		{
