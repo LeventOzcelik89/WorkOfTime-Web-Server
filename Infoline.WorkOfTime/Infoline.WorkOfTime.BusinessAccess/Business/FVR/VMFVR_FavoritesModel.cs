@@ -1,15 +1,10 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
-using Infoline.WorkOfTime.BusinessData.Specific;
 using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
-namespace Infoline.WorkOfTime.BusinessAccess.Business
+namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VWFVR_FavoritesModel : VWFVR_Favorites
     {
@@ -68,7 +63,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business
         {
             db = db ?? new WorkOfTimeDatabase();
             //Validasyonlarını yap
-            var dbresult = db.InsertFVR_Favorites(new FVR_Favorites
+            var dbresult = db.InsertVWFVR_Favorites(new VWFVR_Favorites
             {
                 userId = createdby
             }.B_EntityDataCopyForMaterial(this), this.trans);
@@ -93,7 +88,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
-            dbresult &= db.UpdateFVR_Favorites(new FVR_Favorites().B_EntityDataCopyForMaterial(this), false, this.trans);
+            dbresult &= db.UpdateVWFVR_Favorites(new VWFVR_Favorites().B_EntityDataCopyForMaterial(this), false, this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -117,7 +112,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
-            var dbresult = db.DeleteFVR_Favorites(new FVR_Favorites { id = this.id }, trans);
+            var dbresult = db.DeleteVWFVR_Favorites(new VWFVR_Favorites { id = this.id }, trans);
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();
