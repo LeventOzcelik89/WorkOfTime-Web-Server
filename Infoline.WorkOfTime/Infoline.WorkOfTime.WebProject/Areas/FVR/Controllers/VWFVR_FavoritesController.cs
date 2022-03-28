@@ -81,6 +81,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 				item.createdby = userStatus.user.id;
 				item.created = DateTime.Now;
 				item.Status = true;
+				item.userId = userStatus.user.id;
 				var dbresult = db.InsertFVR_Favorites(new FVR_Favorites().EntityDataCopyForMaterial(item));
 				result = new ResultStatusUI
 				{
@@ -101,7 +102,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 				};
 			}
 			
-		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
