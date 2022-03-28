@@ -57,21 +57,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 
 
 		[PageInfo("Favori Ekleme", SHRoles.Personel)]
-		public ActionResult Insert()
+		public ActionResult Insert(VMFVR_FavoriteModel model)
 		{
-			return View();
+			return View(model);
 		}
 
 		[PageInfo("Favori Ekleme", SHRoles.Personel)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(FVR_Favorites item)
+		public JsonResult Insert(VMFVR_FavoriteModel item, bool? isPost)
 		{
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
 			item.created = DateTime.Now;
 			item.createdby = userStatus.user.id;
-			var dbresult = db.InsertFVR_Favorites(item);
+			var dbresult = db.InsertFVR_Favorites(new FVR_Favorites().EntityDataCopyForMaterial(item));
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
@@ -145,5 +145,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 			query.Filter &= filter;
 			return query;
 		}
+	}
+
+
+	public class VMFVR_FavoriteModel : VWFVR_Favorites
+	{
+		public string title { get; set; }
+		public string url { get; set; }
 	}
 }
