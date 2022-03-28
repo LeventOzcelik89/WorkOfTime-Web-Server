@@ -11,13 +11,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 {
 	public class VWFVR_FavoritesController : Controller
 	{
-		[PageInfo("Favoriler", SHRoles.Personel)]
-		public ActionResult Index()
-		{
-			return View();
-		}
-
-
 		[PageInfo("Favoriler Methodu", SHRoles.Personel, SHRoles.BayiGorevPersoneli)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
@@ -45,16 +38,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    var data = db.GetVWFVR_Favorites(condition);
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
-
-
-		[PageInfo("Favoriler Detayı", SHRoles.Personel)]
-		public ActionResult Detail(Guid id)
-		{
-			var db = new WorkOfTimeDatabase();
-			var data = db.GetFVR_FavoritesById(id);
-		    return View(data);
-		}
-
 
 		[PageInfo("Favori Ekleme", SHRoles.Personel, SHRoles.BayiGorevPersoneli), AllowEveryone]
 		public ActionResult Insert(VMFVR_FavoriteModel model)
@@ -104,37 +87,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 			
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
-
-
-		public ActionResult Update(Guid id)
-		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWFVR_FavoritesById(id);
-		    return View(data);
-		}
-
-
-		[HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Favori Güncelleme")]
-		public JsonResult Update(FVR_Favorites item)
-		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdateFVR_Favorites(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-
-			return Json(result, JsonRequestBehavior.AllowGet);
-		}
-
 
 		[HttpPost]
 		[PageInfo("Favori Sil", SHRoles.Personel, SHRoles.SistemYonetici)]
