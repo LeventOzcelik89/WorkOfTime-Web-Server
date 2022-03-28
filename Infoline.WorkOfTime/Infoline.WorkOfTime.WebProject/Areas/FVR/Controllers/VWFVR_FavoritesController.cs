@@ -56,27 +56,45 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		}
 
 
-		[PageInfo("Favori Ekleme", SHRoles.Personel)]
+		[PageInfo("Favori Ekleme"), AllowEveryone]
 		public ActionResult Insert(VMFVR_FavoriteModel model)
 		{
 			return View(model);
 		}
 
-		[PageInfo("Favori Ekleme", SHRoles.Personel)]
+		[PageInfo("Favori Ekleme"), AllowEveryone]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(VMFVR_FavoriteModel item, bool? isPost)
 		{
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-			item.created = DateTime.Now;
-			item.createdby = userStatus.user.id;
-			var dbresult = db.InsertFVR_Favorites(new FVR_Favorites().EntityDataCopyForMaterial(item));
-			var result = new ResultStatusUI
+			var data = db.GetVWFVR_FavoritesById(item.id);
+			var res = new ResultStatus { result = true };
+			var result = new ResultStatusUI { };
+			if (data == null)
 			{
-				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-			};
+				item.createdby = userStatus.user.id;
+				item.created = DateTime.Now;
+				var dbresult = db.InsertFVR_Favorites(new FVR_Favorites().EntityDataCopyForMaterial(item));
+				result = new ResultStatusUI
+				{
+					Result = dbresult.result,
+					FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+				};
+			}
+			else
+			{
+				item.changedby = userStatus.user.id;
+				item.changed = DateTime.Now;
+				var dbresult = db.UpdateFVR_Favorites(new FVR_Favorites().EntityDataCopyForMaterial(item));
+				result = new ResultStatusUI
+				{
+					Result = dbresult.result,
+					FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
+				};
+			}
+			
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
@@ -113,7 +131,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 
 
 		[HttpPost]
-		[PageInfo("Favori Sil")]
+		[PageInfo("Favori Sil", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public JsonResult Delete(string[] id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -146,7 +164,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 			return query;
 		}
 	}
-
 
 	public class VMFVR_FavoriteModel : VWFVR_Favorites
 	{
