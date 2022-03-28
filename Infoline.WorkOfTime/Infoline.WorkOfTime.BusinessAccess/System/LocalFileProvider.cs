@@ -485,7 +485,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                                  new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli, SHRoles.SahaGorevMusteri},
                                                                                  new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli,SHRoles.SahaGorevMusteri},
                                                                                  new string[]{ SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli,SHRoles.SahaGorevMusteri}),
-                    new FileBase("İşletme Diğer Dosyalar", "*.jpeg,*.png,*.jpg,*.jpeg",  99,
+                    new FileBase("İşletme Diğer Dosyalar", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  99,
                                                                                  new string[]{ SHRoles.Personel,SHRoles.SahaGorevMusteri },
                                                                                  new string[]{ SHRoles.Personel,SHRoles.SahaGorevMusteri },
                                                                                  new string[]{ SHRoles.Personel,SHRoles.SahaGorevMusteri})
