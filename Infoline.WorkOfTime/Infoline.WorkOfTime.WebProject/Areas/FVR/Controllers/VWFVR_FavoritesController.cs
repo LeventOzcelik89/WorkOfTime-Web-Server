@@ -18,7 +18,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		}
 
 
-		[PageInfo("Favoriler Methodu", SHRoles.Personel)]
+		[PageInfo("Favoriler Methodu", SHRoles.Personel, SHRoles.BayiGorevPersoneli)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		}
 
 
-		[PageInfo("Favoriler Veri Methodu", SHRoles.Personel)]
+		[PageInfo("Favoriler Veri Methodu", SHRoles.Personel, SHRoles.BayiGorevPersoneli)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -56,16 +56,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		}
 
 
-		[PageInfo("Favori Ekleme"), AllowEveryone]
+		[PageInfo("Favori Ekleme", SHRoles.Personel, SHRoles.BayiGorevPersoneli), AllowEveryone]
 		public ActionResult Insert(VMFVR_FavoriteModel model)
 		{
+			model.Action = model.url;
+			model.Description = model.title;
 			return View(model);
 		}
 
-		[PageInfo("Favori Ekleme"), AllowEveryone]
+		[PageInfo("Favori Ekleme", SHRoles.Personel, SHRoles.BayiGorevPersoneli), AllowEveryone]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(VMFVR_FavoriteModel item, bool? isPost)
 		{
+			item.Action = item.url;
+			item.Description = item.title;
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -76,6 +80,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 			{
 				item.createdby = userStatus.user.id;
 				item.created = DateTime.Now;
+				item.Status = true;
 				var dbresult = db.InsertFVR_Favorites(new FVR_Favorites().EntityDataCopyForMaterial(item));
 				result = new ResultStatusUI
 				{
@@ -87,6 +92,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 			{
 				item.changedby = userStatus.user.id;
 				item.changed = DateTime.Now;
+				item.Status = true;
 				var dbresult = db.UpdateFVR_Favorites(new FVR_Favorites().EntityDataCopyForMaterial(item));
 				result = new ResultStatusUI
 				{
@@ -153,13 +159,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		public static SimpleQuery UpdateQuery(SimpleQuery query, PageSecurity userStatus)
 		{
 			BEXP filter = null;
-			filter |= new BEXP
+			filter &= new BEXP
 			{
 				Operand1 = (COL)"userId",
 				Operator = BinaryOperator.Equal,
 				Operand2 = (VAL)string.Format("{0}", userStatus.user.id.ToString())
 			};
-
+			filter &= new BEXP
+			{
+				Operand1 = (COL)"status",
+				Operator = BinaryOperator.Equal,
+				Operand2 = (VAL)string.Format("{0}", true)
+			};
 			query.Filter &= filter;
 			return query;
 		}
@@ -170,4 +181,5 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		public string title { get; set; }
 		public string url { get; set; }
 	}
+
 }
