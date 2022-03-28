@@ -10,14 +10,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 {
     public class FVR_FavoritesController : Controller
 	{
-        [PageInfo("Favoriler")]
+        [PageInfo("Favoriler",SHRoles.Personel)]
         public ActionResult Index()
 		{
 		    return View();
 		}
 
 
-        [PageInfo("Favoriler Methodu")]
+        [PageInfo("Favoriler Methodu",SHRoles.Personel)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -27,13 +27,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		    request.Sorts = new SortDescriptor[0];
 		    request.Page = 1;
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetFVR_Favorites(condition).RemoveGeographies().ToDataSourceResult(request);
-		    data.Total = db.GetFVR_FavoritesCount(condition.Filter);
+		    var data = db.GetVWFVR_Favorites(condition).RemoveGeographies().ToDataSourceResult(request);
+		    data.Total = db.GetVWFVR_FavoritesCount(condition.Filter);
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
 
-        [PageInfo("Favoriler Veri Methodu")]
+        [PageInfo("Favoriler Veri Methodu", SHRoles.Personel)]
         public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,7 +44,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		}
 
 
-        [PageInfo("Favoriler Detayı")]
+        [PageInfo("Favoriler Detayı", SHRoles.Personel)]
         public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -53,14 +53,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		}
 
 
-        [PageInfo("Favori Ekleme")]
+        [PageInfo("Favori Ekleme", SHRoles.Personel)]
         public ActionResult Insert()
 		{
 		    var data = new FVR_Favorites { id = Guid.NewGuid() };
 		    return View(data);
 		}
 
-
+		[PageInfo("Favori Ekleme", SHRoles.Personel)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(FVR_Favorites item)
 		{
