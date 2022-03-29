@@ -94,7 +94,7 @@
         color: #1c84c6;
     }
 
-    #VWFVR_Favorite > .k-header, #VWSH_UserChange > .k-header {
+    #VWFVR_Favorite > .k-header, #VWSH_UserChange > .k-header, #VWSH_UserPendingTask > .k-header {
         display: none;
     }
     .k-grid-norecords {
@@ -174,7 +174,7 @@
                 </script>
 
                 <li layoutdata-opened="true" class="dropdown  pull-right" id="listNotification">
-                    <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#" aria-expanded="true" data-bildirim>
+                    <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#" aria-expanded="true" data-bildirim id="pendingTaskDropdown">
                         <i class="fa fa-bell" style="color:grey"></i><span class="label label-warning" layoutdata-count="total">0</span>
                     </a>
                     <ul class="dropdown-menu dropdown-messages">
@@ -185,6 +185,97 @@
                             </div>
                         </li>
 
+                        <li>
+                            <div class="dropdown-messages-box">
+                                <style type="text/css">
+                                    #VWSH_UserPendingTask a{
+                                        min-height: auto;
+                                        padding: 10px 0;
+                                        display: block;
+                                    }
+                                    #VWSH_UserPendingTask .media {
+                                        display: -ms-flexbox;
+                                        display: flex;
+                                        -ms-flex-align: start;
+                                        align-items: flex-start;
+                                    }
+                                    #VWSH_UserPendingTask .media .avatar {
+                                        position: relative;
+                                        display: inline-block;
+                                        width: 39px;
+                                        height: 39px;
+                                        font-size: 14px;
+                                        margin-right: 11px;
+                                        font-weight: 500;
+                                    }
+                                    #VWSH_UserPendingTask .media .avatar-title {
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        width: 100%;
+                                        height: 100%;
+                                        background-color: #304aca;
+                                        color: #fff;
+                                        font-weight: 600;
+                                        border-radius: 25px;
+                                    }
+                                    #VWSH_UserPendingTask .media .media-body .usr-name {
+                                        font-size: 15px;
+                                        margin-bottom: 0px;
+                                        color: #0e1726;
+                                        font-weight: 500;
+                                    }
+                                    #VWSH_UserPendingTask .media .media-body .msg-title{
+                                        font-size: 10px;
+                                        font-weight: 700;
+                                        color: #888ea8;
+                                        margin-bottom: 0;
+                                        letter-spacing: 0;
+                                    }
+                                </style>
+                                <script type="text/x-kendo-template" id="VWSH_UserPendingTaskTemplate">
+                                    <a class="dropdown-item"  href="#:url#">
+                                        <div class="">
+                                            <div class="media">
+                                                <div class="user-img">
+                                                    <div class="avatar avatar-xl">
+                                                        <span class="avatar-title rounded-circle">#:count#</span>
+                                                    </div>
+                                                </div>
+                                                <div class="media-body">
+                                                    <div class="">
+                                                        <h5 class="usr-name">#:title#</h5>
+                                                        <p class="msg-title">#:process#</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </script>
+                                <script type="text/javascript">
+                                    $(document).on("load:grid", "#VWSH_UserPendingTask", function () {
+                                        var cc = $("#VWSH_UserPendingTask").data("handler");
+                                        if (cc.dataSource._total > 0) {
+                                            $("#pendingTaskDropdown").append('<span class="badge badge-primary"></span>');
+                                        }
+                                    })
+                                </script>
+                                <div>
+                                    @(Html.Akilli()
+                                    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserPendingTask>("VWSH_UserPendingTask")
+                                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceUserPendingTask", "VWSH_User", new { area = "SH" }))
+                                    .Sort(a => a.Add(c => c.count).Descending()).PageSize(25))
+                                    .Columns(x =>
+                                    {
+                                        x.Bound(y => y.title).Filterable(false).Sortable(false).Title("Bildirimler").ClientTemplate("#=TemplateEngine('VWSH_UserPendingTaskTemplate',data)#").Width(90);
+                                    })
+                                    .NoRecords(a => a.Template("Bekleyen bir işlem bulunmamaktadır."))
+                                    .Scrollable(x => x.Height(200))
+                                    .Pageable(a => a.Enabled(false))
+                                    .Selectable(x => x.Mode(GridSelectionMode.Single)))
+                                </div>
+                            </div>
+                        </li>
                         <li>
                             <div class="dropdown-messages-box">
 

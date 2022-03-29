@@ -70,18 +70,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             data.Total = db.GetVWSH_UserCount(condition.Filter);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
-        
-        [PageInfo("Kullanıcılar Methodu", SHRoles.Personel,SHRoles.HakEdisBayiPersoneli)]
-        public JsonResult DataSource2([DataSourceRequest] DataSourceRequest request)
-        {
-            var condition = KendoToExpression.Convert(request);
-            condition = UpdateQuery(condition);
-            request.Page = 1;
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWSH_User(condition).RemoveGeographies().ToDataSourceResult(request);
-            data.Total = db.GetVWSH_UserCount(condition.Filter);
-            return Json(data, "application/json");
-        }
 
         [PageInfo("Kullanıcılar Adet Methodu"), AllowEveryone]
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
@@ -1067,6 +1055,31 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Json(new ResultStatusUI(userModel.Delete()), JsonRequestBehavior.AllowGet);
         }
 
+        [PageInfo("Kullanıcılar Methodu", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
+        public JsonResult DataSource2([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            condition = UpdateQuery(condition);
+            request.Page = 1;
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWSH_User(condition).RemoveGeographies().ToDataSourceResult(request);
+            data.Total = db.GetVWSH_UserCount(condition.Filter);
+            return Json(data, "application/json");
+        }
+
+        [PageInfo("Bekleyen İşlemler", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
+        public JsonResult DataSourceUserPendingTask([DataSourceRequest] DataSourceRequest request)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var condition = KendoToExpression.Convert(request);
+            condition = UpdateQueryUserPendingTask(condition, userStatus);
+            request.Page = 1;
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWSH_UserPendingTask(condition).RemoveGeographies().ToDataSourceResult(request);
+            data.Total = db.GetVWSH_UserPendingTaskCount(condition.Filter);
+            return Json(data, "application/json");
+        }
+
         public static SimpleQuery UpdateQuery(SimpleQuery query)
         {
             BEXP filter = null;
@@ -1075,6 +1088,29 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 Operand1 = (COL)"status",
                 Operator = BinaryOperator.Equal,
                 Operand2 = (VAL)string.Format("{0}", true)
+            };
+            query.Filter &= filter;
+            return query;
+        }
+
+        public static SimpleQuery UpdateQueryUserPendingTask(SimpleQuery query, PageSecurity userStatus)
+        {
+            BEXP filter = null;
+            filter = new BEXP
+            {
+                Operand1 = new BEXP
+                {
+                    Operand1 = (COL)"userid",
+                    Operator = BinaryOperator.Equal,
+                    Operand2 = (VAL)userStatus.user.id
+                },
+                Operand2 = new BEXP
+                {
+                    Operand1 = (COL)"count",
+                    Operator = BinaryOperator.GreaterThan,
+                    Operand2 = (VAL)(int)0
+                },
+                Operator = BinaryOperator.And
             };
             query.Filter &= filter;
             return query;
