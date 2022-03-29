@@ -70,6 +70,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             data.Total = db.GetVWSH_UserCount(condition.Filter);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
+        
+        [PageInfo("Kullanıcılar Methodu", SHRoles.Personel,SHRoles.HakEdisBayiPersoneli)]
+        public JsonResult DataSource2([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            condition = UpdateQuery(condition);
+            request.Page = 1;
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWSH_User(condition).RemoveGeographies().ToDataSourceResult(request);
+            data.Total = db.GetVWSH_UserCount(condition.Filter);
+            return Json(data, "application/json");
+        }
 
         [PageInfo("Kullanıcılar Adet Methodu"), AllowEveryone]
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
@@ -1053,6 +1065,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                       .Send((Int16)EmailSendTypes.ZorunluMailler, findUser.email, string.Format("{0} | {1}", tenantName, "Üyelik Talebi Reddedildi"), true);
             var userModel = new VMSH_UserModel { id = id }.Load();
             return Json(new ResultStatusUI(userModel.Delete()), JsonRequestBehavior.AllowGet);
+        }
+
+        public static SimpleQuery UpdateQuery(SimpleQuery query)
+        {
+            BEXP filter = null;
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"status",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)string.Format("{0}", true)
+            };
+            query.Filter &= filter;
+            return query;
         }
     }
 }
