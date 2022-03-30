@@ -63,7 +63,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View();
 		}
 
-		[PageInfo("Bakım Planları DataSource (New)", SHRoles.SahaGorevYonetici)]
+		[PageInfo("Bakım Planları DataSource (New)", SHRoles.Personel, SHRoles.SahaGorevMusteri)]
 		public ContentResult AllTaskCalendarNewDataSource(int? year, Guid? customerId, Guid? planId)
 		{
 			var model = new TaskSchedulerModel();
@@ -273,9 +273,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		}
 
 		[PageInfo("Görev Takvimi", SHRoles.SahaGorevYonetici)]
-		public ActionResult Calendar()
+		public ActionResult Calendar(string type)
 		{
-			return View();
+			return View(type);
 		}
 
 		[PageInfo("Planlanmış Görevler Takvim Detayı (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
@@ -286,11 +286,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View(request);
 		}
 
+		[PageInfo("Planlanmış ve Açılmamış Görevler Takvim Detayı (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
+		public ActionResult CalendarPlanDetail(VMFTM_TaskPlanModel request)
+		{
+			request.Load();
+			return View(request);
+		}
+
+
 		[PageInfo("Planlanmış Görevler Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
-		public ContentResult CalendarDataSource(List<Guid> userIds)
+		public ContentResult CalendarDataSource(List<Guid> userIds, int? type)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
-			var tasks = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userIds, userStatus);
+			var tasks = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userIds, type, userStatus);
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
 		}
 	}

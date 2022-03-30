@@ -10,7 +10,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 {
     public class VWFTM_TaskGridController : Controller
     {
-        [PageInfo("Detaylı Rapor", SHRoles.SahaGorevMusteri,SHRoles.SahaGorevYonetici,SHRoles.SahaGorevOperator)]
+        [PageInfo("Detaylı Rapor", SHRoles.SahaGorevYonetici,SHRoles.SahaGorevOperator)]
         public ActionResult Index(string taskIds)
         {
             var ids = new List<Guid>();
@@ -24,7 +24,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             }
             return View(ids);
         }
-        [PageInfo("Tüm Saha Görevleri Veri Methodu", SHRoles.Personel, SHRoles.SahaGorevMusteri)]
+        [PageInfo("Tüm Saha Görevleri Veri Methodu", SHRoles.Personel)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

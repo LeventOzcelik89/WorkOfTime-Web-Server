@@ -1,0 +1,152 @@
+﻿@{
+    ViewBag.Title = "Bayi Hakediş Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+<script type="text/x-kendo-template" id="template">
+    <a  data-href="" data-button="ApprovedBut" id="ApprovedButton" data-ask="Hakedişi Ödendi Yapmak İstiyor Musunuz?"   data-method="GET" data-show="always" class="k-button"><i class="fa fa-check" data-original-title="Ödendi Yap"></i></a>
+    <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
+    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span></a>
+</script>
+<div class="row">
+    <div class="ibox">
+        <div class="col-sm-12">
+            <div class="ibox-content clearfix">
+                <div class="col-sm-6">
+                    <label>Bayi Seçiniz</label>
+                    @(
+                       Html.Akilli()
+                       .DropDownList("companyId")
+                       .OptionLabel("Lütfen Bayi seçiniz..")
+                       .DataValueField("id")
+                       .DataTextField("fullName")
+                       .Template("#=TemplateEngine('companyTemplate',data)#")
+                       .Action(b => b.Action("DataSourceDropDownPaymentBayi", "VWPRD_ProductPayment", new { area = "PRD" }))
+                       .Sort(x => x.Add("fullName").Ascending())
+                       .Value(userStatus.user.CompanyId.ToString())
+                       .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+                       .Execute()
+                     )
+                </div>
+                <div class="col-sm-6">
+                    <label>Kural Seçiniz</label>
+                    @(
+                       Html.Akilli()
+                       .DropDownList("bonusId")
+                       .OptionLabel("Lütfen Kural seçiniz..")
+                       .DataValueField("id")
+                       .DataTextField("ruleName")
+                       .Action(b => b.Action("DataSourceDropDown", "VWPRD_ProductBonus", new { area = "PRD" }))
+                       .Sort(x => x.Add("ruleName").Ascending())
+                       .Execute()
+                     )
+                </div>
+                <div class="col-sm-2">
+                    <label class="req">Yıl Seçiniz</label>
+                    @(
+                 Html.Akilli().
+                 DropDownList("statusId").
+                 OptionLabel("Lütfen durum seçiniz..").
+                 DataTextField("enumDescription").
+                 DataValueField("Id").
+                 Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+                 Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRD_Bounty" && a.fieldName == "status").
+                 Sort(x => x.Add("enumDescription").Ascending()).
+                 Validate(Validations.Required).
+                 Execute("enumKey")
+             )
+                </div>
+                <div class="col-sm-2">
+                    <button onclick="page.load()" id="queryButton" style="width:100%;margin-top:26px" class="btn btn-primary btn-large">Sorgula</button><br />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="ibox" id="info">
+    <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+        Bilgilendirme : <strong> Yukarıdan verileri seçerek sorgula butonuna basınız... </strong>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div id="totalGrid"></div>
+    </div>
+</div>
+<script>
+    var page = {
+        qButton: $("queryButton"),
+        load: function () {
+            debugger;
+            var companyId = null;
+            var company = null;
+            companyId = $("#companyId").data("kendoDropDownList").dataItem();
+            company = companyId.id;
+            var bonusId = null;
+            var bonus = null;
+            bonusId = $("#bonusId").data("kendoDropDownList").dataItem();
+            bonus = bonusId;
+            var status = $("#statusId").data("kendoDropDownList").dataItem();
+
+            GetJsonDataFromUrl("/PRD/VWPRD_Bounty/ReportDataSource", { companyId: company, bonusId: bonus, status: status }, function (data) {
+                $("#info").hide();
+                $("#table").show();
+                var gridTotal = $("#totalGrid").data("kendoGrid");
+                if (gridTotal != undefined) {
+                    gridTotal.destroy();
+                }
+                var totalCols = [
+                    { field: 'id', hidden: true },
+                    { field: 'companyId_Title', title: 'Bayi Adı', width: 200 },
+                    { field: 'bonusId_Title', title: 'Kural Adı', width: 200 },
+                    {
+                        field: 'totalPrice', title: 'Hakedilen Tutar', width: 100, format: '{0:N0}', template: function (item) {
+
+                            return kendo.toString(item.totalPrice, "N0") + " ₺";
+                        }
+                    },
+                    { field: 'status_Title', title: 'Ödeme Durumu', width: 200 },
+                ];
+                $("#totalGrid").kendoGrid({
+                    toolbar: kendo.template($("#template").html()),
+                    excel: {
+                        fileName: "Hakediş_Raporu.xlsx"
+                    },
+                    dataSource: data,
+                    pageSize: 100,
+                    height: 580,
+                    sortable: true,
+                    resizable: true,
+                    selectable: 'multiple',
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    change: function (e, resp) {
+                        $('#ApprovedButton').removeClass('hidden')
+                        var grid = $("#totalGrid").data("kendoGrid");
+                        var selectedItem = grid.dataItem(grid.select());
+                        if (selectedItem.hasThePayment == 1) {
+                            $('[data-button="ApprovedBut"]').hide();
+                        }
+                        else {
+                            $('[data-button="ApprovedBut"]').show();
+                        }
+                        $('[data-button="ApprovedBut"]').attr('data-href', '/PRD/VWPRD_Bounty/Approve?id=' + selectedItem.id + '');
+                    },
+                    columns: totalCols
+                });
+                var totalG = $("#totalGrid").data("kendoGrid");
+                totalG.dataSource.page(1);
+            });
+        },
+    }
+    $(document).on("success:swal", "#ApprovedButton", function () {
+        setTimeout(function () {
+            page.load()
+        }, 100)
+    })
+
+</script>

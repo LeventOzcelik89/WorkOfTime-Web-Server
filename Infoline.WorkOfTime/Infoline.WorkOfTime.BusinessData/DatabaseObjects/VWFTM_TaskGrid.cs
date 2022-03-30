@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string customer_Title { get; set;}
         public string customerStorage_Title { get; set;}
         public string company_Title { get; set;}
+        public string mainTaskCode { get; set;}
         public string subjectTitles { get; set;}
         public string taskType_Title { get; set;}
         public string town { get; set;}

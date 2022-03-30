@@ -22,7 +22,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string ProducedDate { get; set; } = "Cihaz Aktif Edilmemiştir";
         public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();
         public List<VWSV_ServiceOperation> ServiceOperations { get; set; } = new List<VWSV_ServiceOperation>();
-        public VWPRD_EntegrationImport EntegrationImport { get; set; } = new VWPRD_EntegrationImport();
         public PRD_TitanDeviceActivated PRD_TitanDeviceActivated { get; set; } = new PRD_TitanDeviceActivated();
         public VWPRD_Inventory VWPRD_Inventory { get; set; } = new VWPRD_Inventory();
         public PRD_EntegrationAction pRD_EntegrationAction { get; set; } = new PRD_EntegrationAction();
@@ -61,7 +60,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         WarrantyEnd = findTitan.CreatedOfTitan.Value.AddYears(2).ToShortDateString();
                     }
                 }
-                this.EntegrationImport = db.GetVWPRD_EntegrationImportBySerialCode(findInventory.serialcode) ?? new VWPRD_EntegrationImport();
                 this.VWPRD_Inventory = findInventory;
                 var findManiDate = db.GetPRD_InventoryActionByInventoryId(inventoryId.Value);
                 if (findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).Count() > 0)

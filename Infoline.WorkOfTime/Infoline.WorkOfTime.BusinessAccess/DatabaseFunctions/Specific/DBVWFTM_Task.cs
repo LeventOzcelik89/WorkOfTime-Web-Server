@@ -132,6 +132,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
+		public VWFTM_TaskPlan[] GetVWFTM_TaskPlanByQuery(string query, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				return db.ExecuteReader<VWFTM_TaskPlan>(query).ToArray();
+			}
+		}
+
+		public VWFTM_TaskPlan[] GetVWFTM_TaskPlanJustCustomerQuery()
+		{
+			using (var db = GetDB())
+			{
+				return db.ExecuteReader<VWFTM_TaskPlan>("Select customerId,customerId_Title from VWFTM_TaskPlan with(nolock)").ToArray();
+			}
+		}
 
 		public VWFTM_Task[] GetVWFTM_TaskByCustomerStorageId(Guid storage, Guid userId, DbTransaction tran = null)
 		{
@@ -668,6 +683,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			using (var db = GetDB(tran))
 			{
 				return db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.isComplete == false && ((a.assignableUserIds != null && a.assignableUserIds.Contains(userId.ToString().ToUpper())))).Execute().ToArray();
+			}
+		}
+
+		public VWFTM_Task[] GetVWFTM_TaskByPid(Guid taskId, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				return db.Table<VWFTM_Task>().Where(a=>a.pid == taskId).Execute().ToArray();
 			}
 		}
 

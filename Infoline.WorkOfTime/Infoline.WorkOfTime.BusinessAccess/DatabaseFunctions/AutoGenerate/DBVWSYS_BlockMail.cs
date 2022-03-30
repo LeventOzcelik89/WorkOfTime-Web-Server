@@ -67,8 +67,5 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-
-  
-
     }
 }

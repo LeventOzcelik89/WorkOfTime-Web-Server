@@ -51,6 +51,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return null;
         }
 
+        public VMPRD_InventoryModel LoadMobileForBarcodeRead(VWPRD_Inventory inventory)
+        {
+
+            this.db = this.db ?? new WorkOfTimeDatabase();
+            this.id = id;
+            var thisItem = inventory;
+
+            return LoadModelReturn(thisItem);
+
+        }
+
         private VMPRD_InventoryModel LoadModelReturn(VWPRD_Inventory thisItem)
         {
             this.B_EntityDataCopyForMaterial(thisItem);

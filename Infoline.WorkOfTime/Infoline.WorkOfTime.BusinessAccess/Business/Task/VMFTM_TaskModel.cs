@@ -51,6 +51,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public short? isSendDocuments { get; set; }
 		public bool isTaskRule { get; set; }
 		public string operationStartTime { get; set; }
+		public FTM_Task mainTask { get; set; }
 		public string TypeTitle(short? key)
 		{
 			var enumTypeArray = EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>().ToArray();
@@ -72,7 +73,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				assignableUsers = taskUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
 				helperUsers = taskUsersHelper.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
 				followUpUsers = taskFollowUpUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
-
+				if (task.pid.HasValue)
+				{
+					mainTask = db.GetFTM_TaskByPid(task.pid.Value);
+				}
+				
 				if (task.assignUserId.HasValue)
 				{
 					var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(task.assignUserId.Value, (Int16)EnumUT_RulesType.Task);
@@ -1373,6 +1378,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			public string customer { get; set; }
 			public Guid attendees { get; set; }
 			public Guid taskId { get; set; }
+			public Guid taskPlanId { get; set; }
 			public string taskCode { get; set; }
 			public string customerStorage_Title { get; set; }
 			public string taskType_Title { get; set; }
@@ -1380,6 +1386,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			public string lastOperationStatus_Title { get; set; }
 			public string color { get; set; }
 			public string taskStatus_Title { get; set; }
+			public bool isTask { get; set; }
 		}
 		public class DailyPersonalReportPersonalData
 		{

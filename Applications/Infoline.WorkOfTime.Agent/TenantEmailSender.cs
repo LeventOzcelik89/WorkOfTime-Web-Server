@@ -78,13 +78,13 @@ namespace Infoline.WorkOfTime.Agent
                 if (now.Hour == 18 && now.Minute == 30)
                 {
                     //EndOfDayMailService();
-                    Log.Info("Gün sonu maili gönnderildi.({0} {1})", _tenant.TenantName, _tenant.TenantCode);
+                    //Log.Info("Gün sonu maili gönnderildi.({0} {1})", _tenant.TenantName, _tenant.TenantCode);
                 }
 
                 if (now.DayOfWeek == DayOfWeek.Friday && now.Hour == 18 && now.Minute == 30)
                 {
                     //WeeklyMailService();
-                    Log.Info("Haftalık mail gönnderildi.({0} {1})", _tenant.TenantName, _tenant.TenantCode);
+                    //Log.Info("Haftalık mail gönnderildi.({0} {1})", _tenant.TenantName, _tenant.TenantCode);
                 }
 
                 PersonCalendar();

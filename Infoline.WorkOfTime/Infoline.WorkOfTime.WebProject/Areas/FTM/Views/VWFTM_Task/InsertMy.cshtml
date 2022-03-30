@@ -1,127 +1,129 @@
 ﻿@model VMFTM_TaskModel
 @{
-    ViewBag.Title = "Yeni Görev Ekle";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    var userStatus = (PageSecurity)Session["userStatus"];
+	ViewBag.Title = "Yeni Görev Ekle";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
 }
 
 <script data-selector="modalContainer" type="text/javascript">
 
-    function onChangeCustomer(e) {
-        var customer = e.sender.dataItem();
-        if (this.value() != "") {
-            var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "')");
-            var filterJSON = kendo.filterParser(filter);
-            $("#fixtureIds").data("handler").enable(true);
-            $('#fixtureIds').data("kendoMultiSelect").dataSource.filter(filterJSON);
-            $("#location").val(customer.location);
-            haritalar['location'].feature.remove("DrawLayer", "DrawFeature");
-            haritalar['location'].feature.add("DrawLayer", "DrawFeature", customer.location);
-        } else {
-            $("#fixtureIds").data("handler").enable(false);
-            $("#fixtureIds").data("handler").value([]);
-        }
-    }
+	function onChangeCustomer(e) {
+		var customer = e.sender.dataItem();
+		if (this.value() != "") {
+			var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "')");
+			var filterJSON = kendo.filterParser(filter);
+			$("#fixtureIds").data("handler").enable(true);
+			$('#fixtureIds').data("kendoMultiSelect").dataSource.filter(filterJSON);
+			$("#location").val(customer.location);
+			haritalar['location'].feature.remove("DrawLayer", "DrawFeature");
+			haritalar['location'].feature.add("DrawLayer", "DrawFeature", customer.location);
+		} else {
+			$("#fixtureIds").data("handler").enable(false);
+			$("#fixtureIds").data("handler").value([]);
+		}
+	}
 
 
-    $(document)
-        .on("change", '[name="type"][type="radio"]', function (c) {
-            $('#location,#fixtureIds').prop("required", false);
-            var type = $(this).val();
-            if (type == 6 || type == 7 || type == 5) {
-                $('#location').prop("required", true);
-            } else {
-                $("#fixtureIds").data("handler").value([]);
-            }
-        });
+	$(document)
+		.on("change", '[name="type"][type="radio"]', function (c) {
+			$('#location,#fixtureIds').prop("required", false);
+			var type = $(this).val();
+			if (type == 6 || type == 7 || type == 5) {
+				$('#location').prop("required", true);
+			} else {
+				$("#fixtureIds").data("handler").value([]);
+			}
+		});
 
 </script>
 
 
 <style type="text/css" data-selector="modalContainer">
-    .noselector .k-i-all {
-        display: none !important;
-        visibility: hidden;
-    }
+	.noselector .k-i-all {
+		display: none !important;
+		visibility: hidden;
+	}
 
-    .noselector .k-clear-value {
-        right: 10px !important;
-    }
+	.noselector .k-clear-value {
+		right: 10px !important;
+	}
 </style>
 
 <style type="text/css" data-selector="modalContainer">
-    .akilliRadioGrup > input:checked + label[for=priority_0] {
-        background-color: #EF5352;
-    }
+	.akilliRadioGrup > input:checked + label[for=priority_0] {
+		background-color: #EF5352;
+	}
 
-    .akilliRadioGrup > input:checked + label[for=priority_1] {
-        background-color: #F8AC59;
-    }
+	.akilliRadioGrup > input:checked + label[for=priority_1] {
+		background-color: #F8AC59;
+	}
 
-    .akilliRadioGrup > input:checked + label[for=priority_2] {
-        background-color: #1ab394;
-    }
+	.akilliRadioGrup > input:checked + label[for=priority_2] {
+		background-color: #1ab394;
+	}
 
-    #insertRadio.akilliRadioGrup i {
-        font-size: 27px;
-    }
+	#insertRadio.akilliRadioGrup i {
+		font-size: 27px;
+	}
 
-        #insertRadio.akilliRadioGrup i.icon-shuffle {
-            font-size: 16px;
-        }
+		#insertRadio.akilliRadioGrup i.icon-shuffle {
+			font-size: 16px;
+		}
 
-        #insertRadio.akilliRadioGrup i.icon-retweet-3 {
-            font-size: 16px;
-        }
+		#insertRadio.akilliRadioGrup i.icon-retweet-3 {
+			font-size: 16px;
+		}
 
-    #insertRadio.akilliRadioGrup label {
-        width: 8.4%;
-        text-align: center;
-        font-size: 12px;
-        font-weight: bold;
-        max-height: 80px;
-        overflow: hidden;
-    }
+	#insertRadio.akilliRadioGrup label {
+		width: 8.4%;
+		text-align: center;
+		font-size: 12px;
+		font-weight: bold;
+		max-height: 80px;
+		overflow: hidden;
+	}
 </style>
 
 @using (Html.BeginForm("InsertMy", "VWFTM_Task", FormMethod.Post, new Dictionary<string, object>() {
-    { "class", "form-horizontal" },
-    { "role", "form" },
-    { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" },
-    { "id","VWFTM_TaskInsertForm" }
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" },
+	{ "id","VWFTM_TaskInsertForm" }
 }))
 {
-    @Html.AntiForgeryToken()
-    @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model => model.companyId)
-    @Html.HiddenFor(model => model.code)
-
-    <div class="hide">
-        @(Html.Akilli().MapInputFor(a => a.lastOperationLocation).Navigation(true))
-    </div>
-
-    <div class="clearfix m-b-md">
-        <div class="radio akilliRadioGrup clearfix" id="insertRadio">
-            @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
-            {
-                @(Html.RadioButtonFor(model => model.type, item.Key, new Dictionary<string, object> { { "id", "Type" + item.Key } }))
-                <label for="Type@(item.Key)" tabindex="0" class="radio-label">
-                    <i class="@item.Generic["icon"]" data-toggle="tooltip" data-placement="bottom" data-original-title=" @item.Value"></i><br />
-                    @item.Value
-                </label>
-            }
-        </div>
-    </div>
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.companyId)
+	@Html.HiddenFor(model => model.code)
+	@Html.HiddenFor(model => model.pid)
 
 
+	<div class="hide">
+		@(Html.Akilli().MapInputFor(a => a.lastOperationLocation).Navigation(true))
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="customerId">Müşteri İşletme</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="clearfix m-b-md">
+		<div class="radio akilliRadioGrup clearfix" id="insertRadio">
+			@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
+			{
+				@(Html.RadioButtonFor(model => model.type, item.Key, new Dictionary<string, object> { { "id", "Type" + item.Key } }))
+				<label for="Type@(item.Key)" tabindex="0" class="radio-label">
+					<i class="@item.Generic["icon"]" data-toggle="tooltip" data-placement="bottom" data-original-title=" @item.Value"></i><br />
+					@item.Value
+				</label>
+			}
+		</div>
+	</div>
+
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="customerId">Müşteri İşletme</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli()
                 .DropDownListFor(model => model.customerId)
                 .OptionLabel("Lütfen Müşteri İşletmeyı Seçiniz..")
@@ -135,15 +137,15 @@
                 .Validate(Validations.Required)
                 .Execute()
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md " for="customerStorageId">Şube/Depo/Kısım</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md " for="customerStorageId">Şube/Depo/Kısım</label>
+		</div>
+		<div class="col-md-8">
+			@(
                     Html.Akilli()
                     .DropDownListFor(model => model.customerStorageId)
                     .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
@@ -157,15 +159,15 @@
                     .Sort(x => x.Add("fullName").Ascending())
                     .Execute()
                 )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="planStartDate">Planlanan Başlangıç Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="planStartDate">Planlanan Başlangıç Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli().
                 DateTimePickerFor(model => model.planStartDate).
                 Placeholder("Planlanan Başlangıç Tarihi").
@@ -175,15 +177,15 @@
                 //MaxDateElement("dueDate").
                 Validate(Validations.Required)
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="dueDate">Planlanan Bitiş Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="dueDate">Planlanan Bitiş Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli().
                 DateTimePickerFor(model => model.dueDate).
                 Placeholder("Planlanan Bitiş Tarihi").
@@ -192,44 +194,44 @@
                 MinDateElement("planStartDate").
                 Validate(Validations.Required)
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group" style="margin-bottom: 1px;">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="planLater">Daha Sonra Planlansın Mı? <i class="icon-info-4" data-toggle="tooltip" data-placement="top" title="Çağrı oluşturduktan veya Görev üstlenildikten sonra sonra Planlanmış Başlangıç ve Bitiş Tarihlerini yeniden planlayabilmeniz için gerekli alan."></i></label>
-        </div>
-        <div class="col-md-8">
-            <div class="clearfix m-b-md">
-                <div class="radio akilliRadioGrup clearfix">
-                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPlanLater>().OrderBy(x => x.Generic["order"]))
-                    {
-                        @(Html.RadioButtonFor(model => model.planLater, item.Key, new Dictionary<string, object> { { "id", "planLater" + item.Key } }))
-                        <label for="planLater@(item.Key)" tabindex="0" class="radio-label">
-                            @item.Value
-                        </label>
-                    }
-                </div>
+	<div class="form-group" style="margin-bottom: 1px;">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="planLater">Daha Sonra Planlansın Mı? <i class="icon-info-4" data-toggle="tooltip" data-placement="top" title="Çağrı oluşturduktan veya Görev üstlenildikten sonra sonra Planlanmış Başlangıç ve Bitiş Tarihlerini yeniden planlayabilmeniz için gerekli alan."></i></label>
+		</div>
+		<div class="col-md-8">
+			<div class="clearfix m-b-md">
+				<div class="radio akilliRadioGrup clearfix">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPlanLater>().OrderBy(x => x.Generic["order"]))
+					{
+						@(Html.RadioButtonFor(model => model.planLater, item.Key, new Dictionary<string, object> { { "id", "planLater" + item.Key } }))
+						<label for="planLater@(item.Key)" tabindex="0" class="radio-label">
+							@item.Value
+						</label>
+					}
+				</div>
 
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="priority">Görev Önceliği</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli().RadioButtonGroupFor(a => a.priority).Value(EnumFTM_TaskPriority.Orta))
-        </div>
-    </div>
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="priority">Görev Önceliği</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli().RadioButtonGroupFor(a => a.priority).Value(EnumFTM_TaskPriority.Orta))
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="CMP_Types">Görev Konuları</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli()
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="CMP_Types">Görev Konuları</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
      .MultiSelect("FTM_TaskSubjectTypeIds")
      .Placeholder("Lütfen Görev Konusu Seçiniz..")
      .DataTextField("name")
@@ -240,15 +242,15 @@
 	 //.Validate(Validations.Required)
      .Execute("id")
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group" data-cascade="[type='radio'][name='type']" data-show="5,6,7">
-        <div class="col-md-4">
-            <label class="control-label label-md req" id="locationLabel" for="location">Görev Konumu</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group" data-cascade="[type='radio'][name='type']" data-show="5,6,7">
+		<div class="col-md-4">
+			<label class="control-label label-md req" id="locationLabel" for="location">Görev Konumu</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli().MapInputFor(a => a.location).
                 HelpText("Lütfen Lokasyon seçiniz.").
                 HtmlAttributes(new Dictionary<string, object>()
@@ -262,15 +264,15 @@
                 Searchable(true)
                 .Validate(Validations.Required)
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group noselector" data-cascade="[type='radio'][name='type']" data-show="0,1,2,3,4">
-        <div class="col-md-4">
-            <label class="control-label label-md" id="fixtureLabel" for="fixtureIds">Görevlendirilecek Envanter(ler)</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli()
+	<div class="form-group noselector" data-cascade="[type='radio'][name='type']" data-show="0,1,2,3,4">
+		<div class="col-md-4">
+			<label class="control-label label-md" id="fixtureLabel" for="fixtureIds">Görevlendirilecek Envanter(ler)</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
                 .MultiSelect("fixtureIds")
                 .Placeholder("Lütfen Envanter Seçiniz..")
                 .DataTextField("searchField")
@@ -281,15 +283,15 @@
                 .Enable(false)
                 .Execute()
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="helperUsers">Yardımcı Personeller</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="helperUsers">Yardımcı Personeller</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli()
                 .MultiSelectFor(a => a.helperUsers)
                 .Placeholder("Lütfen yardımcı personelleri seçiniz..")
@@ -301,15 +303,15 @@
                 .Sort(x => x.Add("FullName").Ascending())
                 .Execute()
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="companyCarId">Araç</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli()
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="companyCarId">Araç</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
              .DropDownListFor(model => model.companyCarId)
              .OptionLabel("Lütfen Araç Seçiniz..")
              .DataTextField("plate")
@@ -319,64 +321,64 @@
              .BasicInsert(Url.Action("Insert", "VWCMP_CompanyCars", new { area = "CMP" }), "plate")
              .Execute("id")
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="description">Görev Açıklaması</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen Açıklama Giriniz." }
-            }).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
-        </div>
-    </div>
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="description">Görev Açıklaması</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Açıklama Giriniz." }
+			}).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
+		</div>
+	</div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="files">Görev Dosyaları</label>
-        </div>
-        <div class="col-md-8">
-            @(
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="files">Görev Dosyaları</label>
+		</div>
+		<div class="col-md-8">
+			@(
                 Html.Akilli().FileUpload()
                 .DataTable("FTM_TaskOperation")
                 .DataId(Model.id)
                 .DataKey(x => x.fileGroup == "Görev Dosyası")
                 .Validate()
             )
-        </div>
-    </div>
+		</div>
+	</div>
 
-    <div class="form-group" style="margin-bottom: 1px;">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="isSendDocuments">Evraklar Mail Gönderilsin Mi? <i class="icon-info-4" data-toggle="tooltip" data-placement="top" title="Çağrıda görevli personellerin özlük dosyaları mail olarak müşteriye gönderilsin mi."></i></label>
-        </div>
-        <div class="col-md-8">
-            <div class="clearfix m-b-md">
-                <div class="radio akilliRadioGrup clearfix">
-                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPersonIsSendDocuments>().OrderBy(x => x.Generic["order"]))
-                    {
-                        @(Html.RadioButtonFor(model => model.isSendDocuments, item.Key, new Dictionary<string, object> { { "id", "isSendDocuments" + item.Key } }))
-                        <label for="isSendDocuments@(item.Key)" tabindex="0" class="radio-label">
-                            @item.Value
-                        </label>
-                    }
-                </div>
+	<div class="form-group" style="margin-bottom: 1px;">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="isSendDocuments">Evraklar Mail Gönderilsin Mi? <i class="icon-info-4" data-toggle="tooltip" data-placement="top" title="Çağrıda görevli personellerin özlük dosyaları mail olarak müşteriye gönderilsin mi."></i></label>
+		</div>
+		<div class="col-md-8">
+			<div class="clearfix m-b-md">
+				<div class="radio akilliRadioGrup clearfix">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPersonIsSendDocuments>().OrderBy(x => x.Generic["order"]))
+					{
+						@(Html.RadioButtonFor(model => model.isSendDocuments, item.Key, new Dictionary<string, object> { { "id", "isSendDocuments" + item.Key } }))
+						<label for="isSendDocuments@(item.Key)" tabindex="0" class="radio-label">
+							@item.Value
+						</label>
+					}
+				</div>
 
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 
 
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Görev Oluştur</button>
-    </div>
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Görev Oluştur</button>
+	</div>
 
 }
 

@@ -13,6 +13,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 	public class VMFTM_TaskPlanModel : VWFTM_TaskPlan
 	{
 		public WorkOfTimeDatabase db { get; set; }
+		public DateTime? planStartDate { get; set; }
+		public DateTime? dueDate { get; set; }
 		private DbTransaction trans { get; set; }
 		private bool loadedTasks { get; set; } = false;
 		public List<string> _Times { get; set; }
@@ -23,6 +25,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<string> _MonthFrequenciesData { get; set; } = new List<string>();
 		public List<string> _DayFrequency { get; set; } = new List<string>();
 		public List<string> _DayFrequenciesData { get; set; } = new List<string>();
+		public List<VWFTM_TaskUser> taskUsers { get; set; } = new List<VWFTM_TaskUser>();
+		public List<VWFTM_TaskUser> taskHelperUsers { get; set; } = new List<VWFTM_TaskUser>();
+
 
 		public VWFTM_TaskTemplate TaskTemplate { get; set; }
 
@@ -54,7 +59,115 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				if (this.dayFrequency.HasValue)
 				{
-					var dayFrequencyEnum = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanDayFrequency>().Where(a=>a.Key == this.dayFrequency.Value.ToString()).Select(b=>b.Value).FirstOrDefault();
+					var dayFrequencyEnum = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanDayFrequency>().Where(a => a.Key == this.dayFrequency.Value.ToString()).Select(b => b.Value).FirstOrDefault();
+					this._DayFrequency.Add(dayFrequencyEnum);
+				}
+
+				if (!string.IsNullOrEmpty(this.assignableUserIds))
+				{
+					var assignableUserIds = this.assignableUserIds.Split(',').Select(a => new Guid(a)).ToArray();
+
+					var assignableUsers = db.GetVWSH_UserByIds(assignableUserIds.ToArray());
+
+					taskUsers = assignableUsers.Select(a => new VWFTM_TaskUser
+					{
+						created = (DateTime.Now),
+						userId = a.id,
+						userId_Title = a.FullName,
+						photo = a.ProfilePhoto
+					}).ToList();
+				}
+
+				if (!string.IsNullOrEmpty(this.helperUserIds))
+				{
+					var helperUserIds = this.helperUserIds.Split(',').Select(a => new Guid(a)).ToArray();
+
+					var assignableUsers = db.GetVWSH_UserByIds(helperUserIds.ToArray());
+
+					taskHelperUsers = assignableUsers.Select(a => new VWFTM_TaskUser
+					{
+						created = (DateTime.Now),
+						userId = a.id,
+						userId_Title = a.FullName,
+						photo = a.ProfilePhoto
+					}).ToList();
+				}
+
+				if (this.monthFrequency.HasValue)
+				{
+					var monthFrequencyEnum = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanMonthFrequency>().Where(a => a.Key == this.monthFrequency.Value.ToString()).Select(b => b.Value).FirstOrDefault();
+					this._MonthFrequency.Add(monthFrequencyEnum);
+				}
+			}
+
+			if (!this.frequencyInterval.HasValue)
+			{
+				this.frequencyInterval = 1;
+			}
+
+			var timeCounter = new DateTime(2000, 1, 1, 0, 0, 0);
+			while (timeCounter < new DateTime(2000, 1, 2, 0, 0, 0))
+			{
+				this._TimesData.Add(timeCounter.ToString("HH:mm"));
+				timeCounter = timeCounter.AddMinutes(30);
+			}
+
+			_WeekDaysData.Add("Pazartesi");
+			_WeekDaysData.Add("Salı");
+			_WeekDaysData.Add("Çarşamba");
+			_WeekDaysData.Add("Perşembe");
+			_WeekDaysData.Add("Cuma");
+			_WeekDaysData.Add("Cumartesi");
+			_WeekDaysData.Add("Pazar");
+
+
+			_MonthFrequenciesData.Add("İlk");
+			_MonthFrequenciesData.Add("İkinci");
+			_MonthFrequenciesData.Add("Üçüncü");
+			_MonthFrequenciesData.Add("Dördüncü");
+			_MonthFrequenciesData.Add("Son");
+
+			_DayFrequenciesData.Add("Gün");
+			_DayFrequenciesData.Add("Pazar");
+			_DayFrequenciesData.Add("Pazartesi");
+			_DayFrequenciesData.Add("Salı");
+			_DayFrequenciesData.Add("Çarşamba");
+			_DayFrequenciesData.Add("Perşembe");
+			_DayFrequenciesData.Add("Cuma");
+			_DayFrequenciesData.Add("Cumartesi");
+
+			return this;
+
+		}
+
+		public VMFTM_TaskPlanModel LoadPlan(VWFTM_TaskPlan plan)
+		{
+
+			this.db = this.db ?? new WorkOfTimeDatabase();
+
+			if (plan != null)
+			{
+				this.B_EntityDataCopyForMaterial(plan, true);
+
+				if (!String.IsNullOrEmpty(this.weekDays))
+				{
+					_WeekDays = this.weekDays.Split(',').ToList();
+				}
+
+				if (!String.IsNullOrEmpty(this.times))
+				{
+					_Times = this.times.Split(',').ToList();
+				}
+
+				if (this.templateId != null)
+				{
+					this.TaskTemplate = db.GetVWFTM_TaskTemplateById(this.templateId.Value);
+				}
+
+
+				if (this.dayFrequency.HasValue)
+				{
+					var dayFrequencyEnum = EnumsProperties.EnumToArrayValues<EnumFTM_TaskPlanDayFrequency>().Where(a => a.Key == this.dayFrequency.Value.ToString()).Select(b => b.Value).FirstOrDefault();
 					this._DayFrequency.Add(dayFrequencyEnum);
 				}
 
@@ -99,8 +212,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			_DayFrequenciesData.Add("Cumartesi");
 
 			return this;
-
 		}
+
 
 		public ResultStatus Save(Guid userid, DbTransaction _trans = null)
 		{
@@ -335,61 +448,134 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 		}
 
-		public VMFTM_TaskCalendarModel[] CalendarDataSource(List<Guid> userIds, PageSecurity userStatus)
+		public VMFTM_TaskCalendarModel[] CalendarDataSource(List<Guid> userIds, int? type, PageSecurity userStatus)
 		{
+			//Type 0 : Görev
+			//Type 1 : Plan
 			this.db = this.db ?? new WorkOfTimeDatabase();
-			var query = "SELECT id,lastOperationDate,created,changed,closingDate,code,taskPlanId,customer_Title,customerStorage_Title,fixture_Title,planStartDate,dueDate,priority_Title,plate,priority,lastOperationStatus,assignUserId,assignableUserIds,isComplete,taskPlanId_Title,type_Title,description,penaltyStartDate,amercementTotal,SLAText,assignableUserTitles,taskSubjectType_Title,planLater FROM VWFTM_Task WITH (NOLOCK) WHERE DATEFROMPARTS(YEAR(lastOperationDate), MONTH(lastOperationDate), DAY(lastOperationDate)) = DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), DAY(GETDATE()))";
-
-			if (userIds.Where(a => a == Guid.Empty).Count() == 0)
-			{
-				query += " AND (assignUserId IN (";
-				var count = 0;
-				foreach (var item in userIds)
-				{
-					count++;
-
-					if (count == userIds.Count())
-					{
-						query += String.Format("'{0}'", item);
-					}
-					else
-					{
-						query += String.Format("'{0}',", item);
-					}
-				}
-
-				query += ")";
-
-				count = 0;
-				foreach (var userId in userIds)
-				{
-					count++;
-
-					if (count == userIds.Count())
-					{
-						query += " OR (assignableUserIds LIKE '%" + userId + "%' ))";
-					}
-					else
-					{
-						query += " OR (assignableUserIds LIKE '%" + userId + "%' )";
-					}
-				}
-			}
-
-			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskCalendarModel>();
-
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
-			{
-				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-				if (authoritys.Any())
-				{
-					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
-				}
-			}
-
-
 			var tasks = new List<VMFTM_TaskCalendarModel>();
-			tasks.AddRange(dbtasks);
+			var dbtasks = new List<VMFTM_TaskCalendarModel>();
+
+			if (!type.HasValue)
+			{
+				type = 0;
+			}
+
+
+			if (type.Value == 0)
+			{
+				var query = "SELECT id,lastOperationDate,created,changed,closingDate,code,taskPlanId,customer_Title,customerStorage_Title,fixture_Title,planStartDate,dueDate,priority_Title,plate,priority,lastOperationStatus,assignUserId,assignableUserIds,isComplete,taskPlanId_Title,type_Title,description,penaltyStartDate,amercementTotal,SLAText,assignableUserTitles,taskSubjectType_Title,planLater FROM VWFTM_Task WITH (NOLOCK) ";
+
+
+				if (userIds.Where(a => a == Guid.Empty).Count() == 0)
+				{
+					query += "WHERE (assignUserId IN (";
+					var count = 0;
+					foreach (var item in userIds)
+					{
+						count++;
+
+						if (count == userIds.Count())
+						{
+							query += String.Format("'{0}'", item);
+						}
+						else
+						{
+							query += String.Format("'{0}',", item);
+						}
+					}
+
+					query += ")";
+
+					count = 0;
+					foreach (var userId in userIds)
+					{
+						count++;
+
+						if (count == userIds.Count())
+						{
+							query += " OR (assignableUserIds LIKE '%" + userId + "%' ))";
+						}
+						else
+						{
+							query += " OR (assignableUserIds LIKE '%" + userId + "%' )";
+						}
+					}
+				}
+
+				dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskCalendarModel>().ToList();
+				if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+				{
+					var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+					if (authoritys.Any())
+					{
+						dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray().ToList();
+					}
+				}
+
+				foreach (var task in dbtasks)
+				{
+					task.isTask = true;
+					tasks.Add(task);
+				}
+			}
+			else
+			{
+				var query = "SELECT * FROM VWFTM_TaskPlan WITH (NOLOCK)";
+
+				if (userIds.Where(a => a == Guid.Empty).Count() == 0)
+				{
+					query += " WHERE  ";
+					var count = 0;
+
+					count = 0;
+					foreach (var userId in userIds)
+					{
+						count++;
+
+						if (count == 1)
+						{
+							query += " (assignableUserIds LIKE '%" + userId + "%' ) OR ";
+							query += " (helperUserIds LIKE '%" + userId + "%' )";
+						}
+
+						query += " OR (assignableUserIds LIKE '%" + userId + "%' )";
+						query += " OR (helperUserIds LIKE '%" + userId + "%' )";
+					}
+				}
+
+				var plans = db.GetVWFTM_TaskPlanByQuery(query);
+
+
+
+				foreach (var plan in plans)
+				{
+					var times = GetPlanTaskTimes(plan);
+
+					foreach (var date in times)
+					{
+						var planStartDate = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0);
+						var planEndDate = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0);
+						planEndDate = planEndDate.AddMinutes(plan.estimatedTaskMinute.HasValue ? plan.estimatedTaskMinute.Value : 30);
+
+						tasks.Add(new VMFTM_TaskCalendarModel
+						{
+							planStartDate = planStartDate,
+							dueDate = planEndDate,
+							customerId = plan.customerId,
+							customer_Title = plan.customerId_Title,
+							lastOperationStatus = 999,
+							taskPlanId = plan.id,
+							taskPlanId_Title = plan.name,
+							isTask = false,
+							type = plan.taskType
+						});
+					}
+				}
+
+			}
+
+
 			return tasks.ToArray();
 		}
 
@@ -723,6 +909,112 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			return this._TaskList;
 
+		}
+
+
+		public List<DateTime> GetPlanTaskTimes(VWFTM_TaskPlan data)
+		{
+			this.loadedTasks = true;
+			RecurrenceValues values = null;
+
+			var res = new List<VWFTM_Task>();
+			var taskTimes = new List<DateTime>();
+			this.db = this.db ?? new WorkOfTimeDatabase();
+			this.LoadPlan(data);
+
+			if (!this.frequencyStartDate.HasValue || !this.frequencyEndDate.HasValue || !this.frequencyInterval.HasValue || !this.templateId.HasValue)
+			{
+				return new List<DateTime>();
+			}
+
+			if (this.TaskTemplate == null)
+			{
+				return new List<DateTime>();
+			}
+
+			var end = this.frequencyEndDate.Value;
+			var start = this.frequencyStartDate.Value;
+
+			while (start <= end)
+			{
+				switch ((EnumFTM_TaskPlansFrequency)this.frequency)
+				{
+
+					case EnumFTM_TaskPlansFrequency.Gunluk:
+						{
+							var times = this.times.Split(',')
+								.Select(a => DateTime.ParseExact(start.ToString("yyyy-MM-dd") + " " + a.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
+								.ToArray();
+
+							taskTimes.AddRange(times);
+
+							start = start.AddDays(this.frequencyInterval.Value);
+							break;
+						}
+
+					case EnumFTM_TaskPlansFrequency.Haftalik:
+						{
+							if (start.DayOfWeek == DayOfWeek.Monday)
+							{
+
+								var _times = this.weekDays.Split(',').Select(a =>
+								{
+									var day = a.Trim();
+									var dayOfWeek = (DayOfWeek)new CultureInfo("tr-TR").DateTimeFormat.DayNames.ToList().IndexOf(day);
+									return DateTime.ParseExact(start.AddDays((int)dayOfWeek - 1).ToString("yyyy-MM-dd") + " " + this.times.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+								}).ToArray();
+
+								taskTimes.AddRange(_times);
+
+								start = start.AddDays(7 * this.frequencyInterval.Value);
+
+							}
+							else
+							{
+								start = start.AddDays((-1) * ((int)start.DayOfWeek - 1)).AddDays(-7);
+							}
+							break;
+						}
+
+					case EnumFTM_TaskPlansFrequency.Aylik:
+						{
+							//var dateCorrect = Int32.Parse(this.monthDays);
+							//var daysinMonth = DateTime.DaysInMonth(start.Year, start.Month);
+							//dateCorrect = daysinMonth <= dateCorrect ? daysinMonth : dateCorrect;
+
+							var __times = this.monthDays.ToString().Split(',').Select(a =>
+							{
+								var dateCorrect = Int32.Parse(a);
+								var daysinMonth = DateTime.DaysInMonth(start.Year, start.Month);
+								dateCorrect = daysinMonth < dateCorrect ? daysinMonth : dateCorrect;
+								return DateTime.ParseExact(start.ToString("yyyy-MM-") + dateCorrect.ToString().Trim().PadLeft(2, '0') + " " + this.times.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+							});
+
+							taskTimes.AddRange(__times);
+
+							start = start.AddMonths(this.frequencyInterval.Value);
+
+							break;
+						}
+					default:
+						start = start.AddMonths(this.frequencyInterval.Value);
+						break;
+
+				}
+			}
+
+
+			if (this.frequency == (int)EnumFTM_TaskPlansFrequency.Tekrarlanan)
+			{
+				MonthlyRecurrenceSettings mo;
+				mo = new MonthlyRecurrenceSettings(this.frequencyStartDate.Value, this.frequencyEndDate.Value);
+				mo.AdjustmentValue = int.Parse("0");
+				values = mo.GetValues((MonthlySpecificDatePartOne)this.monthFrequency, (MonthlySpecificDatePartTwo)this.dayFrequency, this.frequencyInterval.Value);
+				taskTimes.AddRange(values.Values);
+			}
+
+
+			return taskTimes;
 		}
 
 	}

@@ -12,6 +12,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public bool? isInventory { get; set;}
         public short? isProgressPayment { get; set;}
         public string imei { get; set;}
+        public DateTime? date { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string productId_Title { get; set;}

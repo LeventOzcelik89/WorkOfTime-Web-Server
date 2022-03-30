@@ -131,14 +131,14 @@
                 $.each(_model.ProductItems, function (i, item) {
                     var mainRow = $('[name="ProductItems[' + i + '].productId"]').parents("tr");
 
-                    var unitPriceDropDown = $(mainRow).find('[data-item="unitPrice"]').data("kendoNumericTextBox");
+                    var quantityDropDown = $(mainRow).find('[data-item="unitPrice"]').data("kendoNumericTextBox");
                     var productDropDown = $('[name="ProductItems[' + i + '].productId"]').data("kendoDropDownList");
                     var descriptionBox = $(mainRow).find('[data-item="description"]');
 
                     $('[name="ProductItems[' + i + '].id"]').val(item.id);
 
                     productDropDown.value(item.productId);
-                    unitPriceDropDown.value(item.unitPrice);
+                    quantityDropDown.value(item.unitPrice);
                     descriptionBox.val(item.description);
 
                     $('[name="ProductItems[' + i + '].productId"]').data("kendoDropDownList").trigger("change");
@@ -183,16 +183,9 @@
     var rules_basic = {
         condition: 'AND',
         rules: [{
-            id: 'unitPrice',
+            id: 'quantity',
             operator: 'between',
             value: [1,10]
-        }, {
-            condition: 'OR',
-            rules: [{
-                id: 'date',
-                operator: 'between',
-                value: ['04/01/2022', '05/01/2022']
-            }]
         }]
     };
     $(document).ready(function () {
@@ -211,23 +204,13 @@
                     input: 'select',
                     values: _model.companies,
             },{
-                id: 'unitPrice',
+                id: 'quantity',
                 label: 'Adet',
                 type: 'integer',
                 validation: {
                     min: 0,
                 }
-            }, {
-                id: 'date',
-                label: 'Tarih',
-                type: 'date',
-                plugin: 'datepicker',
-                plugin_config: {
-                    todayBtn: 'linked',
-                    todayHighlight: true,
-                    autoclose: true
-                },
-             }],
+            }],
             rules: rules_basic
         });
 
@@ -261,24 +244,43 @@
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.query)
-    <div class="form-group">
-        <div class="col-md-6">
-            <label class="control-label label-md req" for="companyId">Kural Kodu</label>
-            @Html.TextBoxFor(a => a.code, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Kural Kodu Giriniz." }
-                    }).Validate(Validations.TextTurkceSpace09(true, 0, 1000))
-        </div>
-        <div class="col-md-6">
-            <label class="control-label label-md req" for="companyId">Kural Adı</label>
-            @Html.TextBoxFor(a => a.ruleName, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Kural Adı Giriniz." }
-                    }).Validate(Validations.TextTurkceSpace09(true, 0, 1000))
-        </div>
+<div class="form-group">
+    <div class="col-md-6">
+        <label class="control-label label-md req" for="companyId">Kural Kodu</label>
+        @Html.TextBoxFor(a => a.code, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Kural Kodu Giriniz." }
+                }).Validate(Validations.Required)
     </div>
+    <div class="col-md-6">
+        <label class="control-label label-md req" for="companyId">Kural Adı</label>
+        @Html.TextBoxFor(a => a.ruleName, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Kural Adı Giriniz." }
+                }).Validate(Validations.Required)
+    </div>
+    <div class="col-md-6">
+        <label class="control-label label-md req" for="startDate">Geçerlilik Başlangıç Tarihi</label>
+        @(
+                Html.Akilli()
+                .DatePickerFor(model => model.startDate)
+                .Value(Model.startDate ?? DateTime.Now)
+                .Validate(Validations.Required)
+            )
+    </div>
+    <div class="col-md-6">
+        <label class="control-label label-md req" for="endDate">Geçerlilik Bitiş Tarihi</label>
+        @(
+                Html.Akilli()
+                .DatePickerFor(model => model.endDate)
+                .Value(Model.endDate ?? DateTime.Now)
+                .MinDateElement("startDate")
+                .Validate(Validations.Required)
+            )
+    </div>
+</div>
     <div class="form-group">
         <div class="col-md-12">
             <label class="control-label label-md req" for="query">Şartlar</label>

@@ -30,37 +30,13 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
                             {
                                 var now = DateTime.Now;
                                 var db = new WorkOfTimeDatabase();
-                                //if (now.Hour == 1 && now.Minute == 00)
-                                //{
-                                    var taskMobitel = new Task(() =>
-                                    {
-                                        new FtpMobitel().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskMobitel);
-
-                                    var taskGenpa = new Task(() =>
-                                    {
-                                        new FtpGenpa().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskGenpa);
-
-                                    var taskKvk = new Task(() =>
-                                    {
-                                        new FtpKvk().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskKvk);
-
-                                    var taskPort = new Task(() =>
-                                    {
-                                        new FtpPort().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskPort);
-
-                                    foreach (var task in Tasks)
-                                    {
-                                        task.Start();
-                                    }
-                                //}
+                                if (now.Hour == 1 && now.Minute == 00)
+                                {
+                                    new FtpMobitel().ExportFilesToDatabase();
+                                    new FtpGenpa().ExportFilesToDatabase();
+                                    new FtpKvk().ExportFilesToDatabase();
+                                    new FtpPort().ExportFilesToDatabase();
+                                }
                             }
                             catch (Exception ex)
                             {

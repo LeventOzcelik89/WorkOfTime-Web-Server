@@ -123,5 +123,39 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             var headers = db.GetDBVWPRD_InventorySummaries(items);
             RenderResponse(context, headers);
         }
+
+
+        [HandleFunction("VWPRD_Inventory/BarcodeRead")]
+        public void VWPRD_InventoryBarcodeRead(HttpContext context)
+        {
+            try
+            {
+                var barcode = context.Request["barcode"];
+                var db = new WorkOfTimeDatabase();
+                var productData = db.GetVWPRD_ProductByCode(barcode);
+                var inventoryData = db.GetVWPRD_InventoryBySerialCodesOrCodes(new string[] { barcode });
+
+                var data = new
+                {
+                    product = productData,
+                    inventories = inventoryData.Select(a => new VMPRD_InventoryModel().LoadMobileForBarcodeRead(a)).ToArray()
+                };
+
+                if (data.product == null && data.inventories.Length == 0)
+                {
+                    RenderResponse(context, new ResultStatus() { result = false, message = "Envanter veya Ürün Bulunamadı" });
+                }
+                else
+                {
+
+                RenderResponse(context, data);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
     }
 }

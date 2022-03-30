@@ -1,0 +1,64 @@
+﻿@{
+    ViewBag.Title = "Temlik Listesi";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var model =new VMPRD_ProductProgressPaymentImportModel().Load();
+}
+<div class="row">
+    <div class="col-sm-2">
+        <div class="ibox">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+
+                    <a class="btn btn-block btn-success" data-task="Insert" data-href="/PRD/VWPRD_ProductProgressPaymentImport/Insert?companyId=@userStatus.user.CompanyId" data-modal="true" data-method="get">
+                        <i class='fa fa-plus-circle' data-original-title='Hakediş Verisi Bildir'>
+
+                        </i>   Yeni Satış Ekle
+                    </a>
+                    <a href="#" style="width:100%" data-task="Insert" data-import="Excel" title="Excel İle İçe Aktar" class="btn btn-primary btn-block"
+                       data-properties="@Infoline.Framework.Helper.ExcelImportHelper.GetSchema(typeof(PRD_ProductProgressPaymentImportExcel))" data-gridRefresh="VWPRD_ProductProgressPaymentImport" data-post="@Url.Action("Import","VWPRD_ProductProgressPaymentImport", new { area = "PRD" })">
+                        <i class="fa fa-file-excel-o"></i> Excel İle İçe Aktar
+                    </a>
+
+                    <a download="" href="~/Content/SampleExcels/BayiHakedisOrnekExcel.xlsx" class="btn btn-block btn-info" data-original-title="Örnek Excel İndir">
+                        <i class="fa fa-download"></i> Örnek Excel İndir
+                    </a>
+                    <div class="space-25"></div>
+
+                    <h5>FİRMA (CARİ) TİPİ </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0;height: 139px;overflow: auto;">
+                        @foreach (var item in model.CMP_Types.OrderBy(a => a.typeName))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWPRD_ProductProgressPaymentImport" data-category="5" data-query="(CMPTypeIds~contains~'@item.id')">
+                                    @item.typeName
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-sm-10">
+        @(Html.Akilli()
+         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductProgressPaymentImport>("VWPRD_ProductProgressPaymentImport")
+         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductProgressPaymentImport", new { area = "PRD" })).Filter(a=>a.companyId == userStatus.user.CompanyId).PageSize(25))
+         .Columns(x =>
+         {
+             x.Bound(y => y.companyId_Title).Title("Bayi Adı").Width(200);
+             x.Bound(y => y.productId_Title).Title("Ürün Adı").Width(150);
+             x.Bound(y => y.CMPTypes_Title).Title("Cari Tipi").Width(150);
+             x.Bound(y => y.imei).Title("Imei Numarası").Width(150);
+             x.Bound(y => y.date).Title("İşlem Tarihi").Width(100).Format(Extensions.DateFormatShort(true));
+         })
+         .Scrollable(x => x.Height(700))
+         .Selectable(a => a.Mode(GridSelectionMode.Single))
+         .ToolBar(x =>
+         {
+             x.Custom().Text("<i data-original-title='Satış  Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete",      "VWPRD_ProductProgressPaymentImport", new { area = "PRD" }));
+         }))
+    </div>
+</div>

@@ -15,5 +15,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string ruleName { get; set;}
         public string query { get; set;}
         public double? present { get; set;}
+        public DateTime? startDate { get; set;}
+        public DateTime? endDate { get; set;}
     }
 }

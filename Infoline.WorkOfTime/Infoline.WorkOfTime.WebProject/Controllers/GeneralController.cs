@@ -78,6 +78,19 @@ namespace Infoline.WorkOfTime.Controllers
 			return Json(rs, JsonRequestBehavior.AllowGet);
 		}
 
+		public JsonResult GetVWFTM_TaskPlanCustomers()
+		{
+			var db = new WorkOfTimeDatabase();
+			var taskPlans = db.GetVWFTM_TaskPlanJustCustomerQuery();
+
+			var rs = taskPlans.GroupBy(a => a.customerId_Title).Select(c => new
+			{
+				Name = c.Key,
+				Id = c.Select(f => f.customerId).FirstOrDefault()
+			});
+			return Json(rs, JsonRequestBehavior.AllowGet);
+		}
+
 		public JsonResult GetINV_PermitTypeName()
 		{
 			var db = new WorkOfTimeDatabase();
@@ -543,7 +556,7 @@ namespace Infoline.WorkOfTime.Controllers
 			list.AddRange(companies);
 			return Content(Infoline.Helper.Json.Serialize(list.Distinct().ToArray()), "application/json");
 		}
-		public void SetUser(Guid id)
+		public JsonResult SetUser(Guid id)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			if (userStatus.user.id == Guid.Empty || (Request.Url.AbsoluteUri.IndexOf("localhost") > -1 || Request.Url.AbsoluteUri.IndexOf("developer.workoftime.com") > -1 || Request.Url.AbsoluteUri.IndexOf("demo.workoftime.com") > -1))
@@ -552,6 +565,12 @@ namespace Infoline.WorkOfTime.Controllers
 				var user = db.GetSH_UserById(id);
 				Session["userStatus"] = db.GetUserPageSecurityByUserid(user.id, Guid.Empty);
 			}
+
+			return Json(new ResultStatusUI
+			{
+				Result = true,
+				FeedBack = new FeedBack().Success("Geçiş işlemi başarıyla gerçekleşti", false, "/Account/Index")
+			}, JsonRequestBehavior.AllowGet);
 		}
 		public ContentResult SendCMP_Company(string name, Guid id)
 		{

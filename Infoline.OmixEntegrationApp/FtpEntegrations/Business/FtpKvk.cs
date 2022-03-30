@@ -31,7 +31,11 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             {
                 Log.Warning("Start Process File: {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
                 var db = GetDbConnection();
-                result = db.InsertPRD_EntegrationFiles(entegrationFile);
+                var filesList = db.GetPRD_EntegrationFiles().Where(a => a.FileName == entegrationFile.FileName).FirstOrDefault();
+                if (filesList == null)
+                {
+                    result = db.InsertPRD_EntegrationFiles(entegrationFile);
+                }
                 if (!result.result)
                 {
                     Log.Error("There was a problem while data recording...: " +  result.message);
@@ -41,6 +45,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
+                    var insertKVKList = new List<PRD_EntegrationAction>();
                     if (sellThr != null && sellThr.Count() > 0)
                     {
 
@@ -51,9 +56,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 var checkImei = db.GetPRD_EntegrationAction().Where(a => a.Imei == item.Imei && a.Quantity == 1).OrderByDescending(b => b.created).FirstOrDefault();
                                 if (checkImei == null)
                                 {
-                                    var InsertResult = db.InsertPRD_EntegrationAction(item);
-                                    if (!InsertResult.result)
-                                        Log.Info("SellThr Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, InsertResult.message);
+                                    insertKVKList.Add(item);
                                 }
                                 else
                                 {
@@ -69,6 +72,12 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                             {
                                 Log.Info("Imei Numarası Boş");
                             }
+                        }
+                        if (insertKVKList.Count() > 0)
+                        {
+                            var InsertResult = db.BulkInsertPRD_EntegrationAction(insertKVKList);
+                            if (!InsertResult.result)
+                                Log.Info("SellIn Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, InsertResult.message);
                         }
                     }
                 }
@@ -151,12 +160,9 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 Log.Error(ftpConfiguration.Url + " failed! : " + e.Message);
             }
             var db = GetDbConnection();
-            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList)
             {
-                if (entegrationFilesInDb.Any(x => x.FileName == (file.DirectoryFileName)))
-                    continue;
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
                     id = Guid.NewGuid(),

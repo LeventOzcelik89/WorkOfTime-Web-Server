@@ -42,6 +42,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? memnuniyetAnketId { get; set;}
         public int? DosyaSayisi { get; set;}
         public string workingHour { get; set;}
+        public string mainTaskCode { get; set;}
+        public Guid? mainTaskId { get; set;}
         public int? totalworkingHour { get; set;}
         public string plate { get; set;}
         public string stopSubject_Titles { get; set;}

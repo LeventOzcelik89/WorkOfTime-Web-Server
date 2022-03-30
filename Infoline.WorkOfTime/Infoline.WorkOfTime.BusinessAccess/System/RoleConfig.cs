@@ -162,6 +162,8 @@ namespace System
         public const string HakEdisBayiPersoneli = "00000000-0000-0000-0005-300000000000";
         [PropInfo("Satış Bayi Personeli Rolü", "Hakediş Bayi Personeli Rolü")]
         public const string SatisBayiPersoneli = "00000000-0000-0000-0005-400000000000";
+        [PropInfo("Hakediş/Prim Tanım/Onay Rolü", "Hakediş onaylama ve prim tanımları işlemlerini yapar")]
+        public const string PrimHakedisPersoneli = "00000000-0000-0000-0005-500000000000";
 
         //İş Sağlığı Güvenliği
         [PropInfo("İş Sağlığı Güvenliği Sorumlusu", "İş Sağlığı Güvenliği Sorumlusu")]

@@ -41,7 +41,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     result.result = false;
                     return result;
                 }
-                if (item.productId==null)
+                if (item.productId == null)
                 {
                     result.message = "Ürün alanı boş geçilemez.";
                     result.result = false;
@@ -57,6 +57,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (this.query == null)
             {
                 result.message = "Query alanı boş geçilemez";
+                result.result = false;
+                return result;
+            }
+            if (this.endDate < this.startDate)
+            {
+                result.message = "Bitiş tarihi, başlangıç tarihinden büyük olamaz.";
                 result.result = false;
                 return result;
             }
