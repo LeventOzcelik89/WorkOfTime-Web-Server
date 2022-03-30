@@ -3,6 +3,8 @@ using Infoline.PdksEntegrationApp.Models;
 using Infoline.PdksEntegrationApp.Utils;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
+using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -16,16 +18,22 @@ namespace Infoline.PdksEntegrationApp.Devices
 {
     public abstract class PdksDevice : SH_ShiftTrackingDevice, IDeviceManipulator
     {
-        protected static WorkOfTimeDatabase db { get; set; }
-        public CZKEM device { get; set; }  
+        public CZKEM device { get; set; }
         public abstract short specifyLogStatus(LogInfo log);
+        public string tenantCode { get; set; }
+        public string serviceDomain { get; set; }
+        public string token { get; set; }
 
 
         public PdksDevice()
         {
-            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
-            db = tenant.GetDatabase();
+            this.tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
+            this.token = "anq5tyqhj1yfbkmre0efr2kw";
+            this.serviceDomain = ConfigurationManager.AppSettings["DefaultWebServiceUrl"].ToString();
+
+#if DEBUG
+            this.serviceDomain = "http://localhost:54598/";
+#endif
             device = new CZKEM();
         }
 
@@ -39,7 +47,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             bool isFirstRun = true;
             while (true)
             {
-                var isConn = false;
+                bool isConn;
                 if (this.Connect())
                 {
                     Log.Success(this.DeviceSerialNo + " seri numaralı cihaz ile bağlantı kuruldu. (" + this.DeviceBrand + this.DeviceModel + ")");
@@ -95,23 +103,41 @@ namespace Infoline.PdksEntegrationApp.Devices
             var deviceUsers = this.GetUsers().OrderBy((a => a.UserDeviceId));
             foreach (var user in deviceUsers)
             {
-                var tmp = db.GetSH_ShiftTrackingDeviceUsersByDeviceIdAndDeviceUserId(this.id, user.UserDeviceId);
-                if (tmp == null)
+                SH_ShiftTrackingDeviceUsers tmp = null;
+                using (var client = new RestClient(serviceDomain))
                 {
-                    var rs = db.InsertSH_ShiftTrackingDeviceUsers(new SH_ShiftTrackingDeviceUsers
+                    var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/GetByDeviceIdAndDeviceUserId", Method.Get);
+                    request.AddParameter("tenantCode", tenantCode);
+                    request.AddParameter("deviceId", this.id);
+                    request.AddParameter("deviceUserId", user.UserDeviceId);
+                    var response = client.ExecuteAsync(request).Result;
+                    tmp = Infoline.Helper.Json.Deserialize<SH_ShiftTrackingDeviceUsers>(response.Content);
+                }
+
+                if (tmp == null || tmp.deviceUserId == null)
+                {
+                    var newUser = (new SH_ShiftTrackingDeviceUsers
                     {
                         id = Guid.NewGuid(),
                         deviceId = this.id,
-                        deviceUserId = user.UserDeviceId
+                        deviceUserId = Guid.NewGuid().ToString()
                     });
 
-                    if (rs.result)
+                    using (var client = new RestClient(serviceDomain))
                     {
-                        count++;
-                    }
-                    else
-                    {
-                        Log.Error(this.id + "Id'li cihaz için " + user.UserDeviceId + "cihaz Id'li kullanıcı sisteme eklenemedi");
+                        var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/Insert", Method.Post);
+                        request.AddHeader("Token", this.token);
+                        request.AddStringBody(Infoline.Helper.Json.Serialize<SH_ShiftTrackingDeviceUsers>(newUser), DataFormat.Json);
+                        var response = client.ExecuteAsync(request).Result;
+
+                        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            count++;
+                        }
+                        else
+                        {
+                            Log.Error(this.id + "Id'li cihaz için " + user.UserDeviceId + "cihaz Id'li kullanıcı sisteme eklenemedi");
+                        }
                     }
                 }
             }
@@ -121,21 +147,39 @@ namespace Infoline.PdksEntegrationApp.Devices
 
         public bool insertLogsToDB()
         {
-            var rs = new ResultStatus { result = true };
-            var trans = db.BeginTransaction();
+            SH_ShiftTracking lastInsertedData = null;
 
-            var lastInsertedData = db.GetSH_ShiftTrackingLastRecordByDeviceId(this.id);
+            using (var client = new RestClient(serviceDomain))
+            {
+                var request = new RestRequest("/SH_ShiftTracking/LastRecordByDeviceId", Method.Get);
+                request.AddParameter("deviceId", this.id);
+                var response = client.ExecuteAsync(request).Result;
+                lastInsertedData = Infoline.Helper.Json.Deserialize<SH_ShiftTracking>(response.Content);
+            }
+
             var lastLogTime = DateTime.Now;
 
+
+            List<SH_ShiftTracking> newLogs = new List<SH_ShiftTracking>();
 
             var logs = (lastInsertedData == null || !lastInsertedData.created.HasValue) ? this.GetLogData() : this.GetLogDataBetweenDates(lastInsertedData.created.Value, lastLogTime);
             foreach (var log in logs)
             {
                 short shiftStatus = specifyLogStatus(log);
-                var ShiftTrackingDeviceUser = db.GetSH_ShiftTrackingDeviceUsersByDeviceIdAndDeviceUserId(this.id, log.UserDeviceId.ToString());
+
+                SH_ShiftTrackingDeviceUsers ShiftTrackingDeviceUser = null;
+                using (var client = new RestClient(serviceDomain))
+                {
+                    var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/GetByDeviceIdAndDeviceUserId", Method.Get);
+                    request.AddParameter("deviceId", this.id);
+                    request.AddParameter("deviceUserId", log.UserDeviceId.ToString());
+                    var response = client.ExecuteAsync(request).Result;
+                    ShiftTrackingDeviceUser = Infoline.Helper.Json.Deserialize<SH_ShiftTrackingDeviceUsers>(response.Content);
+                }
+
                 if (ShiftTrackingDeviceUser != null && ShiftTrackingDeviceUser.userId.HasValue)
                 {
-                    rs &= db.InsertSH_ShiftTracking(new SH_ShiftTracking
+                    newLogs.Add(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
                         created = lastLogTime,
@@ -145,11 +189,11 @@ namespace Infoline.PdksEntegrationApp.Devices
                         deviceUserId = log.UserDeviceId.ToString(),
                         timestamp = log.DateTimeRecord,
                         shiftTrackingStatus = shiftStatus
-                    }, trans);
+                    });
                 }
                 else
                 {
-                    rs &= db.InsertSH_ShiftTracking(new SH_ShiftTracking
+                    newLogs.Add(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
                         created = lastLogTime,
@@ -158,23 +202,29 @@ namespace Infoline.PdksEntegrationApp.Devices
                         deviceUserId = log.UserDeviceId.ToString(),
                         timestamp = log.DateTimeRecord,
                         shiftTrackingStatus = shiftStatus
-                    }, trans);
+                    });
                 }
 
             }
 
-            if (rs.result)
+            using (var client = new RestClient(serviceDomain))
             {
-                trans.Commit();
-                Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın " + ((lastInsertedData == null || !(lastInsertedData.created.HasValue)) ? "Tüm Kayıtları" : lastInsertedData.created.Value + " - " + lastLogTime + " Tarihi Arası Kayıtları") + " (" + logs.Count() + " adet)  Kaydedilmiştir..");
-            }
-            else
-            {
-                trans.Rollback();
-                Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın " + ((lastInsertedData == null || !(lastInsertedData.created.HasValue)) ? "Hiçbir Kayıdı" : lastInsertedData.created.Value + " - " + lastLogTime + " Tarihi Arası Kayıtları") + " (" + logs.Count() + " adet)  Kaydedilememiştir..");
-            }
+                var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/PdksInsert", Method.Get);
+                request.AddHeader("Token", this.token);
+                request.AddStringBody(Infoline.Helper.Json.Serialize<List<SH_ShiftTracking>>(newLogs), DataFormat.Json);
+                var response = client.ExecuteAsync(request).Result;
 
-            return rs.result;
+                if (response.IsSuccessful && response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın " + ((lastInsertedData == null || !(lastInsertedData.created.HasValue)) ? "Tüm Kayıtları" : lastInsertedData.created.Value + " - " + lastLogTime + " Tarihi Arası Kayıtları") + " (" + logs.Count() + " adet)  Kaydedilmiştir..");
+                }
+                else
+                {
+                    Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın " + ((lastInsertedData == null || !(lastInsertedData.created.HasValue)) ? "Hiçbir Kayıdı" : lastInsertedData.created.Value + " - " + lastLogTime + " Tarihi Arası Kayıtları") + " (" + logs.Count() + " adet)  Kaydedilememiştir..");
+                }
+
+                return response.IsSuccessful;
+            }
         }
 
 
@@ -241,7 +291,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             }
         }
 
-        public  bool ClearUsers()
+        public bool ClearUsers()
         {
             int iDataFlag = 5;
 
@@ -253,7 +303,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             }
         }
 
-        public  bool Connect()
+        public bool Connect()
         {
             if (!UniversalStatic.ValidateIP(this.IPAddress))
             {
@@ -299,7 +349,7 @@ namespace Infoline.PdksEntegrationApp.Devices
         {
         }
 
-        public  void Disconnect()
+        public void Disconnect()
         {
             device.OnConnected -= OnConnected_Event;
             device.OnDisConnected -= OnDisConnected_Event;
@@ -309,7 +359,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             device.Disconnect();
         }
 
-        public  string GetDeviceInfo()
+        public string GetDeviceInfo()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -366,7 +416,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             return sb.ToString();
         }
 
-        public  ICollection<LogInfo> GetLogData()
+        public ICollection<LogInfo> GetLogData()
         {
             string dwUserId = "";
             int dwVerifyMode = 0;
@@ -399,7 +449,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             return lstEnrollData;
         }
 
-        public  ICollection<LogInfo> GetLogDataBetweenDates(DateTime firstDate, DateTime endDate)
+        public ICollection<LogInfo> GetLogDataBetweenDates(DateTime firstDate, DateTime endDate)
         {
             string dwUserId = "";
             int dwVerifyMode = 0;
@@ -439,7 +489,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             return lstEnrollData;
         }
 
-        public  ICollection<LogInfo> GetLogDataBetweenDatesAndUserId(DateTime firstDate, DateTime endDate, int userId)
+        public ICollection<LogInfo> GetLogDataBetweenDatesAndUserId(DateTime firstDate, DateTime endDate, int userId)
         {
             string dwUserId = "";
             int dwVerifyMode = 0;
@@ -476,7 +526,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             return lstEnrollData;
         }
 
-        public  ICollection<LogInfo> GetLogDataByUserId(int userId)
+        public ICollection<LogInfo> GetLogDataByUserId(int userId)
         {
             string dwUserId = "";
             int dwVerifyMode = 0;
@@ -512,7 +562,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             return lstEnrollData;
         }
 
-        public  UserInfo GetUserById(int userId)
+        public UserInfo GetUserById(int userId)
         {
             string UserId = string.Empty, sName = string.Empty, sPassword = string.Empty, sTmpData = string.Empty;
             int iPrivilege = 0, iFlag = 0;
@@ -541,7 +591,7 @@ namespace Infoline.PdksEntegrationApp.Devices
             }
             return null;
         }
-        public  List<int> GetUserIds()
+        public List<int> GetUserIds()
         {
             List<int> userIds = new List<int>();
             string UserId = string.Empty, sName = string.Empty, sPassword = string.Empty, sTmpData = string.Empty;
@@ -558,11 +608,11 @@ namespace Infoline.PdksEntegrationApp.Devices
             return userIds;
         }
 
-        public  bool DeleteFingerRecordsById(int userId)
+        public bool DeleteFingerRecordsById(int userId)
         {
             return device.DeleteEnrollData(this.MachineNumber.Value, userId, this.MachineNumber.Value, 11);
         }
-        public  int getUserFingerTemplateRecordsCount(int userId)
+        public int getUserFingerTemplateRecordsCount(int userId)
         {
             string UserId = string.Empty, sName = string.Empty, sPassword = string.Empty, sTmpData = string.Empty;
             int iPrivilege = 0, iTmpLength = 0, iFlag = 0, idwFingerIndex = 0;
@@ -588,7 +638,7 @@ namespace Infoline.PdksEntegrationApp.Devices
 
             return count;
         }
-        public  ICollection<UserInfo> GetUsers()
+        public ICollection<UserInfo> GetUsers()
         {
             string UserId = string.Empty, sName = string.Empty, sPassword = string.Empty, sTmpData = string.Empty;
             int iPrivilege = 0;
@@ -616,34 +666,34 @@ namespace Infoline.PdksEntegrationApp.Devices
             return lstFPTemplates;
         }
 
-        public  bool isConnected()
+        public bool isConnected()
         {
             return Connect();
         }
 
-        public  bool RestartDevice()
+        public bool RestartDevice()
         {
             return device.RestartDevice(this.MachineNumber.Value);
         }
 
-        public  bool pingDevice()
+        public bool pingDevice()
         {
             return UniversalStatic.PingTheDevice(this.IPAddress);
         }
 
-        public  DateTime GetDate()
+        public DateTime GetDate()
         {
             int dwYear = 0, dwMonth = 0, dwDay = 0, dwHour = 0, dwMinute = 0, dwSecond = 0;
             device.GetDeviceTime(this.MachineNumber.Value, ref dwYear, ref dwMonth, ref dwDay, ref dwHour, ref dwMinute, ref dwSecond);
             return new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
         }
 
-        public  bool setDate(DateTime date)
+        public bool setDate(DateTime date)
         {
             return device.SetDeviceTime2(this.MachineNumber.Value, date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second);
         }
 
-        public  string GetLastError()
+        public string GetLastError()
         {
             int errorCod = 0;
             device.GetLastError(ref errorCod);
@@ -662,39 +712,39 @@ namespace Infoline.PdksEntegrationApp.Devices
             }
         }
 
-        public  bool RemoveUserById(int userId)
+        public bool RemoveUserById(int userId)
         {
             throw new NotImplementedException();
         }
 
-        public  bool lockDevice()
+        public bool lockDevice()
         {
             return device.EnableDevice(this.MachineNumber.Value, false);
         }
 
-        public  bool unlockDevice()
+        public bool unlockDevice()
         {
             return device.EnableDevice(this.MachineNumber.Value, true);
         }
 
-        public  int getMachineNumber()
+        public int getMachineNumber()
         {
             return this.MachineNumber.Value;
         }
 
-        public  void setMachineNumber(int MachineNumber)
+        public void setMachineNumber(int MachineNumber)
         {
             this.MachineNumber = MachineNumber;
         }
 
-        public  bool setUserPassword(int userId, int password)
+        public bool setUserPassword(int userId, int password)
         {
             var user = GetUserById(userId);
             if (user == null) return false;
             return device.SSR_SetUserInfo(this.MachineNumber.Value, userId.ToString(), user.Name, password.ToString(), user.Privelage, user.Enabled);
         }
 
-        public  bool setUserName(int userId, string username)
+        public bool setUserName(int userId, string username)
         {
             var user = GetUserById(userId);
             if (user == null) return false;
@@ -702,24 +752,24 @@ namespace Infoline.PdksEntegrationApp.Devices
             return device.SSR_SetUserInfo(this.MachineNumber.Value, userId.ToString(), username, user.Password, user.Privelage, user.Enabled);
         }
 
-        public  int getPort()
+        public int getPort()
         {
             return this.Port.Value;
         }
 
-        public  void setPort(int Port)
+        public void setPort(int Port)
         {
             this.Port = Port;
         }
 
-        public  string getIpAddress()
+        public string getIpAddress()
         {
             string ip = "";
             device.GetDeviceIP(this.MachineNumber.Value, ref ip);
             return ip;
         }
 
-        public  bool setIpAddress(string IPAdd)
+        public bool setIpAddress(string IPAdd)
         {
             return device.SetDeviceIP(this.MachineNumber.Value, IPAddress);
         }

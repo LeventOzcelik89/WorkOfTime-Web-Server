@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Web;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Infoline.WorkOfTime.WebService.Handler
 {
@@ -175,6 +176,49 @@ namespace Infoline.WorkOfTime.WebService.Handler
             catch (Exception ex)
             {
                 RenderResponse(context, new ResultStatus { result = true, message = ex.Message });
+            }
+        }
+        
+        [HandleFunction("SH_ShiftTracking/LastRecordByDeviceId")]
+        public void SH_ShiftTrackingGetLastRecordByDeviceId(HttpContext context)
+        {
+            try
+            {
+                var deviceId = context.Request["deviceId"];
+                var db = new WorkOfTimeDatabase();
+                var data = db.GetSH_ShiftTrackingLastRecordByDeviceId(Guid.Parse(deviceId));
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus { result = true, message = ex.Message });
+            }
+        }
+
+        [HandleFunction("SH_ShiftTracking/PdksInsert")]
+        public void SH_ShiftTrackingPdksInstert(HttpContext context)
+        {
+            try
+            {
+                var token = context.Request.Headers["token"];
+                if (token != "anq5tyqhj1yfbkmre0efr2kw")
+                {
+                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+                    RenderResponse(context, new ResultStatus { result = false, message = "Yanlış Token" });
+                    return;
+
+                }
+                var records = ParseRequest<List<SH_ShiftTracking>>(context); 
+                var db = new WorkOfTimeDatabase();
+                var dbResult = db.BulkInsertSH_ShiftTracking(records);
+
+                RenderResponse(context, new ResultStatus { result = dbResult.result, message = dbResult.message });
+                return;
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = ex.Message.ToString() });
+                return;
             }
         }
     }
