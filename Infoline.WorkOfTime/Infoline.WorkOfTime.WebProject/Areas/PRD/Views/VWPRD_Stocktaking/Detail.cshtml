@@ -109,20 +109,17 @@
 					.Columns(columns =>
 					{
 						columns.Bound(p => p.productId_Title).Title("Ürün").Width(150);
-						columns.Bound(p => p.quantity).Title("Sayım Miktarı").Width(150);
+						columns.Bound(p => p.quantity).ClientTemplate("<span>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Title("Sayım Miktarı").Width(150);
 						columns.Bound(p => p.serialNumber).Title("Seri Numarası").Width(150);
 						columns.Bound(p => p.responsibleUserId_Title).Title("Sayımı Yapan Personel").Width(150);
-
 					})
 					.ToolBar(a => a.Pdf())
 					.Pageable(pageable => pageable
 					   .Input(true)
 					   .Numeric(false)
 					 )
-
 					.Navigatable()
 					.Reorderable(r => r.Columns(true))
-					.Groupable(g => g.ShowFooter(false))
 					.Resizable(r => r.Columns(true))
 					.Sortable()
 					.Scrollable(scr => scr.Height(700))
@@ -138,7 +135,32 @@
 						</div>
 						<div class="tab-pane" id="gorevdetay2">
 							<div class="ibox">
-								A
+								@(Html.Kendo().Grid(Model.items)
+					.Name("taskPlanListModel2")
+					.Columns(columns =>
+					{
+						columns.Bound(p => p.productId_Title).Title("Ürün").Width(150);
+						columns.Bound(p => p.quantity).Title("Sayım Miktarı").Width(150);
+						columns.Bound(p => p.serialNumber).Title("Depo Bulunan Miktar").Width(150);
+						columns.Bound(p => p.responsibleUserId_Title).Title("Durum").Width(150);
+					})
+					.ToolBar(a => a.Pdf())
+					.Pageable(pageable => pageable
+					   .Input(true)
+					   .Numeric(false)
+					 )
+					.Navigatable()
+					.Reorderable(r => r.Columns(true))
+					.Resizable(r => r.Columns(true))
+					.Sortable()
+					.Scrollable(scr => scr.Height(700))
+					.Filterable()
+					.DataSource(dataSource => dataSource
+					.Ajax()
+					.Sort(a=>a.Add(c=>c.created).Descending())
+					.PageSize(100)
+					.ServerOperation(false)
+					))
 
 							</div>
 						</div>

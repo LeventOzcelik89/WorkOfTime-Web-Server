@@ -1,6 +1,5 @@
 ﻿using System;
 using GeoAPI.Geometries;
-using Infoline.Framework.Database;
 
 namespace Infoline.WorkOfTime.BusinessData
 {

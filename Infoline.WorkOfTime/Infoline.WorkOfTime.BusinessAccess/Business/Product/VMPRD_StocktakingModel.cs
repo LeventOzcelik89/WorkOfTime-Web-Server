@@ -187,4 +187,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
     }
+
+    public class VWPRD_StockTakingItemModel : VWPRD_StocktakingItem
+	{
+
+	}
 }
