@@ -125,8 +125,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
             {
                 id = Guid.NewGuid(),
-                created = this.created,
-                createdby = this.createdby,
+                created = a.created,
+                createdby = a.createdby,
                 stocktakingId = this.id,
                 productId = a.productId,
                 serialNumber = a.serialNumber,
