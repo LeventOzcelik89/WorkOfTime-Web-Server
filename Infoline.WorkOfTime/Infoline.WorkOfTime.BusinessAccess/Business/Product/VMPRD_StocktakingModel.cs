@@ -13,7 +13,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public VWPRD_StocktakingItem[] items { get; set; }
-        public VMPRD_StocktakingModel Load()
+		public VWPRD_StockTakingItemModel[] stockTakingSummaries { get; set; }
+		public VMPRD_StocktakingModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetVWPRD_StocktakingById(this.id);
@@ -21,6 +22,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.B_EntityDataCopyForMaterial(data, true);
                 this.items = db.GetVWPRD_StocktakingItemByStocktakingId(this.id);
+                stockTakingSummaries = this.items.GroupBy(a=>a.).Select(a => new VWPRD_StockTakingItemModel
+                {
+
+
+                });
             }
             return this;
         }
@@ -190,6 +196,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     public class VWPRD_StockTakingItemModel : VWPRD_StocktakingItem
 	{
-
+		public int storageQuantity { get; set; }
 	}
 }
