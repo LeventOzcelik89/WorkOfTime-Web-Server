@@ -12,12 +12,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 	[EnumInfo(typeof(PRD_StocktakingItem), "status")]
 	public enum EnumPRD_StocktakingItemStatus
 	{
-		[Description("Sayım Başladı"), Generic("color", "EF5352")]
-		SayimBasladi = 0,
-		[Description("Sayım Tamamlandı"), Generic("color", "1ab394")]
-		SayimTamamlandi = 1,
-		[Description("Stoklara İşlendi"), Generic("color", "F8AC59")]
-		StoklaraIslendi = 2,
+		[Description("Stoklara İşlenmedi"), Generic("color", "EF5352")]
+		StoklaraIslendi = 0,
+		[Description("Stoklara İşlendi"), Generic("color", "1ab394")]
+		StoklaraIslenmedi = 1
 	}
 
 	partial class WorkOfTimeDatabase
