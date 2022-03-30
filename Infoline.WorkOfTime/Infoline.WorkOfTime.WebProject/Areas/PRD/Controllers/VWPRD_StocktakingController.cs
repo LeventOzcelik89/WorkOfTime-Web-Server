@@ -12,11 +12,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
 	public class VWPRD_StocktakingController : Controller
 	{
+		[AllowEveryone]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
+		[AllowEveryone]
 
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
@@ -32,6 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
+		[AllowEveryone]
 
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
@@ -42,20 +45,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-
-		public ActionResult Detail(Guid id)
+		[AllowEveryone]
+		public ActionResult Detail(VMPRD_StocktakingModel model)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_StocktakingById(id);
-		    return View(data);
+		    return View(model.Load());
 		}
 
+		[AllowEveryone]
 
 		public ActionResult Insert()
 		{
 		    var data = new VWPRD_Stocktaking { id = Guid.NewGuid() };
 		    return View(data);
 		}
+
+		[AllowEveryone]
 
 
 		[HttpPost, ValidateAntiForgeryToken]
@@ -76,6 +80,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
+		[AllowEveryone]
 
 		public ActionResult Update(Guid id)
 		{
@@ -84,6 +89,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return View(data);
 		}
 
+		[AllowEveryone]
 
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(PRD_Stocktaking item)
@@ -105,6 +111,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
+		[AllowEveryone]
 
 		[HttpPost]
 		public JsonResult Delete(string[] id)

@@ -1,6 +1,157 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_Stocktaking
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_StocktakingModel
 @{
-    ViewBag.Title = "Stok Sayım İşlemleri Detay";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = "Stok Sayım İşlemleri Detay";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
 }
 
+<script type="text/javascript" data-selector="modalContainer">
+	$(document)
+		.on("selected:grid", "#VWPRD_DistributionPlanRelations", function (e, res) {
+			var detail = $("#transactionDetailButton");
+			$(detail).attr("data-href", "/PRD/VWPRD_Transaction/Detail?id=" + res.transactionId);
+		})
+</script>
+
+<style type="text/css" data-selector="modalContainer">
+
+	.form-group {
+		margin-bottom: 10px;
+	}
+
+	.modal-lg {
+		width: 95%;
+	}
+
+	table.table-custom {
+		table-layout: fixed;
+	}
+
+		table.table-custom thead {
+			background-color: #d6d5d4;
+			font-size: 11px;
+		}
+
+		table.table-custom tr {
+			border-bottom: 1px #d6d5d4 solid;
+		}
+
+		table.table-custom tbody tr:last-child {
+			border-bottom: none;
+		}
+
+		table.table-custom tbody td {
+			padding: 6px !important;
+		}
+</style>
+
+<div class="form-horizontal" data-selector="modalContainer">
+	<div class="ibox">
+		<div class="ibox-content clearfix" style="border:none;">
+			<div class="row">
+				<div class="col-md-4">
+
+					<div class="row">
+						<div class="col-md-4 text-right">
+							<strong>Sayım Kodu Kodu</strong>
+						</div>
+						<div class="col-md-8">
+							:  @Model.code
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-4 text-right">
+							<strong>Sayım Tarihi</strong>
+						</div>
+						<div class="col-md-8">
+							: @string.Format("{0:dd.MM.yyyy HH:mm}", Model.date)
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-4 text-right">
+							<strong>Sayım Açıklaması</strong>
+						</div>
+						<div class="col-md-8">
+							: @Model.description
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="row">
+						<div class="col-md-5 text-right">
+							<strong>İşlemi Gerçekleştiren</strong>
+						</div>
+						<div class="col-md-7">
+							: @Model.createdby_Title
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="clearfix m-t-md" id="productTable">
+				<div class="tabs-container">
+					<ul class="nav nav-tabs">
+						<li class="active" data-toggle="tooltip" data-placement="top" title="İşlemler">
+							<a data-toggle="tab" href="#gorevdetay" aria-expanded="true"><i class="fa fa-stack-overflow text-success"></i></a>
+						</li>
+						<li data-toggle="tooltip" data-placement="top" title="Sayım Özeti">
+							<a data-toggle="tab" href="#gorevdetay2" aria-expanded="true"><i class="fa fa-file-archive-o text-success"></i></a>
+						</li>
+					</ul>
+
+					<div class="tab-content">
+						<div class="tab-pane active" id="gorevdetay">
+							<div class="ibox">
+								@(Html.Kendo().Grid(Model.items)
+					.Name("taskPlanListModel")
+					.Columns(columns =>
+					{
+						columns.Bound(p => p.productId_Title).Title("Ürün").Width(150);
+						columns.Bound(p => p.quantity).Title("Sayım Miktarı").Width(150);
+						columns.Bound(p => p.serialNumber).Title("Seri Numarası").Width(150);
+						columns.Bound(p => p.responsibleUserId_Title).Title("Sayımı Yapan Personel").Width(150);
+
+					})
+					.ToolBar(a => a.Pdf())
+					.Pageable(pageable => pageable
+					   .Input(true)
+					   .Numeric(false)
+					 )
+
+					.Navigatable()
+					.Reorderable(r => r.Columns(true))
+					.Groupable(g => g.ShowFooter(false))
+					.Resizable(r => r.Columns(true))
+					.Sortable()
+					.Scrollable(scr => scr.Height(700))
+					.Filterable()
+					.DataSource(dataSource => dataSource
+					.Ajax()
+					.Sort(a=>a.Add(c=>c.created).Descending())
+					.PageSize(100)
+					.ServerOperation(false)
+					))
+
+							</div>
+						</div>
+						<div class="tab-pane" id="gorevdetay2">
+							<div class="ibox">
+								A
+
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<div class="buttons">
+				<div class="hr-line-dashed"></div>
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+			</div>
+
+		</div>
+	</div>
+</div>

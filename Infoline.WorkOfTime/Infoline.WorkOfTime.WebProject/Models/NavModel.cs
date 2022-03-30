@@ -388,6 +388,7 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
             menu.AddChild(new Menu("Stok Hareketleri", "/PRD/VWPRD_StockAction/Index"));
+            menu.AddChild(new Menu("Sayım İşlemleri", "/PRD/VWPRD_Stocktaking/Index"));
             menu.AddChild(new Menu("Ürün Fiyat Listeleri", "/PRD/VWPRD_CompanyBasedPrice/Index"));
             menu.AddChild(new Menu("Ürün Stok Raporu", "/PRD/VWPRD_Product/StockReport"));
             menu.AddChild(new Menu("Şirketlerim", "/CMP/VWCMP_Company/IndexCompany"));

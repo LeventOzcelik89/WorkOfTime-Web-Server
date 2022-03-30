@@ -28,5 +28,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Sayım birimi.
         /// </summary>
         public Guid? unitId { get; set;}
+        public short? status { get; set;}
     }
 }
