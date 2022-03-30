@@ -22,11 +22,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.B_EntityDataCopyForMaterial(data, true);
                 this.items = db.GetVWPRD_StocktakingItemByStocktakingId(this.id);
-                stockTakingSummaries = this.items.GroupBy(a=>a.).Select(a => new VWPRD_StockTakingItemModel
+                stockTakingSummaries = this.items.GroupBy(a=>a.productId).Select(a => new VWPRD_StockTakingItemModel
                 {
-
-
-                });
+                    productId = a.Select(b=>b.productId).FirstOrDefault(),
+                    productId_Title = a.Select(b => b.productId_Title).FirstOrDefault(),
+                    storageQuantity = this.items.Count(b=>b.storageId == a.Key),
+                    quantity = a.Sum(b=>b.quantity),
+                    unitId = a.Select(b => b.unitId).FirstOrDefault(),
+                    unitId_Title = a.Select(b => b.unitId_Title).FirstOrDefault(),
+                }).ToArray();
             }
             return this;
         }
