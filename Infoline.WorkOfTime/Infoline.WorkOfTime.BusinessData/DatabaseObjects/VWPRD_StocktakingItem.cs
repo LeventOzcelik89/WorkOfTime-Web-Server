@@ -17,6 +17,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string productId_Title { get; set;}
         public Guid? responsibleUserId_Title { get; set;}
         public short? productStockType { get; set;}
+        public short? productStockType { get; set;}
         public string unitId_Title { get; set;}
     }
 }

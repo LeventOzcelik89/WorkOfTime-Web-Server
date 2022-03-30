@@ -88,7 +88,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     var inventoryData = db.GetVWPRD_InventoryBySerialCodesOrCodes(barcodes);
                     if (inventoryData.Length > 0)
                     {
-                        RenderResponse(context, new { stocktakingItemType = 1, data = inventoryData.GroupBy(a => a.productId).FirstOrDefault().ToArray() });
+                        RenderResponse(context, new { stocktakingItemType = 1, data = inventoryData });
                     }
                     else
                     {

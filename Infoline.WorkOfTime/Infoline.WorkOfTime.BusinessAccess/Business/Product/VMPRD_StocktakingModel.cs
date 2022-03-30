@@ -108,13 +108,39 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var dbresult = new ResultStatus { result = true };
             dbresult &= db.UpdatePRD_Stocktaking(this.B_ConvertType<PRD_Stocktaking>(), false, this.trans);
+
+            var items = db.GetVWPRD_StocktakingItemByStocktakingId(this.id);
+            dbresult &= db.BulkDeletePRD_StocktakingItem(items.Select(a => new PRD_StocktakingItem
+            {
+                id = a.id,
+                created = a.created,
+                createdby = a.createdby,
+                stocktakingId = a.stocktakingId,
+                productId = a.productId,
+                serialNumber = a.serialNumber,
+                quantity = a.quantity,
+                unitId = a.unitId,
+            }), this.trans);
+
+            dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
+            {
+                id = Guid.NewGuid(),
+                created = a.created,
+                createdby = a.createdby,
+                stocktakingId = this.id,
+                productId = a.productId,
+                serialNumber = a.serialNumber,
+                quantity = a.quantity,
+                unitId = a.unitId,
+            }), this.trans);
+
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Müşteri güncelleme işlemi başarısız oldu."
+                    message = "Sayım güncelleme işlemi başarısız oldu."
                 };
             }
             else
@@ -122,7 +148,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Müşteri güncelleme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Sayım güncelleme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
         }
