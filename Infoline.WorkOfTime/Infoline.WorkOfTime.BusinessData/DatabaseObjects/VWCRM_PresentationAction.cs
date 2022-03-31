@@ -10,6 +10,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public short? type { get; set;}
         public string color { get; set;}
         public Guid? contactId { get; set;}
+        public IGeometry  location { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string type_Title { get; set;}

@@ -22,5 +22,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// CRM_Contact tablosunun id'sinin tutulduğu alandır.
         /// </summary>
         public Guid? contactId { get; set;}
+        public IGeometry  location { get; set;}
     }
 }

@@ -1,0 +1,68 @@
+﻿@model VWCRM_PresentationAction
+@{
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var _tenantCode = TenantConfig.Tenant.TenantCode;
+    ViewBag.Title = "Yeni Potansiyel/Fırsat Tanımı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Custom/js/underscore-min.js" data-selector="modalContainer"></script>
+<script type="text/javascript" data-selector="modalContainer">
+
+</script>
+
+
+@using (Html.BeginForm("", "VWCRM_Presentation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "data-before", "beforeFunc" },
+    { "id", "VWCRM_PresentationDetailLocation" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(a => a.id)
+
+
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md req" for="description">Açıklama</label>
+        </div>
+        <div class="col-md-9">
+
+            @Model.description
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md req" for="createdby_Title">İşlem Yapan</label>
+        </div>
+        <div class="col-md-9">
+
+            @Model.createdby_Title
+
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" for="location">Konum</label>
+        </div>
+        <div class="col-md-9">
+            <div class="ibox-content p-sm clearfix">
+                @Html.Akilli().MapInputFor(a => a.location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "Location" } }).Image("/Content/Custom/img/marker-company.png").ZoomLevel(16).Navigation(false).Height(300)
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+}

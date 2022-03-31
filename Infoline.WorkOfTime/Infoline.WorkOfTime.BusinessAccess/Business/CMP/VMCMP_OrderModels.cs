@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWPRD_Transaction[] PRD_Transactions { get; set; }
         public bool IsTransform { get; set; }
         public bool? IsCopy { get; set; }
+        public IGeometry location { get; set; }
         public CMP_Invoice oldInvoice { get; set; }
         public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatisOnaylayici);
         public static Guid muhasebeYonetici { get; set; } = new Guid(SHRoles.OnMuhasebe);
@@ -240,6 +242,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             description = "Potansiyele yeni sipariş eklendi.",
                             presentationId = tenderView.presentationId.Value,
                             type = (int)EnumCRM_PresentationActionType.YeniSipariş,
+                            location = this.location
                         };
 
                         dbresult &= db.InsertCRM_PresentationInvoice(presInvoice, this.trans);
@@ -282,6 +285,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         description = "Potansiyele yeni sipariş eklendi.",
                         presentationId = this.presentationId.Value,
                         type = (int)EnumCRM_PresentationActionType.YeniSipariş,
+                        location = this.location
                     };
 
                     dbresult &= db.InsertCRM_PresentationInvoice(presInvoice, this.trans);
