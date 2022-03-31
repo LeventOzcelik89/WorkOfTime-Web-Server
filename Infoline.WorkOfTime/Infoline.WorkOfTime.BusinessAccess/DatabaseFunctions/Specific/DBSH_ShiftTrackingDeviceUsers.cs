@@ -17,5 +17,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<SH_ShiftTrackingDeviceUsers>().Where(a => a.deviceId == deviceId && a.deviceUserId == deviceUserId).Execute().FirstOrDefault();
             }
         }
+
+        public SH_ShiftTrackingDeviceUsers[] GetSH_ShiftTrackingDeviceUsersByDeviceId(Guid deviceId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<SH_ShiftTrackingDeviceUsers>().Where(a => a.deviceId == deviceId).Execute().ToArray();
+            }
+        }
     }
 }
