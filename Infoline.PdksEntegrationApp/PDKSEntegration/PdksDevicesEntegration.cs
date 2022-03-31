@@ -2,7 +2,6 @@
 using Infoline.PdksEntegrationApp.Devices.Models;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
-using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -24,21 +23,21 @@ namespace Infoline.PdksEntegrationApp.PDKSEntegration
 
         public PdksDevicesEntegration()
         {
-            var serviceDomain = TenantConfig.Tenant.GetWebServiceUrl();
-            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-
-#if DEBUG
-            serviceDomain = "http://localhost:54598/";
-#endif
+            var serviceDomain = ConfigurationManager.AppSettings["DefaultWebServiceUrl"].ToString();
 
             List<SH_ShiftTrackingDevice> PdksDevices = new List<SH_ShiftTrackingDevice>();
             using (var client = new RestClient(serviceDomain))
             {
                 var request = new RestRequest("SH_ShiftTrackingDevice/GetAll", Method.Get);
-                request.AddHeader("Cookie", "ASP.NET_SessionId=anq5tyqhj1yfbkmre0efr2kw");
-                request.AddParameter("tenantCode", tenantCode);
                 var response = client.ExecuteAsync(request).Result;
-                PdksDevices = Infoline.Helper.Json.Deserialize<List<SH_ShiftTrackingDevice>>(response.Content);
+                try
+                {
+                    PdksDevices = JsonSerializer.Deserialize<List<SH_ShiftTrackingDevice>>(response.Content);
+                }
+                catch (Exception ex)
+                {
+                    Log.Info("Cihaz Listesi Alınamadı" + ex.Message);
+                }
             }
 
             foreach (var device in PdksDevices)
@@ -58,7 +57,7 @@ namespace Infoline.PdksEntegrationApp.PDKSEntegration
             }
 
             Log.Info(devices.Count() + " Cihaz Bulundu");
-            Log.Info("ProcessPDKSEntegration is Start");
+            Log.Info("PDKS Entegrasyonu Başladı");
         }
 
         public void Run()

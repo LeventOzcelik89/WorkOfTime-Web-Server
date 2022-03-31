@@ -3,13 +3,13 @@ using Infoline.PdksEntegrationApp.Models;
 using Infoline.PdksEntegrationApp.Utils;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
-using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using zkemkeeper;
@@ -20,20 +20,11 @@ namespace Infoline.PdksEntegrationApp.Devices
     {
         public CZKEM device { get; set; }
         public abstract short specifyLogStatus(LogInfo log);
-        public string tenantCode { get; set; }
         public string serviceDomain { get; set; }
-        public string token { get; set; }
-
 
         public PdksDevice()
         {
-            this.tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-            this.token = "anq5tyqhj1yfbkmre0efr2kw";
             this.serviceDomain = ConfigurationManager.AppSettings["DefaultWebServiceUrl"].ToString();
-
-#if DEBUG
-            this.serviceDomain = "http://localhost:54598/";
-#endif
             device = new CZKEM();
         }
 
@@ -99,50 +90,44 @@ namespace Infoline.PdksEntegrationApp.Devices
 
         public void saveUsers()
         {
-            int count = 0;
             var deviceUsers = this.GetUsers().OrderBy((a => a.UserDeviceId));
-            foreach (var user in deviceUsers)
+            List<SH_ShiftTrackingDeviceUsers> deviceUsersInDB = new List<SH_ShiftTrackingDeviceUsers>();
+
+            using (var client = new RestClient(serviceDomain))
             {
-                SH_ShiftTrackingDeviceUsers tmp = null;
+                var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/GetByDeviceId", Method.Get);
+                request.AddParameter("deviceId", this.id);
+                var response = client.ExecuteAsync(request).Result;
+                deviceUsersInDB = JsonSerializer.Deserialize<List<SH_ShiftTrackingDeviceUsers>>(response.Content);
+            }
+
+            var newUsers = deviceUsers.Where(a => !deviceUsersInDB.Select(b => b.deviceUserId.Trim()).Contains(a.UserDeviceId));
+            List<SH_ShiftTrackingDeviceUsers> newUserList = new List<SH_ShiftTrackingDeviceUsers>();
+            newUserList.AddRange(newUsers.Select(a => new SH_ShiftTrackingDeviceUsers {
+                id = Guid.NewGuid(),
+                deviceId = this.id,
+                deviceUserId = a.UserDeviceId
+            }));
+
+            if (newUserList.Any())
+            {
                 using (var client = new RestClient(serviceDomain))
                 {
-                    var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/GetByDeviceIdAndDeviceUserId", Method.Get);
-                    request.AddParameter("tenantCode", tenantCode);
-                    request.AddParameter("deviceId", this.id);
-                    request.AddParameter("deviceUserId", user.UserDeviceId);
+                    var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/Insert", Method.Post);
+                    request.AddStringBody(Infoline.Helper.JsonHelper.JsonSerializer<List<SH_ShiftTrackingDeviceUsers>>(newUserList), DataFormat.Json);
                     var response = client.ExecuteAsync(request).Result;
-                    tmp = Infoline.Helper.Json.Deserialize<SH_ShiftTrackingDeviceUsers>(response.Content);
-                }
 
-                if (tmp == null || tmp.deviceUserId == null)
-                {
-                    var newUser = (new SH_ShiftTrackingDeviceUsers
+                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
-                        id = Guid.NewGuid(),
-                        deviceId = this.id,
-                        deviceUserId = Guid.NewGuid().ToString()
-                    });
-
-                    using (var client = new RestClient(serviceDomain))
+                        Log.Info(newUserList.Count() + " kullanıcı sisteme kaydedildi");
+                    }
+                    else
                     {
-                        var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/Insert", Method.Post);
-                        request.AddHeader("Token", this.token);
-                        request.AddStringBody(Infoline.Helper.Json.Serialize<SH_ShiftTrackingDeviceUsers>(newUser), DataFormat.Json);
-                        var response = client.ExecuteAsync(request).Result;
-
-                        if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                        {
-                            count++;
-                        }
-                        else
-                        {
-                            Log.Error(this.id + "Id'li cihaz için " + user.UserDeviceId + "cihaz Id'li kullanıcı sisteme eklenemedi");
-                        }
+                        Log.Error(this.id + "Id'li cihaz için kullanıcılar sisteme eklenemedi");
                     }
                 }
             }
 
-            Log.Info(count + " kullanıcı sisteme kaydedildi");
         }
 
         public bool insertLogsToDB()
@@ -154,7 +139,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                 var request = new RestRequest("/SH_ShiftTracking/LastRecordByDeviceId", Method.Get);
                 request.AddParameter("deviceId", this.id);
                 var response = client.ExecuteAsync(request).Result;
-                lastInsertedData = Infoline.Helper.Json.Deserialize<SH_ShiftTracking>(response.Content);
+                lastInsertedData = JsonSerializer.Deserialize<SH_ShiftTracking>(response.Content);
             }
 
             var lastLogTime = DateTime.Now;
@@ -174,7 +159,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     request.AddParameter("deviceId", this.id);
                     request.AddParameter("deviceUserId", log.UserDeviceId.ToString());
                     var response = client.ExecuteAsync(request).Result;
-                    ShiftTrackingDeviceUser = Infoline.Helper.Json.Deserialize<SH_ShiftTrackingDeviceUsers>(response.Content);
+                    ShiftTrackingDeviceUser = JsonSerializer.Deserialize<SH_ShiftTrackingDeviceUsers>(response.Content);
                 }
 
                 if (ShiftTrackingDeviceUser != null && ShiftTrackingDeviceUser.userId.HasValue)
@@ -209,9 +194,8 @@ namespace Infoline.PdksEntegrationApp.Devices
 
             using (var client = new RestClient(serviceDomain))
             {
-                var request = new RestRequest("/SH_ShiftTrackingDeviceUsers/PdksInsert", Method.Get);
-                request.AddHeader("Token", this.token);
-                request.AddStringBody(Infoline.Helper.Json.Serialize<List<SH_ShiftTracking>>(newLogs), DataFormat.Json);
+                var request = new RestRequest("/SH_ShiftTracking/PdksInsert", Method.Post);
+                request.AddStringBody(JsonSerializer.Serialize<List<SH_ShiftTracking>>(newLogs), DataFormat.Json);
                 var response = client.ExecuteAsync(request).Result;
 
                 if (response.IsSuccessful && response.StatusCode == System.Net.HttpStatusCode.OK)
