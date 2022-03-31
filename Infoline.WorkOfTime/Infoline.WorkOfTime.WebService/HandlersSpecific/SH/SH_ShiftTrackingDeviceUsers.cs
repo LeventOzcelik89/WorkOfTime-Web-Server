@@ -37,22 +37,39 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
+        [HandleFunction("SH_ShiftTrackingDeviceUsers/GetByDeviceId")]
+        public void SH_ShiftTrackingDeviceUsersByDeviceId(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+
+                var deviceId = context.Request["deviceId"];
+                var data = db.GetSH_ShiftTrackingDeviceUsersByDeviceId(Guid.Parse(deviceId));
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
+
         [HandleFunction("SH_ShiftTrackingDeviceUsers/Insert")]
         public void InsertSH_ShiftTrackingDeviceUsers(HttpContext context)
         {
             try
             {
-                var token = context.Request.Headers["token"];
-                if(token != "anq5tyqhj1yfbkmre0efr2kw")
+                var newUserList = ParseRequest<List<SH_ShiftTrackingDeviceUsers>>(context);
+                if(newUserList == null || newUserList.Count() == 0)
                 {
-                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                    RenderResponse(context, new ResultStatus { result = false, message = "Yanlış Token" });
+                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.NoContent;
+                    RenderResponse(context, new ResultStatus { result = false, message = "No Object" });
                     return;
 
                 }
-                var newUser = ParseRequest<SH_ShiftTrackingDeviceUsers>(context);
                 var db = new WorkOfTimeDatabase();
-                var dbResult = db.InsertSH_ShiftTrackingDeviceUsers(newUser);
+                var dbResult = db.BulkInsertSH_ShiftTrackingDeviceUsers(newUserList);
                 RenderResponse(context, new ResultStatus { result = dbResult.result, message = dbResult.message });
                 return;
             }

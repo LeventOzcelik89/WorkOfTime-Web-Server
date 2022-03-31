@@ -132,7 +132,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             {
                 var barcode = context.Request["barcode"];
                 var db = new WorkOfTimeDatabase();
-                var productData = db.GetVWPRD_ProductByCode(barcode);
+                var productData = db.GetVWPRD_ProductByCodeOrBarcode(barcode);
                 var inventoryData = db.GetVWPRD_InventoryBySerialCodesOrCodes(new string[] { barcode });
 
                 var data = new

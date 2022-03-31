@@ -32,13 +32,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_Product>().Where(a => a.type == (short)type).Execute().ToArray();
             }
         }
-
-        public VWPRD_Product GetVWPRD_ProductByCode(string code)
+        public VWPRD_Product GetVWPRD_ProductByCodeOrBarcode(string code)
         {
 
             using (var db = GetDB())
             {
-                return db.Table<VWPRD_Product>().Where(a => a.code == code).Execute().FirstOrDefault();
+                return db.Table<VWPRD_Product>().Where(a => a.code == code || a.barcode == code).Execute().FirstOrDefault();
+            }
+        }
+
+        public VWPRD_Product GetVWPRD_ProductByCodeBarcodeAndStockType(string code, short[] stockType)
+        {
+
+
+            using (var db = GetDB())
+            {
+                return db.Table<VWPRD_Product>().Where(a => (a.code == code || a.barcode == code) && a.stockType.In(stockType)).Execute().FirstOrDefault();
             }
         }
 
