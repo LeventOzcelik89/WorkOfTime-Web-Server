@@ -72,13 +72,13 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 var db = new WorkOfTimeDatabase();
                 string[] barcodes = context.Request["barcode"].Split(',');
 
-                if(barcodes.Length == 0)
+                if (barcodes.Length == 0)
                 {
                     RenderResponse(context, new ResultStatus() { result = false, message = "Lütfen Kod Giriniz" });
                 }
 
 
-                var productData = db.GetVWPRD_ProductByCode(barcodes[0]);
+                var productData = db.GetVWPRD_ProductByCodeBarcodeAndStockType(barcodes[0], new short[] { (short)EnumPRD_ProductStockType.NormalTakip, (short)EnumPRD_ProductStockType.SeriNoluTakip });
                 if (productData != null)
                 {
                     RenderResponse(context, new { stocktakingItemType = 0, data = productData });
