@@ -145,7 +145,10 @@
 				</div>
 			</div>
 			<div class="ibox-content">
-				<div id="scheduler"></div>
+				<div id="scheduler" class="hide"></div>
+				<div class="alert alert-warning hide" style="text-align:center" id="alertMessage">
+					<span style="text-align:center"><strong>Lütfen personel seçtikten sonra sorgulama işlemi yapınız...</strong></span>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -397,6 +400,8 @@
 			var endtime = kendo.toString(startDate, "yyyy/MM/dd 23:59:59").replace("00:00:00", "23:59:59");
 
 			if (res != null && res.length > 0) {
+				$("#scheduler").removeClass("scheduler")
+				$("#alertMessage").addClass("hide")
 				var resObjects = $.Enumerable.From(res).SelectMany(a => { return a.dataSource; }).ToArray();
 
 				$("#scheduler").kendoScheduler({
@@ -447,6 +452,10 @@
 
 				$("[class='k-link k-scheduler-refresh']").remove()
 				$('[data-name="timeline"]').children(".k-link").text("Zaman Çizelgesi")
+			}
+			else {
+				$("#scheduler").addClass("scheduler")
+				$("#alertMessage").removeClass("hide")
 			}
 		})
 	}
