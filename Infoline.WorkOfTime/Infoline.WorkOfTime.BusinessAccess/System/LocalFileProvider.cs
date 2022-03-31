@@ -628,10 +628,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel }),
                }
-            },            
+            },
             {
                 "SH_CorrectiveActivity", new []{
                     new FileBase("Islak İmzalı Dosyalar", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  20,
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel }),
+               }
+            },
+            {
+                "PRD_Stocktaking", new []{
+                    new FileBase("Sayım Resimleri", "*.jpeg,*.png,*.jpg,*.jpeg",  Int32.MaxValue,
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel }),
+               }
+            },
+            {
+                "PRD_StocktakingItem", new []{
+                    new FileBase("Sayım Kalemi Resimleri", "*.jpeg,*.png,*.jpg,*.jpeg",  Int32.MaxValue,
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel }),
