@@ -200,18 +200,21 @@ namespace Infoline.WorkOfTime.WebService.Handler
         {
             try
             {
-                var token = context.Request.Headers["token"];
-                if (token != "anq5tyqhj1yfbkmre0efr2kw")
+                var records = ParseRequest<List<SH_ShiftTracking>>(context); 
+                if (records == null || records.Count() == 0)
                 {
-                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-                    RenderResponse(context, new ResultStatus { result = false, message = "Yanlış Token" });
+                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.NoContent;
+                    RenderResponse(context, new ResultStatus { result = false, message = "No Object" });
                     return;
 
                 }
-                var records = ParseRequest<List<SH_ShiftTracking>>(context); 
                 var db = new WorkOfTimeDatabase();
                 var dbResult = db.BulkInsertSH_ShiftTracking(records);
-
+                if (!dbResult.result)
+                {
+                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+                    RenderResponse(context, new ResultStatus { result = dbResult.result, message = dbResult.message });
+                }
                 RenderResponse(context, new ResultStatus { result = dbResult.result, message = dbResult.message });
                 return;
             }

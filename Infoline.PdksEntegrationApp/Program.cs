@@ -35,12 +35,6 @@ namespace Infoline.PdksEntegrationApp
 
                 try
                 {
-                    //Örnek Kullanım DB Connection İçin
-                    //var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-                    //var db = new WorkOfTimeDatabase();
-                    //var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
-                    //db = tenant.GetDatabase();
-                    //var d = db.GetSH_User();
 
                     Console.WriteLine("Agent is Start...");
                     var agentStart = new AgentStart();
