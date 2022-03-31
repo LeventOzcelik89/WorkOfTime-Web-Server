@@ -89,7 +89,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 		}
 
 		[HttpPost]
-		[PageInfo("Favori Sil", SHRoles.Personel, SHRoles.SistemYonetici)]
+		[PageInfo("Favori Sil", SHRoles.Personel, SHRoles.BayiGorevPersoneli)]
 		public JsonResult Delete(string[] id)
 		{
 		    var db = new WorkOfTimeDatabase();
