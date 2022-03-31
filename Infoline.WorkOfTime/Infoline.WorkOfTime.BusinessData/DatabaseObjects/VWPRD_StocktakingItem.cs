@@ -11,10 +11,12 @@ namespace Infoline.WorkOfTime.BusinessData
         public Single? quantity { get; set;}
         public Guid? unitId { get; set;}
         public short? status { get; set;}
+        public IGeometry  location { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string stocktakingId_Title { get; set;}
         public string productId_Title { get; set;}
+        public string productImage { get; set;}
         public Guid? storageId { get; set;}
         public string responsibleUserId_Title { get; set;}
         public short? productStockType { get; set;}
