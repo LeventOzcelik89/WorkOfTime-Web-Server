@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
@@ -136,7 +137,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
         [PageInfo("Aktivite/Randevu Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Insert(VWCRM_Contact item, Guid[] IdUsers, DateTime? AppointmentDate, bool mailForParticipants, Guid? RelationId)
+        public JsonResult Insert(VWCRM_Contact item, Guid[] IdUsers, DateTime? AppointmentDate, bool mailForParticipants, Guid? RelationId, IGeometry location)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -184,6 +185,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     presentationId = item.PresentationId.Value,
                     type = (short)EnumCRM_PresentationActionType.YeniAktivite,
                     contactId = item.id,
+                    location = location
                 }, trans);
             }
             dbresult &= db.BulkInsertCRM_ContactUser(IdUsers.Select(a => new CRM_ContactUser
@@ -216,7 +218,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                             presentationId = item.PresentationId,
                             color = newstage.color,
                             type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
-                            description = "Aşama Güncellendi.  " + oldStage.Name + " => " + newstage.Name
+                            description = "Aşama Güncellendi.  " + oldStage.Name + " => " + newstage.Name,
+                            location = location
                         }, trans);
                     }
                 }
@@ -405,7 +408,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
         [PageInfo("Aktivite/Randevu Güncelleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Update(VWCRM_Contact item, Guid[] IdUsers, bool mailForParticipants)
+        public JsonResult Update(VWCRM_Contact item, Guid[] IdUsers, bool mailForParticipants, IGeometry location)
         {
             var feedback = new FeedBack();
             var db = new WorkOfTimeDatabase();
@@ -477,6 +480,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     presentationId = item.PresentationId.Value,
                     contactId = item.id,
                     type = (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
+                    location = location
                 }, trans);
 
                 var stageId = Request["PresentationStageId"].ToGuid();
@@ -493,7 +497,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                         presentationId = item.PresentationId.Value,
                         color = newStage != null ? newStage.color : "",
                         type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
-                        description = "Yeni aşama : " + newStage.Name + " ||  Eski aşama :  " + oldState.Name
+                        description = "Yeni aşama : " + newStage.Name + " ||  Eski aşama :  " + oldState.Name,
+                        location = location
                     }, trans);
                     oldPresentation.PresentationStageId = item.PresentationStageId;
                     oldPresentation.changedby = userStatus.user.id;

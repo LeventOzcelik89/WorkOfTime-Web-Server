@@ -1,12 +1,12 @@
 ﻿@model VMVWCRM_Presentation
 @{
-	ViewBag.Title = "Potansiyel/Fırsat Detayı";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Potansiyel/Fırsat Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
-	var userStatus = (PageSecurity)Session["userStatus"];
-	var company = ViewBag.Company;
-	var EnumProperties = ((IEnumerable<Item>)ViewBag.EnumProperties).ToArray();
-	var firstPriorityLevel = Model.PriorityLevel;
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var company = ViewBag.Company;
+    var EnumProperties = ((IEnumerable<Item>)ViewBag.EnumProperties).ToArray();
+    var firstPriorityLevel = Model.PriorityLevel;
 }
 
 
@@ -68,7 +68,7 @@
 
         <div class="ibox  collapsed">
             <div class="ibox-title">
-                    <h5>MÜŞTERİ KONUM BİLGİSİ</h5>
+                <h5>MÜŞTERİ KONUM BİLGİSİ</h5>
                 <div class="ibox-tools">
                     <a class="collapse-link" id="locationArrow">
                         <i class="fa fa-chevron-up"></i>
@@ -78,6 +78,11 @@
             <div class="ibox-content p-sm clearfix">
                 @Html.Akilli().MapInputFor(a => a.CustomerCompanyLocation).ReadOnly(false).Opened(true).Navigation(false).Searchable(true).Image("/Content/Custom/img/marker-company.png")
             </div>
+        </div>
+
+
+        <div class="hide">
+            @(Html.Akilli().MapInput().Name("NewLocation").Navigation(true))
         </div>
 
         <div class="ibox ">
@@ -112,9 +117,10 @@
                                 </p>
                                 <span class="vertical-date small text-muted"> @String.Format("{0:dd.MM.yyyy HH:mm}", item.created) </span> <br />
                                 <span class="vertical-date small text-muted"> İşlem Yapan : @String.Format("{0:dd.MM.yyyy HH:mm}", item.createdby_Title) </span>
-                                @if ((item.type == (int)EnumCRM_PresentationActionType.YeniAktivite || item.type == (int)EnumCRM_PresentationActionType.AktiviteDüzenle) && item.contactId != null)
+                                <br /> <span><a class="btn btn-xs btn-success pull-left" style="margin-top: 2px;" data-href="/CRM/VWCRM_Presentation/DetailLocation?id=@item.id" data-modal="true" data-task="Insert"> <i class="fa fa-info-circle" style="padding-right:4px"></i>Detay</a></span>
+                                @if (item.contactId != null)
                                 {
-                                    <span><a class="btn btn-xs btn-primary pull-right" style="margin-right: 10px;" data-href="/CRM/VWCRM_Contact/Detail?id=@item.contactId" data-modal="true" data-task="Insert"> <i class="fa fa-info-circle"></i> Detay </a></span>
+                                    <span><a class="btn btn-xs btn-primary pull-right" style="margin-right:10px; margin-top:2px;" data-href="/CRM/VWCRM_Contact/Detail?id=@item.contactId" data-modal="true" data-task="Insert"> <i class="fa fa-info-circle"></i>Aktivite Detayı </a></span>
                                 }
                             </div>
                         </div>
@@ -181,22 +187,22 @@
                                 @if (Model.ChannelCompany_Title != null)
                                 {
                                     <tr>
-										<td>
-											<span class="pull-right" data-id="VWCMP_TenderSelling">@(Model.ChannelCompany_Title)</span>
-											<i class="fa fa-code-fork"></i>
-											@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CagriMerkezi)))
-											{
-												<text>
-													Bayi
-												</text>
-											}
-											else
-											{
-												<text>
-													Kanal
-												</text>
-											}
-										</td>
+                                        <td>
+                                            <span class="pull-right" data-id="VWCMP_TenderSelling">@(Model.ChannelCompany_Title)</span>
+                                            <i class="fa fa-code-fork"></i>
+                                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CagriMerkezi)))
+                                            {
+                                                <text>
+                                                    Bayi
+                                                </text>
+                                            }
+                                            else
+                                            {
+                                                <text>
+                                                    Kanal
+                                                </text>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                                 @if (Model.PlaceofArrival_Title != null)
@@ -241,31 +247,31 @@
 
                                 </tr>
 
-                                
+
+                                <tr>
+                                    <td><strong class="pull-right" style="font-size:16px; color:#f27c10">@(Model.VodafoneOffer.HasValue ? Model.VodafoneOffer.Value.ToString("N2") + " ₺" : "Teklif bulunamadı.")</strong> Tahmini Beklenen Ciro </td>
+                                </tr>
+
+
+                                @if (Model.LastTender != null)
+                                {
                                     <tr>
-                                        <td><strong class="pull-right" style="font-size:16px; color:#f27c10">@(Model.VodafoneOffer.HasValue ? Model.VodafoneOffer.Value.ToString("N2") + " ₺" : "Teklif bulunamadı.")</strong> Tahmini Beklenen Ciro </td>
+                                        <td> <strong style="color:#f27c10; font-size:16px;" class="pull-right">@(Model.LastTender.totalAmount.HasValue ? Model.LastTender.totalAmountAsTL.Value.ToString("N2") + " ₺" : "0 ₺")</strong> En Son Verilen Teklif <a class="btn btn-xs" data-href="/CMP/VWCMP_Tender/InsertSelling?presentationId=@Model.id" data-modal="true" data-task="Insert"><i data-placement="left" data-original-title="Teklif eklemek ister misiniz?" class="fa fa-plus-circle text-primary" style="font-size:initial"></i></a> </td>
+
                                     </tr>
+                                    <tr>
+                                        <td style="border-top:none; padding-top: 0px !important;">
+                                            <a data-original-title="Teklif detayına gitmek için tıklayınız." data-placement="left" target="_blank" href="/CMP/VWCMP_Tender/DetailSelling?id=@Model.LastTender.id" style="color:#f27c10;  font-size:16px;" class="pull-right"><strong>@(Model.LastTender.totalTax.HasValue ? (Model.LastTender.totalAmountAsTL.Value - Model.LastTender.totalTax.Value).ToString("N2") + " ₺ " + " + Vergiler" : "0")</strong></a>
+                                        </td>
 
-
-                                    @if (Model.LastTender != null)
-                                    {
-                                        <tr>
-                                            <td> <strong style="color:#f27c10; font-size:16px;" class="pull-right">@(Model.LastTender.totalAmount.HasValue ? Model.LastTender.totalAmountAsTL.Value.ToString("N2") + " ₺" : "0 ₺")</strong> En Son Verilen Teklif <a class="btn btn-xs" data-href="/CMP/VWCMP_Tender/InsertSelling?presentationId=@Model.id" data-modal="true" data-task="Insert"><i data-placement="left" data-original-title="Teklif eklemek ister misiniz?" class="fa fa-plus-circle text-primary" style="font-size:initial"></i></a> </td>
-
-                                        </tr>
-                                        <tr>
-                                            <td style="border-top:none; padding-top: 0px !important;">
-                                                <a data-original-title="Teklif detayına gitmek için tıklayınız." data-placement="left" target="_blank" href="/CMP/VWCMP_Tender/DetailSelling?id=@Model.LastTender.id" style="color:#f27c10;  font-size:16px;" class="pull-right"><strong>@(Model.LastTender.totalTax.HasValue ? (Model.LastTender.totalAmountAsTL.Value - Model.LastTender.totalTax.Value).ToString("N2") + " ₺ " + " + Vergiler" : "0")</strong></a>
-                                            </td>
-
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        <tr>
-                                            <td> <strong class="pull-right" style="font-size:16px; color:#f27c10;">Henüz eklenen bir teklif yok.</strong> En Son Verilen Teklif <a class="btn  btn-xs" data-href="/CMP/VWCMP_Tender/InsertSelling?presentationId=@Model.id" data-modal="true" data-task="Insert"><i data-placement="left" data-original-title="Teklif eklemek ister  misiniz?" class="fa   fa-plus-circle text-primary" style="font-size:initial"></i></a> </td>
-                                        </tr>
-                                    }
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td> <strong class="pull-right" style="font-size:16px; color:#f27c10;">Henüz eklenen bir teklif yok.</strong> En Son Verilen Teklif <a class="btn  btn-xs" data-href="/CMP/VWCMP_Tender/InsertSelling?presentationId=@Model.id" data-modal="true" data-task="Insert"><i data-placement="left" data-original-title="Teklif eklemek ister  misiniz?" class="fa   fa-plus-circle text-primary" style="font-size:initial"></i></a> </td>
+                                    </tr>
+                                }
                             </tbody>
                         </table>
 
@@ -480,15 +486,19 @@
         },
         fnc: {
             addNote: function (note) {
+                debugger;
+                var locations = $("#NewLocation").val();
+
                 $.ajax({
                     type: "POST",
                     url: '/CRM/VWCRM_Presentation/InsertNote',
-                    data: { presentationId: presentation.dfn.model.id, note: note },
+                    data: { presentationId: presentation.dfn.model.id, note: note, location: locations },
                     success: function (response) {
                         if (response.result) {
                             var temp = presentation.fnc.getNoteHtml(response.objects);
                             $('#vertical-timeline').prepend(temp);
                             $('#note').val("");
+                            location.reload();
                         }
                     }
                 });
@@ -617,7 +627,12 @@
 
 
         })
-        .on('success', '#VWCRM_PresentationUpdateStateForm, #VWCMP_CompanyUpdateForm, #VWCRM_PresentationFormUpdate, #VWCRM_ContactInsertForm, #VWCRM_ContactUpdateForm, #VWCMP_InvoiceInsertForm, #VWCRM_ContactUpdateForm, #VWPA_InsertExpenseForm', function (e, res) {
+        .on('success', '#VWCRM_PresentationUpdateStateForm, #VWCMP_CompanyUpdateForm, #VWCRM_PresentationFormUpdate, #VWCRM_ContactInsertForm, #VWCRM_ContactUpdateForm, #VWCMP_InvoiceInsertForm, #VWCRM_ContactUpdateForm, #VWPA_InsertExpenseForm',function (e, res) {
+            window.setTimeout(function () {
+                window.location = "/CRM/VWCRM_Presentation/Detail/@Model.id";
+            }, 1500)
+        })
+        .on('success', '#VWCMP_OrderInsertForm', function (e, res) {
             window.setTimeout(function () {
                 window.location = "/CRM/VWCRM_Presentation/Detail/@Model.id";
             }, 1500)

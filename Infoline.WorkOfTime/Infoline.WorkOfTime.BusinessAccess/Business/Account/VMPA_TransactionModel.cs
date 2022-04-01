@@ -6,6 +6,8 @@ using System.Data.Common;
 using System.Web;
 using System.Linq;
 using System.Collections.Generic;
+using GeoAPI.Geometries;
+
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMPA_TransactionModel : VWPA_Transaction
@@ -24,6 +26,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool hasTask { get; set; }
         public bool? isService { get; set; }
         public bool? isCorrection { get; set; }
+        public IGeometry location { get; set; }
         public class VWPA_TransactionHistory
         {
             public string description { get; set; }
@@ -260,7 +263,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         type = (int)EnumCRM_PresentationActionType.MasrafEkle,
                         description = "Potansiyel/Fırsata " + this.amount + currency.symbol + " masraf eklendi." + status,
                         presentationId = dataId,
-                        color = color
+                        color = color,
+                        location = this.location
                     }, trans);
                 }
                 var account = db.GetVWPA_AccountByDataId(this.createdby.Value);
@@ -523,7 +527,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             type = (int)EnumCRM_PresentationActionType.MasrafDüzenlendi,
                             description = "Potansiyel/Fırsat " + message + " gerçekleştirildi. " + "Masraf " + this.amount + " " + currency.symbol + ".",
                             presentationId = pA_Transaction.dataId ?? new Guid(),
-                            color = color
+                            color = color,
+                            location = this.location
                         }, trans);
                     }
                 }

@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool isTaskRule { get; set; }
         public bool isBuying { get; set; }
         public bool salesAfter { get; set; }
+        public IGeometry location { get; set; }
         public VWCMP_Tender Tender { get; set; }
         public VWCMP_Request VWCMP_Request { get; set; }
 
@@ -333,6 +335,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         description = "Potansiyele yeni teklif eklendi.",
                         presentationId = this.presentationId.Value,
                         type = (int)EnumCRM_PresentationActionType.YeniTeklif,
+                        location = this.location
                     };
 
                     dbresult &= db.InsertCRM_PresentationInvoice(presInvoice, this.trans);

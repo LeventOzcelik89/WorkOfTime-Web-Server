@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.Helper;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
@@ -217,6 +218,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
             return View(model);
         }
+
+
+        [PageInfo("Potansiyel/Fırsat Detayı", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
+        public ActionResult DetailLocation(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWCRM_PresentationActionById(id);
+            return View(data);
+        }
+
 
         [HttpPost]
         [PageInfo("Potansiyel/Fırsat Silme", SHRoles.CRMYonetici, SHRoles.CagriMerkezi)]
@@ -439,10 +450,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
         [PageInfo("Potansiyel/Fırsat Not Ekleme Metodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
-        public ContentResult InsertNote(Guid presentationId, string note)
+        public ContentResult InsertNote(Guid presentationId, string note, IGeometry location)
+        
         {
             var userStatus = (PageSecurity)Session["userStatus"];
-            var dbresult = new VMCRM_PresentationModel { id = presentationId }.Load().InsertNote(userStatus.user.id, note);
+            var dbresult = new VMCRM_PresentationModel { id = presentationId }.Load().InsertNote(userStatus.user.id, note,location);
             return Content(Infoline.Helper.Json.Serialize(dbresult), "application/json");
         }
 
@@ -456,7 +468,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
         [HttpPost]
         [PageInfo("Potansiyel/Fırsat Aşaması Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
-        public JsonResult UpdateState(CRM_Presentation item)
+        public JsonResult UpdateState(CRM_Presentation item, IGeometry location)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -487,7 +499,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     presentationId = item.id,
                     color = newStage != null ? newStage.color : "",
                     type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
-                    description = "Aşama Güncellendi. Yeni aşama : " + (newStage != null ? newStage.Name : "")
+                    description = "Aşama Güncellendi. Yeni aşama : " + (newStage != null ? newStage.Name : ""),
+                    location = location
                 }, trans);
 
                 if (dbresult.result == false)

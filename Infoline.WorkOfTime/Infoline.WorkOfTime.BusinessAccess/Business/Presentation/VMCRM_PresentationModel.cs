@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string customerEmail { get; set; }
         public string customerPhone { get; set; }
         public VWCMP_Tender LastTender { get; set; }
+        public IGeometry location { get; set; }
 
         public VMCRM_PresentationModel Load()
         {
@@ -132,6 +134,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 description = "Potansiyel/Fırsat oluşturuldu.",
                 presentationId = this.id,
                 type = (int)EnumCRM_PresentationActionType.YeniFırsat,
+                location = this.location
             }, this.trans);
 
             rs &= db.InsertCRM_PresentationAction(new CRM_PresentationAction
@@ -143,6 +146,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 presentationId = this.id,
                 color = state.color,
                 type = (int)EnumCRM_PresentationActionType.AsamaBelirleme,
+                location = this.location
             }, this.trans);
 
 
@@ -209,7 +213,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     description = "Yeni Aktivite/Randevu eklendi",
                     presentationId = this.id,
                     type = (short)EnumCRM_PresentationActionType.YeniAktivite,
-                    contactId = this.LastContact.id
+                    contactId = this.LastContact.id,
+                    location = this.location
                 }, this.trans);
             }
 
@@ -325,7 +330,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     presentationId = this.id,
                     color = newstate.color,
                     type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
-                    description = "Aşama Güncellendi. " + oldstate.Name + " => " + newstate.Name
+                    description = "Aşama Güncellendi. " + oldstate.Name + " => " + newstate.Name,
+                    location = this.location
                 });
             }
 
@@ -354,6 +360,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     presentationId = this.id,
                     type = (short)EnumCRM_PresentationActionType.FırsatDüzenle,
                     description = "Müşteri güncellendi. " + oldCustomer.name + " => " + newCustomer.name,
+                    location = this.location
                 });
             }
 
@@ -369,6 +376,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     presentationId = this.id,
                     type = (short)EnumCRM_PresentationActionType.FırsatDüzenle,
                     description = "Kanal güncellendi. Yeni Kanal : " + newTitle,
+                    location = this.location
                 });
             }
 
@@ -381,6 +389,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     presentationId = this.id,
                     type = (short)EnumCRM_PresentationActionType.FırsatDüzenle,
                     description = "Potansiyel Fırsat adı güncellendi. " + oldPresentation.Name + " > " + presentation.Name,
+                    location = this.location
                 });
             }
 
@@ -397,6 +406,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     presentationId = this.id,
                     type = (short)EnumCRM_PresentationActionType.FırsatDüzenle,
                     description = "Satış personeli güncellendi. " + oldTitle + " => " + newTitle,
+                    location = this.location
                 });
             }
 
@@ -409,6 +419,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     presentationId = this.id,
                     type = (short)EnumCRM_PresentationActionType.FırsatDüzenle,
                     description = "Kapanma yüzdesi güncellendi. " + oldPresentation.CompletionRate + " => " + this.CompletionRate,
+                    location = this.location
                 });
             }
 
@@ -463,7 +474,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 message = dbresult.result ? "Potansiyel kaydı güncellendi..." : "Potansiyel kaydı güncellenirken sorunlar oluştu."
             };
         }
-        public ResultStatus InsertNote(Guid userId, string note)
+        public ResultStatus InsertNote(Guid userId, string note, IGeometry location)
         {
 
             var action = new CRM_PresentationAction
@@ -473,7 +484,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 presentationId = this.id,
                 description = "Not : " + note,
                 type = (short)EnumCRM_PresentationActionType.NotEkle,
-                color = "#4b4c50"
+                color = "#4b4c50",
+                location = location
             };
 
             var res = db.InsertCRM_PresentationAction(action);

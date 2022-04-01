@@ -1,9 +1,9 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_OrderModels
 @{
-	ViewBag.Title = "Satış Siparişi Ekleme";
-	Layout = "~/Views/Shared/_Layout.cshtml";
-	var products = Model.InvoiceItems != null ? Model.InvoiceItems.Where(a => a.productId.HasValue).Select(a => a.productId).ToList(): new List<Guid?>();
-	var userStatus = (PageSecurity)Session["userStatus"];
+    ViewBag.Title = "Satış Siparişi Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var products = Model.InvoiceItems != null ? Model.InvoiceItems.Where(a => a.productId.HasValue).Select(a => a.productId).ToList() : new List<Guid?>();
+    var userStatus = (PageSecurity)Session["userStatus"];
     var companyId = userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : Guid.NewGuid();
 }
 
@@ -41,6 +41,12 @@
     @Html.HiddenFor(model => model.IsTransform)
     @Html.HiddenFor(model => model.IsCopy)
 
+
+    <div class="hide">
+        @(Html.Akilli().MapInput().Name("location").Navigation(true))
+    </div>
+
+
     <div id="content" class="clearfix">
         <div class="form-group">
             <div class="col-md-6" data-content="buysell">
@@ -48,11 +54,11 @@
                     <div class="col-sm-4">
                         <label class="control-label req"><i class="fa fa-building-o"></i> Sipariş Alan İşletmem</label>
                     </div>
-					<div class="col-sm-8">
-						@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
-						{
+                    <div class="col-sm-8">
+                        @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
+                        {
 
-							@(Html.Akilli()
+                            @(Html.Akilli()
                                     .DropDownListFor(model => model.supplierId)
                                     .OptionLabel("Lütfen İşletme Seçiniz..")
                                     .DataTextField("name")
@@ -66,11 +72,11 @@
                                     .ValueTemplate("<span>#=name#</span>")
                                     .Validate(Validations.Required)
                         )
-						}
-						else
-						{
+                        }
+                        else
+                        {
 
-							@(Html.Akilli()
+                            @(Html.Akilli()
                                     .DropDownListFor(model => model.supplierId)
                                     .OptionLabel("Lütfen İşletme Seçiniz..")
                                     .DataTextField("name")
@@ -84,9 +90,9 @@
                                     .ValueTemplate("<span>#=name#</span>")
                                     .Validate(Validations.Required)
                         )
-						}
+                        }
 
-					</div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6" data-content="buysell">
