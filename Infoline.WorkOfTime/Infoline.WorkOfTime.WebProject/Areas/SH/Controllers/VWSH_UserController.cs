@@ -1096,83 +1096,86 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         public static SimpleQuery UpdateQueryUserPendingTask(SimpleQuery query, PageSecurity userStatus)
         {
             string[] roles = userStatus.user.RoleIds.Split(',');
-            BEXP filter = null;
+            BEXP filter = null, filterRole = null;
 
             foreach (var item in roles)
             {
-                filter |= new BEXP
+                filterRole |= new BEXP
                 {
                     Operand1 = (COL)"roleid",
-                    Operator = BinaryOperator.Like,
-                    Operand2 = (VAL)String.Format("%{0}%", item)
+                    Operator = BinaryOperator.Equal,
+                    Operand2 = (VAL)String.Format("'{0}'", item)
                 };
             }
 
+            //filterRole |= new BEXP
+            //{
+            //    Operand1 = (COL)"roleid",
+            //    Operator = BinaryOperator.In,
+            //    Operand2 = (VAL)("('" + String.Join("','", roles).ToString() + "')")
+            //};
+
+            filter = filterRole;
+
             filter &= new BEXP
             {
-                Operand1 = (COL)"userid",
-                Operator = BinaryOperator.Equal,
-                Operand2 = (VAL)userStatus.user.id
+                Operand1 = new BEXP
+                {
+                    Operand1 = (COL)"userid",
+                    Operator = BinaryOperator.Equal,
+                    Operand2 = (VAL)String.Format("'{0}'", userStatus.user.id)
+                },
+                Operator = BinaryOperator.And,
+                Operand2 = new BEXP
+                {
+                    Operand1 = (COL)"count",
+                    Operator = BinaryOperator.GreaterThan,
+                    Operand2 = (VAL)(int)0
+                }
             };
 
+            filter |= filterRole;
 
-			filter &= new BEXP
-			{
-				Operand1 = (COL)"count",
-				Operator = BinaryOperator.GreaterThan,
-				Operand2 = (VAL)(int)0
-			};
-
+            filter &= new BEXP
+            {
+                Operand1 = new BEXP
+                {
+                    Operand1 = (COL)"userid",
+                    Operator = BinaryOperator.IsNull,
+                    Operand2 = (VAL)(null)
+                },
+                Operator = BinaryOperator.And,
+                Operand2 = new BEXP
+                {
+                    Operand1 = (COL)"count",
+                    Operator = BinaryOperator.GreaterThan,
+                    Operand2 = (VAL)(int)0
+                }
+            };
 
             filter |= new BEXP
             {
                 Operand1 = (COL)"roleid",
                 Operator = BinaryOperator.IsNull,
-                Operand2 = (VAL)System.UIHelper.Guid.Null
+                Operand2 = (VAL)(null)
+
             };
 
             filter &= new BEXP
             {
-                Operand1 = (COL)"userid",
-                Operator = BinaryOperator.Equal,
-                Operand2 = (VAL)userStatus.user.id
-            };
-
-            //filter |= new BEXP
-            //{
-            //    Operand1 = new BEXP
-            //    {
-            //        Operand1 = new BEXP
-            //        {
-            //            Operand1 = (COL)"roleid",
-            //            Operator = BinaryOperator.IsNull,
-            //            Operand2 = (VAL)System.UIHelper.Guid.Null
-            //        },
-            //        Operand2 = new BEXP
-            //        {
-            //            Operand1 = (COL)"userid",
-            //            Operator = BinaryOperator.Equal,
-            //            Operand2 = (VAL)userStatus.user.id
-            //        },
-            //        Operator = BinaryOperator.And
-            //    }
-            //};
-
-
-            foreach (var item in roles)
-            {
-                filter |= new BEXP
+                Operand1 = new BEXP
                 {
-                    Operand1 = (COL)"roleid",
-                    Operator = BinaryOperator.Like,
-                    Operand2 = (VAL)String.Format("%{0}%", item)
-                };
-            }
-            filter &= new BEXP
-            {
-                Operand1 = (COL)"userid",
-                Operator = BinaryOperator.IsNull,
-                Operand2 = (VAL)System.UIHelper.Guid.Null
+                    Operand1 = (COL)"userid",
+                    Operator = BinaryOperator.Equal,
+                    Operand2 = (VAL)String.Format("'{0}'", userStatus.user.id)
+                },
+                Operator = BinaryOperator.And,
+                Operand2 = new BEXP
+                {
+                    Operand1 = (COL)"count",
+                    Operator = BinaryOperator.GreaterThan,
+                    Operand2 = (VAL)(int)0
+                }
             };
 
             query.Filter &= filter;
