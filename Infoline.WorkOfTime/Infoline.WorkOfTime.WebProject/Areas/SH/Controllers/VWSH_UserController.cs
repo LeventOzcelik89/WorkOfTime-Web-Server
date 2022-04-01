@@ -1098,6 +1098,65 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             string[] roles = userStatus.user.RoleIds.Split(',');
             BEXP filter = null;
 
+            foreach (var item in roles)
+            {
+                filter |= new BEXP
+                {
+                    Operand1 = (COL)"roleid",
+                    Operator = BinaryOperator.Like,
+                    Operand2 = (VAL)String.Format("%{0}%", item)
+                };
+            }
+
+            filter &= new BEXP
+            {
+                Operand1 = (COL)"userid",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)userStatus.user.id
+            };
+
+
+			filter &= new BEXP
+			{
+				Operand1 = (COL)"count",
+				Operator = BinaryOperator.GreaterThan,
+				Operand2 = (VAL)(int)0
+			};
+
+
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"roleid",
+                Operator = BinaryOperator.IsNull,
+                Operand2 = (VAL)System.UIHelper.Guid.Null
+            };
+
+            filter &= new BEXP
+            {
+                Operand1 = (COL)"userid",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)userStatus.user.id
+            };
+
+            //filter |= new BEXP
+            //{
+            //    Operand1 = new BEXP
+            //    {
+            //        Operand1 = new BEXP
+            //        {
+            //            Operand1 = (COL)"roleid",
+            //            Operator = BinaryOperator.IsNull,
+            //            Operand2 = (VAL)System.UIHelper.Guid.Null
+            //        },
+            //        Operand2 = new BEXP
+            //        {
+            //            Operand1 = (COL)"userid",
+            //            Operator = BinaryOperator.Equal,
+            //            Operand2 = (VAL)userStatus.user.id
+            //        },
+            //        Operator = BinaryOperator.And
+            //    }
+            //};
 
 
             foreach (var item in roles)
@@ -1112,46 +1171,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             filter &= new BEXP
             {
                 Operand1 = (COL)"userid",
-                Operator = BinaryOperator.Equal,
-                Operand2 = (VAL)userStatus.user.id
+                Operator = BinaryOperator.IsNull,
+                Operand2 = (VAL)System.UIHelper.Guid.Null
             };
 
-
-            //foreach (var item in roles)
-            //{
-            //    filter |= new BEXP
-            //    {
-            //        Operand1 = (COL)"roleid",
-            //        Operator = BinaryOperator.Like,
-            //        Operand2 = (VAL)String.Format("%{0}%", item)
-            //    };
-            //}
-            //filter &= new BEXP
-            //{
-            //    Operand1 = (COL)"userid",
-            //    Operator = BinaryOperator.IsNull
-            //};
-
-
-            //filter &= new BEXP
-            //{
-            //    Operand1 = (COL)"roleid",
-            //    Operator = BinaryOperator.IsNull
-            //};
-
-            //filter &= new BEXP
-            //{
-            //    Operand1 = (COL)"userid",
-            //    Operator = BinaryOperator.Equal,
-            //    Operand2 = (VAL)userStatus.user.id
-            //};
-
-            filter &= new BEXP
-            {
-                Operand1 = (COL)"count",
-                Operator = BinaryOperator.GreaterThan,
-                Operand2 = (VAL)(int)0
-            };
             query.Filter &= filter;
             return query;
         }
