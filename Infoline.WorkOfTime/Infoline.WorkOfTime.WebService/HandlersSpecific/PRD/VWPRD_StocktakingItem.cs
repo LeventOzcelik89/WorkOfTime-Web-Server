@@ -1,6 +1,7 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.Web.SmartHandlers;
 using Infoline.WorkOfTime.BusinessAccess;
+using Infoline.WorkOfTime.BusinessData;
 using Infoline.WorkOfTime.BusinessData.Specific;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,40 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 }
 
                 var res = item.Save(CallContext.Current.UserId);
+                RenderResponse(context, res);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
+        [HandleFunction("VWPRD_StocktakingItem/BulkInsert")]
+        public void VWPRD_StocktakingItemBulkInsert(HttpContext context)
+        {
+            try
+            {
+                var items = ParseRequest<VMPRD_StocktakingItemModel[]>(context);
+                var user = CallContext.Current.UserId;
+                var db = new WorkOfTimeDatabase();
+
+                if (items == null)
+                {
+                    RenderResponse(context, new ResultStatus { result = false, message = "Sayım kalemi nesnesi boş gönderilemez." });
+                    return;
+                }
+
+                var res = db.BulkInsertPRD_StocktakingItem(items.Select(a => new PRD_StocktakingItem
+                {
+                    id = a.id,
+                    created = DateTime.Now,
+                    createdby = user,
+                    stocktakingId = a.stocktakingId,
+                    productId = a.productId,
+                    serialNumber = a.serialNumber,
+                    quantity = a.quantity,
+                    unitId = a.unitId,
+                }));
                 RenderResponse(context, res);
             }
             catch (Exception ex)
