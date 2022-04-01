@@ -1095,22 +1095,62 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
         public static SimpleQuery UpdateQueryUserPendingTask(SimpleQuery query, PageSecurity userStatus)
         {
+            string[] roles = userStatus.user.RoleIds.Split(',');
             BEXP filter = null;
-            filter = new BEXP
+
+
+
+            foreach (var item in roles)
             {
-                Operand1 = new BEXP
+                filter |= new BEXP
                 {
-                    Operand1 = (COL)"userid",
-                    Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)userStatus.user.id
-                },
-                Operand2 = new BEXP
-                {
-                    Operand1 = (COL)"count",
-                    Operator = BinaryOperator.GreaterThan,
-                    Operand2 = (VAL)(int)0
-                },
-                Operator = BinaryOperator.And
+                    Operand1 = (COL)"roleid",
+                    Operator = BinaryOperator.Like,
+                    Operand2 = (VAL)String.Format("%{0}%", item)
+                };
+            }
+            filter &= new BEXP
+            {
+                Operand1 = (COL)"userid",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)userStatus.user.id
+            };
+
+
+            //foreach (var item in roles)
+            //{
+            //    filter |= new BEXP
+            //    {
+            //        Operand1 = (COL)"roleid",
+            //        Operator = BinaryOperator.Like,
+            //        Operand2 = (VAL)String.Format("%{0}%", item)
+            //    };
+            //}
+            //filter &= new BEXP
+            //{
+            //    Operand1 = (COL)"userid",
+            //    Operator = BinaryOperator.IsNull
+            //};
+
+
+            //filter &= new BEXP
+            //{
+            //    Operand1 = (COL)"roleid",
+            //    Operator = BinaryOperator.IsNull
+            //};
+
+            //filter &= new BEXP
+            //{
+            //    Operand1 = (COL)"userid",
+            //    Operator = BinaryOperator.Equal,
+            //    Operand2 = (VAL)userStatus.user.id
+            //};
+
+            filter &= new BEXP
+            {
+                Operand1 = (COL)"count",
+                Operator = BinaryOperator.GreaterThan,
+                Operand2 = (VAL)(int)0
             };
             query.Filter &= filter;
             return query;
