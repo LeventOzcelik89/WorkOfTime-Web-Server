@@ -67,6 +67,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     serialNumber = a.serialNumber,
                     quantity = a.quantity,
                     unitId = a.unitId,
+                    location = a.location,
                 }));
                 RenderResponse(context, res);
             }
