@@ -16,6 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWPRD_StocktakingItem[] items { get; set; }
         public List<VWPRD_StockTakingItemModel> stockTakingSummaries { get; set; } = new List<VWPRD_StockTakingItemModel>();
         public VWPRD_StocktakingUser[] stocktakingUsers { get; set; }
+        public List<Guid> stocktakingUserIds { get; set; }
 
         public VMPRD_StocktakingModel Load()
         {
@@ -50,6 +51,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     serialNumber = a.serialNumber
                 }).ToArray());
             }
+
+            this.code = this.code ?? BusinessExtensions.B_GetIdCode();
+            this.stocktakingUserIds = this.stocktakingUserIds ?? new List<Guid>();
+            this.status = this.status ?? (int)EnumPRD_StocktakingStatus.SayimBasladi;
+
             return this;
         }
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
@@ -103,17 +109,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
             //Validasyonlarını yap
             this.code = BusinessExtensions.B_GetIdCode();
             var dbresult = db.InsertPRD_Stocktaking(this.B_ConvertType<PRD_Stocktaking>(), this.trans);
-            dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
-            {
-                id = Guid.NewGuid(),
-                created = this.created,
-                createdby = this.createdby,
-                stocktakingId = this.id,
-                productId = a.productId,
-                serialNumber = a.serialNumber,
-                quantity = a.quantity,
-                unitId = a.unitId,
-            }), this.trans);
+
+			if (this.stocktakingUserIds.Any())
+			{
+                stocktakingUsers = this.stocktakingUserIds.Select(a => new VWPRD_StocktakingUser
+                {
+                    stocktakingId = this.id,
+                    userId = a,
+                    created = DateTime.Now,
+                    createdby = this.createdby
+                }).ToArray();
+            }
+
+			if (this.items != null)
+			{
+                dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
+                {
+                    id = Guid.NewGuid(),
+                    created = this.created,
+                    createdby = this.createdby,
+                    stocktakingId = this.id,
+                    productId = a.productId,
+                    serialNumber = a.serialNumber,
+                    quantity = a.quantity,
+                    unitId = a.unitId,
+                }), this.trans);
+            }
             dbresult &= db.BulkInsertPRD_StocktakingUser(this.stocktakingUsers.Select(a => new PRD_StocktakingUser
             {
                 userId = a.userId,
@@ -155,17 +176,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 unitId = a.unitId,
             }), this.trans);
 
-            dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
-            {
-                id = Guid.NewGuid(),
-                created = a.created,
-                createdby = a.createdby,
-                stocktakingId = this.id,
-                productId = a.productId,
-                serialNumber = a.serialNumber,
-                quantity = a.quantity,
-                unitId = a.unitId,
-            }), this.trans);
+			if (this.items != null)
+			{
+                dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
+                {
+                    id = Guid.NewGuid(),
+                    created = a.created,
+                    createdby = a.createdby,
+                    stocktakingId = this.id,
+                    productId = a.productId,
+                    serialNumber = a.serialNumber,
+                    quantity = a.quantity,
+                    unitId = a.unitId,
+                }), this.trans);
+            }
 
             var stocktakingUsers = db.GetVWPRD_StocktakingUserByStocktakingId(this.id);
             dbresult &= db.BulkDeletePRD_StocktakingUser(stocktakingUsers.Select(a => new PRD_StocktakingUser

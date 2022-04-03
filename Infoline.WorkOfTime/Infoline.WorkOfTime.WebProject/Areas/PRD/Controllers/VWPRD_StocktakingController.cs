@@ -52,63 +52,45 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[AllowEveryone]
-
-		public ActionResult Insert()
+		public ActionResult Insert(VMPRD_StocktakingModel model)
 		{
-		    var data = new VWPRD_Stocktaking { id = Guid.NewGuid() };
-		    return View(data);
+		    return View(model.Load());
 		}
 
 		[AllowEveryone]
-
-
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(PRD_Stocktaking item)
+		public JsonResult Insert(VMPRD_StocktakingModel item, bool? isPost)
 		{
 		    var db = new WorkOfTimeDatabase();
 		    var userStatus = (PageSecurity)Session["userStatus"];
 		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertPRD_Stocktaking(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var dbresult = item.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Sayım İşlemi Oluşturma İşlemi Başarılı") : feedback.Warning(dbresult.message),
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 		[AllowEveryone]
-
-		public ActionResult Update(Guid id)
+		public ActionResult Update(VMPRD_StocktakingModel model)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_StocktakingById(id);
-		    return View(data);
+		    return View(model.Load());
 		}
 
 		[AllowEveryone]
-
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(PRD_Stocktaking item)
+		public JsonResult Update(VMPRD_StocktakingModel item, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdatePRD_Stocktaking(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var db = new WorkOfTimeDatabase();
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = item.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Sayım İşlemi Güncelleme İşlemi Başarılı") : feedback.Warning(dbresult.message),
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 		[AllowEveryone]

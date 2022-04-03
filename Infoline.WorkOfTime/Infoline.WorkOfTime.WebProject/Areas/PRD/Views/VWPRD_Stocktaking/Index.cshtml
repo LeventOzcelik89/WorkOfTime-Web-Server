@@ -4,6 +4,24 @@
 }
 
 
+<script type="text/javascript">
+	function statusTemplateFunc(data) {
+		var text = "";
+		if (data.status == '@((int)EnumPRD_StocktakingStatus.SayimBasladi)') {
+			text = '<span data-placement="right" data-toggle="tooltip" data-html="true" title="" data-original-title="Sayım Devam Ediyor"> <i style="color:rgb(238 173 14)" class="icon-circle"></i></span>';
+		}
+		else if (data.status == '@((int)EnumPRD_StocktakingStatus.SayimTamamlandi)') {
+			text = '<span data-placement="right" data-toggle="tooltip" data-html="true" title="" data-original-title="Sayım Tamamlandı"> <i style="color:rgb(26 179 148)" class="icon-circle"></i></span>';
+		}
+		else {
+			text = '<span data-placement="right" data-toggle="tooltip" data-html="true" title="" data-original-title="Stoklara İşlendi"> <i style="color:rgb(26 179 148)" class="icon-check"></i></span>';
+		}
+
+		return text;
+	}
+</script>
+
+
 <div class="row">
 	<div class="col-md-12">
 		<div class="ibox">
@@ -21,20 +39,20 @@
 	.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Stocktaking", new { area = "PRD" })).PageSize(25))
 	.Columns(x =>
 	{
-
+		x.Bound(y => y.status).Title("Sayım Durumu").ClientTemplate("#=statusTemplateFunc(data)#").Width(60);
 		x.Bound(y => y.code).Title("Sayım Kodu").Width(130);
-		x.Bound(y => y.storageId_Title).Title("Sayım Yapılan Depo").Width(130);
+		x.Bound(y => y.storageId_Title).Title("Sayım Yapılan Depo").Width(150);
 		x.Bound(y => y.responsibleUserId_Title).Title("Sayım Yapan Personel").Width(130);
 		x.Bound(y => y.description).Title("Açıklama").Width(130);
-		x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130);
-		x.Bound(y => y.date).Title("Oluşturma Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
+		x.Bound(y => y.date).Title("Sayım Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
 	})
 	.Scrollable(x => x.Height(650))
 	.Selectable(x => x.Mode(GridSelectionMode.Single))
 	.ToolBar(x =>
 	{
-		x.Custom().Text("<i data-original-title='Stok Sayım İşlemleri Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Stocktaking", new { area = "PRD" }));
-		x.Custom().Text("<i data-original-title='Stok Sayım İşlemleri Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Stocktaking", new { area = "PRD" }));
+		x.Custom().Text("<i data-original-title='Sayım İşlemi Oluştur' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_Stocktaking", new { area = "PRD" }));
+		x.Custom().Text("<i data-original-title='Sayım İşlemleri Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Stocktaking", new { area = "PRD" }));
+		x.Custom().Text("<i data-original-title='Sayım İşlemleri Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Stocktaking", new { area = "PRD" }));
 	}))
 			</div>
 		</div>
