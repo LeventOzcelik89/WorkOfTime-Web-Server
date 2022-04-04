@@ -115,7 +115,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FVR.Controllers
 			{
 				Operand1 = (COL)"userId",
 				Operator = BinaryOperator.Equal,
-				Operand2 = (VAL)string.Format("{0}", userStatus.user.id.ToString())
+				Operand2 = (VAL)userStatus.user.id
 			};
 			filter &= new BEXP
 			{
