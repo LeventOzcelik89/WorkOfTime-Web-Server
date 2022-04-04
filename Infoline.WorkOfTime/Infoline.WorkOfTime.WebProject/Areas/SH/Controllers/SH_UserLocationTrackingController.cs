@@ -27,7 +27,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			return View();
 		}
 
-		[PageInfo("Personel İzleme Haritası Data Metodu", SHRoles.IdariPersonelYonetici)]
+		[PageInfo("Personel İzleme Haritası Data Metodu", SHRoles.IdariPersonelYonetici, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public ContentResult GetMapData(DateTime startDate, DateTime endDate, Guid userId)
 		{
 			var db = new WorkOfTimeDatabase();

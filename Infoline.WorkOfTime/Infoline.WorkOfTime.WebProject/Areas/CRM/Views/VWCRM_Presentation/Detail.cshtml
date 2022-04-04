@@ -80,7 +80,6 @@
             </div>
         </div>
 
-
         <div class="hide">
             @(Html.Akilli().MapInput().Name("NewLocation").Navigation(true))
         </div>
@@ -117,11 +116,12 @@
                                 </p>
                                 <span class="vertical-date small text-muted"> @String.Format("{0:dd.MM.yyyy HH:mm}", item.created) </span> <br />
                                 <span class="vertical-date small text-muted"> İşlem Yapan : @String.Format("{0:dd.MM.yyyy HH:mm}", item.createdby_Title) </span>
-                                <br /> <span><a class="btn btn-xs btn-success pull-left" style="margin-top: 2px;" data-href="/CRM/VWCRM_Presentation/DetailLocation?id=@item.id" data-modal="true" data-task="Insert"> <i class="fa fa-info-circle" style="padding-right:4px"></i>Detay</a></span>
-                                @if (item.contactId != null)
-                                {
-                                    <span><a class="btn btn-xs btn-primary pull-right" style="margin-right:10px; margin-top:2px;" data-href="/CRM/VWCRM_Contact/Detail?id=@item.contactId" data-modal="true" data-task="Insert"> <i class="fa fa-info-circle"></i>Aktivite Detayı </a></span>
-                                }
+                          
+                                    <br /> <span><a class="btn btn-xs btn-success pull-left" style="margin-top: 2px;" data-href="/CRM/VWCRM_Presentation/DetailLocation?id=@item.id" data-modal="true" data-task="Insert"> <i class="fa fa-info-circle" style="padding-right:4px"></i>Detay</a></span>
+                                    @if (item.contactId != null)
+                                    {
+                                        <span><a class="btn btn-xs btn-primary pull-right" style="margin-right: 0px; margin-top: 2px;" data-href="/CRM/VWCRM_Contact/Detail?id=@item.contactId" data-modal="true" data-task="Insert"> <i class="fa fa-info-circle"></i>Aktivite Detayı </a></span>
+                                    }
                             </div>
                         </div>
                     }
@@ -486,7 +486,6 @@
         },
         fnc: {
             addNote: function (note) {
-                debugger;
                 var locations = $("#NewLocation").val();
 
                 $.ajax({
@@ -567,6 +566,8 @@
         .on('ready', function () {
             presentation.fnc.fillStar(presentation.dfn.priorityLevel);
 
+
+
             setTimeout(function () {
                 $(document)
                     .on("click", '#locationArrow', function (e) {
@@ -598,7 +599,7 @@
                                     if (res == null) { return; }
                                     feedback(res.objects);
                                 });
-                                  window.setTimeout(function () {
+                                window.setTimeout(function () {
                                       location.reload();
                                 },2500)
                             } else {
@@ -627,13 +628,50 @@
 
 
         })
+        .on("click", '[data-name="filterType"]', function (e) {
+            var _this = $(this);
+
+            _this.parent().find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+            _this.parent().find('.fa-check').removeClass('fa fa-check');
+            _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+            _this.find('span').addClass("fa fa-check");
+        })
+        .on("hover:feature", "#potentialMap", function (e, resp) {
+            page.dfn.harita.overlay.remove('slider-station');
+
+            if (resp.type == "add") {
+                var elem = resp.element;
+                var prop = elem.get("properties");
+
+                if (prop) {
+                    text = page.getPersonDetailForHover(prop);
+                    var geometry = resp.element.getGeometry();
+                    var coordinate = geometry.getCoordinates();
+                    var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+
+                    var tooltiplocation = "";
+
+                    if (pixel[1] < 400)
+                        tooltiplocation = "top-right";
+                    else if (screen.height - pixel[1] < 400)
+                        tooltiplocation = "bottom-right";
+                    else
+                        tooltiplocation = "center-right";
+
+                    page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+                    page.dfn.harita.map.updateSize();
+                }
+            }
+        })
         .on('success', '#VWCRM_PresentationUpdateStateForm, #VWCMP_CompanyUpdateForm, #VWCRM_PresentationFormUpdate, #VWCRM_ContactInsertForm, #VWCRM_ContactUpdateForm, #VWCMP_InvoiceInsertForm, #VWCRM_ContactUpdateForm, #VWPA_InsertExpenseForm',function (e, res) {
             window.setTimeout(function () {
+                debugger;
                 window.location = "/CRM/VWCRM_Presentation/Detail/@Model.id";
             }, 1500)
         })
         .on('success', '#VWCMP_OrderInsertForm', function (e, res) {
             window.setTimeout(function () {
+                debugger;
                 window.location = "/CRM/VWCRM_Presentation/Detail/@Model.id";
             }, 1500)
         })
@@ -686,6 +724,7 @@
                     feedback(res.FeedBack);
                     presentation.fnc.fillStar(data.priorityLevel);
                     presentation.dfn.priorityLevel = data.priorityLevel;
+                    debugger;
                     location.reload();
                 })
 
