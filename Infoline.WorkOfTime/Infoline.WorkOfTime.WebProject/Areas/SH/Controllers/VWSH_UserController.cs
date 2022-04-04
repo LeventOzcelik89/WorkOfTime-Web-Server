@@ -1123,7 +1123,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 {
                     Operand1 = (COL)"userid",
                     Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)String.Format("'{0}'", userStatus.user.id)
+                    Operand2 = (VAL)userStatus.user.id
                 },
                 Operator = BinaryOperator.And,
                 Operand2 = new BEXP
@@ -1141,8 +1141,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 Operand1 = new BEXP
                 {
                     Operand1 = (COL)"userid",
-                    Operator = BinaryOperator.IsNull,
-                    Operand2 = (VAL)(null)
+                    Operator = BinaryOperator.Equal,
+                    Operand2 = (VAL)"00000000-0000-0000-0000-999999999999"
                 },
                 Operator = BinaryOperator.And,
                 Operand2 = new BEXP
@@ -1156,8 +1156,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             filter |= new BEXP
             {
                 Operand1 = (COL)"roleid",
-                Operator = BinaryOperator.IsNull,
-                Operand2 = (VAL)(null)
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)"'0'"
 
             };
 
@@ -1167,7 +1167,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 {
                     Operand1 = (COL)"userid",
                     Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)String.Format("'{0}'", userStatus.user.id)
+                    Operand2 = (VAL)userStatus.user.id
                 },
                 Operator = BinaryOperator.And,
                 Operand2 = new BEXP
