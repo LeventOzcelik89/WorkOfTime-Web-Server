@@ -168,6 +168,12 @@ namespace System
         //İş Sağlığı Güvenliği
         [PropInfo("İş Sağlığı Güvenliği Sorumlusu", "İş Sağlığı Güvenliği Sorumlusu")]
         public const string ISGSorumlusu = "00000000-0000-0000-0006-100000000000";
+
+        //Sayım
+        [PropInfo("Sayım Yöneticisi", "Sayım Yöneticisi")]
+        public const string SayimYoneticisi = "00000000-0000-0000-0008-100000000000";
+        [PropInfo("Sayım Personeli", "Sayım Personeli")]
+        public const string SayimPersoneli = "00000000-0000-0000-0008-200000000000";
     }
 
     public class PageInfo : Attribute

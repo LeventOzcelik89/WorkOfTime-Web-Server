@@ -38,10 +38,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         [Description("Sayım Başladı"), Generic("color", "EF5352")]
         SayimBasladi = 0,
-        [Description("Sayım Tamamlandı"), Generic("color", "1ab394")]
-        SayimTamamlandi = 1,
+        [Description("Sayım İşlemi Sona Erdi"), Generic("color", "1ab394")]
+        SayimIslemiSonaErdi = 1,
         [Description("Stoklara İşlendi"), Generic("color", "F8AC59")]
         StoklaraIslendi = 2,
+        [Description("Sayım Bitti"), Generic("color", "F8AC59")]
+        SayimBitti = 3,
     }
 
     partial class WorkOfTimeDatabase
@@ -64,6 +66,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 headers.headerFilters.Filters.Add(new HeadersStocktakingItem
                 {
+                    title = "Sayım İşlemi Sona Erdi",
+                    filter = "{'Filter':{'Operand1': 'status', 'Operator': 'Equal', 'Operand2':" + (int)EnumPRD_StocktakingStatus.SayimIslemiSonaErdi + "}}",
+                    count = db.Table<VWPRD_Stocktaking>().Where(a => a.status == (int)EnumPRD_StocktakingStatus.SayimIslemiSonaErdi).Count(),
+                    isActive = true
+                });
+
+                headers.headerFilters.Filters.Add(new HeadersStocktakingItem
+                {
                     title = "Stoklara İşlendi",
                     filter = "{'Filter':{'Operand1': 'status', 'Operator': 'Equal', 'Operand2':" + (int)EnumPRD_StocktakingStatus.StoklaraIslendi + "}}",
                     count = db.Table<VWPRD_Stocktaking>().Where(a => a.status == (int)EnumPRD_StocktakingStatus.StoklaraIslendi).Count(),
@@ -72,9 +82,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 headers.headerFilters.Filters.Add(new HeadersStocktakingItem
                 {
-                    title = "Sayım Tamamlandı",
-                    filter = "{'Filter':{'Operand1': 'status', 'Operator': 'Equal', 'Operand2':" + (int)EnumPRD_StocktakingStatus.SayimTamamlandi + "}}",
-                    count = db.Table<VWPRD_Stocktaking>().Where(a => a.status == (int)EnumPRD_StocktakingStatus.SayimTamamlandi).Count(),
+                    title = "Sayım Bitti",
+                    filter = "{'Filter':{'Operand1': 'status', 'Operator': 'Equal', 'Operand2':" + (int)EnumPRD_StocktakingStatus.SayimBitti + "}}",
+                    count = db.Table<VWPRD_Stocktaking>().Where(a => a.status == (int)EnumPRD_StocktakingStatus.SayimBitti).Count(),
                     isActive = true
                 });
 

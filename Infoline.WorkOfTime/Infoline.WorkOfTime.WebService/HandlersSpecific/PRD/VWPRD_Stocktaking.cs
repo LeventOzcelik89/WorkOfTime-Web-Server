@@ -19,6 +19,29 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
 
         }
 
+        [HandleFunction("VWPRD_Stocktaking/GetAll")]
+        public void VWPRD_StocktakingGetAll(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var userId = CallContext.Current.UserId;
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
+                var userRole = db.GetSH_UserRoleByUserId(userId);
+                if (userRole.Count(x => x.roleid == new Guid(SHRoles.SayimYoneticisi)) < 1)
+                {
+                    cond = VMPRD_StocktakingModel.UpdateQuery(cond, userId);
+                }
+                var data = db.GetVWPRD_Stocktaking(cond);
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
         [HandleFunction("VWPRD_Stocktaking/Insert")]
         public void VWPRD_StocktakingInsert(HttpContext context)
         {

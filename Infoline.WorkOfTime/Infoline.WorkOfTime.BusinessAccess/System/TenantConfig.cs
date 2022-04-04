@@ -225,7 +225,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.HakEdisBayiPersoneli,
             SHRoles.SatisBayiPersoneli,
             SHRoles.PrimHakedisPersoneli,
-            SHRoles.ISGSorumlusu
+            SHRoles.ISGSorumlusu,
+            SHRoles.SayimPersoneli,
+            SHRoles.SayimYoneticisi
         };
         public IysInformation IysInformations { get; set; }
 

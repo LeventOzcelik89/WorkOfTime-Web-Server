@@ -26,5 +26,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWSH_UserRole>().Where(x => x.userid == userId).Execute().ToArray();
             }
         }
+
+        public VWSH_UserRole[] GetVWSH_UserRoleByRoleId(Guid roleid, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWSH_UserRole>().Where(x => x.roleid == roleid).Execute().ToArray();
+            }
+        }
     }
 }
