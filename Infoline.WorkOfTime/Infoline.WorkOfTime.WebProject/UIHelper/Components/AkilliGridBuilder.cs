@@ -42,21 +42,21 @@ namespace System.Web.Mvc
                 .Resizable(a => a.Columns(true))
                 .Scrollable(x => x.Height(450))
                 //.NoRecords(a => a.Template("Görüntülenecek bir kayıt bulunamadı."))
-                .Pageable(x => x.PageSizes(new[] { 10,25, 100 }).Refresh(true).Messages(m =>
-                {
-                    m.Refresh("Yenile")
-                     .AllPages("Tümünü getir")
-                     .Last("Son sayfaya git")
-                     .First("İlk sayfaya git")
-                     .Previous("Bir önceki sayfaya git")
-                     .Next("Bir sonraki sayfaya git")
-                     .ItemsPerPage("Sayfa başına ürün");
-                }))
+                .Pageable(x => x.PageSizes(new[] { 10, 25, 100 }).Refresh(true).Messages(m =>
+                 {
+                     m.Refresh("Yenile")
+                      .AllPages("Tümünü getir")
+                      .Last("Son sayfaya git")
+                      .First("İlk sayfaya git")
+                      .Previous("Bir önceki sayfaya git")
+                      .Next("Bir sonraki sayfaya git")
+                      .ItemsPerPage("Sayfa başına ürün");
+                 }))
                .ToolBar(x =>
                {
-                   x.Pdf().HtmlAttributes(new Dictionary<string, object> { { "class", "pull-right hide" }, { "data-original-title", HttpContext.Current.Request.Cookies.Get("language").Value == "ENG" ? "Export To Pdf" : "Pdf'e Aktar" } });
+                   x.Pdf().HtmlAttributes(new Dictionary<string, object> { { "class", "pull-right hide" }, { "data-original-title", "Pdf'e Aktar" } });
 
-                   x.Excel().HtmlAttributes(new Dictionary<string, object>() { { "class", "pull-right hide" }, { "data-original-title", HttpContext.Current.Request.Cookies.Get("language").Value == "ENG" ? "Export To Excel" : "Excel'e Aktar " } });
+                   x.Excel().HtmlAttributes(new Dictionary<string, object>() { { "class", "pull-right hide" }, { "data-original-title", "Excel'e Aktar " } });
 
                })
                  .Excel(x =>
