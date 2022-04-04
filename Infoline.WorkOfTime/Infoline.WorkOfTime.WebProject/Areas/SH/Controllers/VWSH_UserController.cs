@@ -1142,7 +1142,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 {
                     Operand1 = (COL)"userid",
                     Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)"00000000-0000-0000-0000-999999999999"
+                    Operand2 = (VAL)new Guid("00000000-0000-0000-0000-999999999999")
                 },
                 Operator = BinaryOperator.And,
                 Operand2 = new BEXP
