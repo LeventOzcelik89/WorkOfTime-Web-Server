@@ -1095,14 +1095,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
         public static SimpleQuery UpdateQueryUserPendingTask(SimpleQuery query, PageSecurity userStatus)
         {
-            string[] roles = userStatus.user.RoleIds.Split(',');
             BEXP filter = null;
 
             filter |= new BEXP
             {
                 Operand1 = (COL)"roleid",
                 Operator = BinaryOperator.In,
-                Operand2 = (VAL)("('" + String.Join("','", roles).ToString() + "')")
+                Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() },
             };
 
             filter &= new BEXP
@@ -1126,7 +1125,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             {
                 Operand1 = (COL)"roleid",
                 Operator = BinaryOperator.In,
-                Operand2 = (VAL)("('" + String.Join("','", roles).ToString() + "')")
+                Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() },
             };
 
             filter &= new BEXP
