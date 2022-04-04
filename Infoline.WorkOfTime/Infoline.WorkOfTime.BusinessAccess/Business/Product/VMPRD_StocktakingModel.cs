@@ -110,8 +110,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.code = BusinessExtensions.B_GetIdCode();
             var dbresult = db.InsertPRD_Stocktaking(this.B_ConvertType<PRD_Stocktaking>(), this.trans);
 
-			if (this.stocktakingUserIds.Any())
-			{
+            if (this.stocktakingUserIds != null)
+            {
                 stocktakingUsers = this.stocktakingUserIds.Select(a => new VWPRD_StocktakingUser
                 {
                     stocktakingId = this.id,
@@ -121,8 +121,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }).ToArray();
             }
 
-			if (this.items != null)
-			{
+            if (this.items != null)
+            {
                 dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
                 {
                     id = Guid.NewGuid(),
@@ -140,6 +140,29 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 userId = a.userId,
                 stocktakingId = this.id
             }), this.trans);
+
+            var sayimYöneticileri = db.GetVWSH_UserRoleByRoleId(Guid.Parse(SHRoles.SayimYoneticisi));
+            var sayimPersonelleri = db.GetVWSH_UserRoleByRoleId(Guid.Parse(SHRoles.SayimPersoneli));
+
+            dbresult &= db.BulkInsertSH_UserRole(this.stocktakingUsers.Where(a => sayimPersonelleri.Where(b => a.userId == b.userid).Count() < 1).Select(a => new SH_UserRole
+            {
+                roleid = Guid.Parse(SHRoles.SayimPersoneli),
+                userid = a.userId,
+                createdby = this.createdby,
+                created = DateTime.Now,
+            }), trans);
+
+            if (!sayimYöneticileri.Where(a => a.userid == this.responsibleUserId).Any())
+            {
+                dbresult &= db.InsertSH_UserRole(new SH_UserRole
+                {
+                    roleid = Guid.Parse(SHRoles.SayimYoneticisi),
+                    userid = this.responsibleUserId,
+                    created = DateTime.Now,
+                    createdby = this.createdby
+                });
+            }
+
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -176,8 +199,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 unitId = a.unitId,
             }), this.trans);
 
-			if (this.items != null)
-			{
+            if (this.items != null)
+            {
                 dbresult &= db.BulkInsertPRD_StocktakingItem(this.items.Select(a => new PRD_StocktakingItem
                 {
                     id = Guid.NewGuid(),
@@ -204,6 +227,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 userId = a.userId,
                 stocktakingId = this.id
             }), this.trans);
+
+            var sayimYöneticileri = db.GetVWSH_UserRoleByRoleId(Guid.Parse(SHRoles.SayimYoneticisi));
+            var sayimPersonelleri = db.GetVWSH_UserRoleByRoleId(Guid.Parse(SHRoles.SayimPersoneli));
+
+            dbresult &= db.BulkInsertSH_UserRole(this.stocktakingUsers.Where(a => sayimPersonelleri.Where(b => a.userId == b.userid).Count() < 1).Select(a => new SH_UserRole
+            {
+                roleid = Guid.Parse(SHRoles.SayimPersoneli),
+                userid = a.userId,
+                createdby = this.createdby,
+                created = DateTime.Now,
+            }), trans);
+
+            if (!sayimYöneticileri.Where(a => a.userid == this.responsibleUserId).Any())
+            {
+                dbresult &= db.InsertSH_UserRole(new SH_UserRole
+                {
+                    roleid = Guid.Parse(SHRoles.SayimYoneticisi),
+                    userid = this.responsibleUserId,
+                    created = DateTime.Now,
+                    createdby = this.createdby
+                });
+            }
 
             if (!dbresult.result)
             {
@@ -254,6 +299,35 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             this.Load();
             return db.GetVWPRD_StocktakingPageInfo(userId);
+        }
+
+        public static SimpleQuery UpdateQuery(SimpleQuery query, Guid userId)
+        {
+            BEXP filter = null;
+
+            filter &= new BEXP
+            {
+                Operand1 = (COL)"responsibleUserId",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)string.Format("{0}", userId.ToString())
+            };
+
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"createdby",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)string.Format("{0}", userId.ToString())
+            };
+
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"userIds",
+                Operator = BinaryOperator.Like,
+                Operand2 = (VAL)string.Format("{0}", userId.ToString())
+            };
+
+            query.Filter &= filter;
+            return query;
         }
 
         //public ResultStatus InsertForFireNotification(Guid userId)

@@ -18,5 +18,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string responsibleUserId_Title { get; set;}
         public string createdbyPhoto { get; set;}
         public string status_Title { get; set;}
+        public string userIds { get; set;}
     }
 }
