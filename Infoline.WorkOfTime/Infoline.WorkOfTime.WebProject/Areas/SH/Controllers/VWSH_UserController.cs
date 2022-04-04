@@ -1098,20 +1098,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             string[] roles = userStatus.user.RoleIds.Split(',');
             BEXP filter = null;
 
-
-
-            //filterRole |= new BEXP
-            //{
-            //    Operand1 = (COL)"roleid",
-            //    Operator = BinaryOperator.In,
-            //    Operand2 = (VAL)("('" + String.Join("','", roles).ToString() + "')")
-            //};
-
             filter |= new BEXP
             {
                 Operand1 = (COL)"roleid",
-                Operator = BinaryOperator.Equal,
-                Operand2 = (VAL)String.Format("'%{0}%'", userStatus.user.RoleIds)
+                Operator = BinaryOperator.In,
+                Operand2 = (VAL)("('" + String.Join("','", roles).ToString() + "')")
             };
 
             filter &= new BEXP
@@ -1134,8 +1125,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             filter |= new BEXP
             {
                 Operand1 = (COL)"roleid",
-                Operator = BinaryOperator.Equal,
-                Operand2 = (VAL)String.Format("'%{0}%'", userStatus.user.RoleIds)
+                Operator = BinaryOperator.In,
+                Operand2 = (VAL)("('" + String.Join("','", roles).ToString() + "')")
             };
 
             filter &= new BEXP
