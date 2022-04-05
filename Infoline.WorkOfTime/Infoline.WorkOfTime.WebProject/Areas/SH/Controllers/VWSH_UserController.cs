@@ -1097,61 +1097,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         {
             BEXP filter = null;
 
-
             filter = new BEXP
             {
-                Operand1 = new BEXP
-                {
-                    Operand1 = new BEXP
-                    {
-                        Operand1 = (COL)"roleid",
-                        Operator = BinaryOperator.In,
-                        Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
-                    },
-                    Operand2 = new BEXP
-                    {
-                        Operand1 = (COL)"userid",
-                        Operator = BinaryOperator.Equal,
-                        Operand2 = (VAL)userStatus.user.id
-                    },
-                    Operator = BinaryOperator.And
-                },
-                Operand2 = new BEXP
-                {
-                    Operand1 = new BEXP
-                    {
-                        Operand1 = (COL)"roleid",
-                        Operator = BinaryOperator.In,
-                        Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
-                    },
-                    Operand2 = new BEXP
-                    {
-                        Operand1 = (COL)"userid",
-                        Operator = BinaryOperator.Equal,
-                        Operand2 = (VAL)new Guid("00000000-0000-0000-0000-999999999999")
-                    },
-                    Operator = BinaryOperator.And
-                },
-                Operator = BinaryOperator.Or
-            };
-
-            filter &= new BEXP
-            {
-                Operand1 = (COL)"customerId",
+                Operand1 = (COL)"userid",
                 Operator = BinaryOperator.Equal,
-                Operand2 = (VAL)new Guid("00000000-0000-0000-0000-999999999998")
+                Operand2 = (VAL)userStatus.user.id
             };
-
-
-            if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
-            {
-                filter |= new BEXP
-                {
-                    Operand1 = (COL)"customerId",
-                    Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)userStatus.user.CompanyId ?? Guid.NewGuid()
-                };
-            }
 
             query.Filter &= filter;
             return query;
