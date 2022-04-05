@@ -48,7 +48,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return View(data.ToArray());
         }
 
-        [PageInfo("Kullanıcılar Methodu", SHRoles.Personel,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Kullanıcılar Methodu", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -666,7 +666,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                             CertificateName = personCertificate.CertificateType_Title,
                             CertificateStatus = "Aktif",
                             CertificateTimeText = "Süresiz",
-                            CertificateEndDate= null,
+                            CertificateEndDate = null,
                         });
                     }
                     else
@@ -1036,7 +1036,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             model.VWPA_Accounts = db.GetVWPA_AccountsByDataIdDataTable(model.id, "SH_User");
             return View(model);
         }
-        [PageInfo("Bayi Personeli Reddetme Metodu",SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personeli Reddetme Metodu", SHRoles.IKYonetici)]
         public JsonResult Reject(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -1075,7 +1075,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             condition = UpdateQueryUserPendingTask(condition, userStatus);
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
-            var data = db.GetVWSH_UserPendingTask(condition).RemoveGeographies().ToDataSourceResult(request);
+            var data = db.GetVWSH_UserPendingTask(condition).Where(x => x.count > 0).RemoveGeographies().ToDataSourceResult(request);
             data.Total = db.GetVWSH_UserPendingTaskCount(condition.Filter);
             return Json(data, "application/json");
         }
@@ -1097,76 +1097,52 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         {
             BEXP filter = null;
 
-            filter |= new BEXP
-            {
-                Operand1 = (COL)"roleid",
-                Operator = BinaryOperator.In,
-                Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() },
-            };
-
-            filter &= new BEXP
+            filter = new BEXP
             {
                 Operand1 = new BEXP
+                {
+                    Operand1 = (COL)"roleid",
+                    Operator = BinaryOperator.In,
+                    Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
+                },
+                Operator = BinaryOperator.And,
+                Operand2 = new BEXP
                 {
                     Operand1 = (COL)"userid",
                     Operator = BinaryOperator.Equal,
                     Operand2 = (VAL)userStatus.user.id
+                }
+            };
+            filter |= new BEXP
+            {
+                Operand1 = new BEXP
+                {
+                    Operand1 = (COL)"roleid",
+                    Operator = BinaryOperator.In,
+                    Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
                 },
                 Operator = BinaryOperator.And,
                 Operand2 = new BEXP
-                {
-                    Operand1 = (COL)"count",
-                    Operator = BinaryOperator.GreaterThan,
-                    Operand2 = (VAL)(int)0
-                }
-            };
-
-            filter |= new BEXP
-            {
-                Operand1 = (COL)"roleid",
-                Operator = BinaryOperator.In,
-                Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() },
-            };
-
-            filter &= new BEXP
-            {
-                Operand1 = new BEXP
                 {
                     Operand1 = (COL)"userid",
                     Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)"00000000-0000-0000-0000-999999999999"
+                    Operand2 = (VAL)new Guid("00000000-0000-0000-0000-999999999999")
+                }
+            };
+            filter |= new BEXP
+            {
+                Operand1 = new BEXP
+                {
+                    Operand1 = (COL)"roleid",
+                    Operator = BinaryOperator.Equal,
+                    Operand2 = (VAL)"0"
                 },
                 Operator = BinaryOperator.And,
                 Operand2 = new BEXP
-                {
-                    Operand1 = (COL)"count",
-                    Operator = BinaryOperator.GreaterThan,
-                    Operand2 = (VAL)(int)0
-                }
-            };
-
-            filter |= new BEXP
-            {
-                Operand1 = (COL)"roleid",
-                Operator = BinaryOperator.Equal,
-                Operand2 = (VAL)"'0'"
-
-            };
-
-            filter &= new BEXP
-            {
-                Operand1 = new BEXP
                 {
                     Operand1 = (COL)"userid",
                     Operator = BinaryOperator.Equal,
                     Operand2 = (VAL)userStatus.user.id
-                },
-                Operator = BinaryOperator.And,
-                Operand2 = new BEXP
-                {
-                    Operand1 = (COL)"count",
-                    Operator = BinaryOperator.GreaterThan,
-                    Operand2 = (VAL)(int)0
                 }
             };
 
