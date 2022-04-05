@@ -1075,7 +1075,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             condition = UpdateQueryUserPendingTask(condition, userStatus);
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
-            var data = db.GetVWSH_UserPendingTask(condition).Where(x => x.count > 0).RemoveGeographies().ToDataSourceResult(request);
+            var data = db.GetVWSH_UserPendingTask(condition).Where(x => x.count > 0).ToDataSourceResult(request);
             data.Total = db.GetVWSH_UserPendingTaskCount(condition.Filter);
             return Json(data, "application/json");
         }
