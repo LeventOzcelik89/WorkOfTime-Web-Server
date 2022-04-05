@@ -1097,54 +1097,61 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         {
             BEXP filter = null;
 
+
             filter = new BEXP
             {
                 Operand1 = new BEXP
                 {
-                    Operand1 = (COL)"roleid",
-                    Operator = BinaryOperator.In,
-                    Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
+                    Operand1 = new BEXP
+                    {
+                        Operand1 = (COL)"roleid",
+                        Operator = BinaryOperator.In,
+                        Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
+                    },
+                    Operand2 = new BEXP
+                    {
+                        Operand1 = (COL)"userid",
+                        Operator = BinaryOperator.Equal,
+                        Operand2 = (VAL)userStatus.user.id
+                    },
+                    Operator = BinaryOperator.And
                 },
-                Operator = BinaryOperator.And,
                 Operand2 = new BEXP
                 {
-                    Operand1 = (COL)"userid",
-                    Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)userStatus.user.id
-                }
+                    Operand1 = new BEXP
+                    {
+                        Operand1 = (COL)"roleid",
+                        Operator = BinaryOperator.In,
+                        Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
+                    },
+                    Operand2 = new BEXP
+                    {
+                        Operand1 = (COL)"userid",
+                        Operator = BinaryOperator.Equal,
+                        Operand2 = (VAL)new Guid("00000000-0000-0000-0000-999999999999")
+                    },
+                    Operator = BinaryOperator.And
+                },
+                Operator = BinaryOperator.Or
             };
-            filter |= new BEXP
+
+            filter &= new BEXP
             {
-                Operand1 = new BEXP
-                {
-                    Operand1 = (COL)"roleid",
-                    Operator = BinaryOperator.In,
-                    Operand2 = new ARR { Values = userStatus.user.RoleIds.Split(',').Select(a => (VAL)new Guid(a)).ToArray() }
-                },
-                Operator = BinaryOperator.And,
-                Operand2 = new BEXP
-                {
-                    Operand1 = (COL)"userid",
-                    Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)new Guid("00000000-0000-0000-0000-999999999999")
-                }
+                Operand1 = (COL)"customerId",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)new Guid("00000000-0000-0000-0000-999999999998")
             };
-            filter |= new BEXP
+
+
+            if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
             {
-                Operand1 = new BEXP
+                filter |= new BEXP
                 {
-                    Operand1 = (COL)"roleid",
+                    Operand1 = (COL)"customerId",
                     Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)"0"
-                },
-                Operator = BinaryOperator.And,
-                Operand2 = new BEXP
-                {
-                    Operand1 = (COL)"userid",
-                    Operator = BinaryOperator.Equal,
-                    Operand2 = (VAL)userStatus.user.id
-                }
-            };
+                    Operand2 = (VAL)userStatus.user.CompanyId ?? Guid.NewGuid()
+                };
+            }
 
             query.Filter &= filter;
             return query;
