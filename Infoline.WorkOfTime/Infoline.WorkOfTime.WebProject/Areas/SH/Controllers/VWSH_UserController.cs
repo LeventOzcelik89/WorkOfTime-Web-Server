@@ -1067,7 +1067,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Json(data, "application/json");
         }
 
-        [PageInfo("Bekleyen İşlemler", SHRoles.SistemYonetici, SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Bekleyen İşlemler", SHRoles.SistemYonetici, SHRoles.Personel, SHRoles.BayiGorevPersoneli), AllowEveryone]
         public JsonResult DataSourceUserPendingTask([DataSourceRequest] DataSourceRequest request)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
