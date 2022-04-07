@@ -288,7 +288,7 @@ namespace Infoline.WorkOfTime.Agent
                         text += "<p>" + tender.rowNumber + " kodlu onayınızı bekleyen teklifin üzerinden 24 saat geçmiştir. </p>";
                         text += "<p>Teklif detayını görüntülemek ve işlem yapmak için <a href='" + _url + "/CMP/VWCMP_Tender/DetailSelling?id=" + tender.id + "'>tıklayınız.</a> </p>";
                         text += "<p>Bilgilerinize.</p>";
-                        new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Oluşturuldu", true);
+                        new Email().Template("Template1", "satinalma.jpg", _tenant.TenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Oluşturuldu", true);
                     }
                 }
             }
