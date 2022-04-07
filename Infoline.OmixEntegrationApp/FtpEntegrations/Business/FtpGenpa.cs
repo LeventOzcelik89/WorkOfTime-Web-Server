@@ -38,7 +38,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         public ResultStatus ExportFilesToDatabase()
         {
             var entegrationFileList = GetFilesInFtp();
-            var result = new ResultStatus();
+            var result = new ResultStatus { result = true };
             foreach (var entegrationFile in entegrationFileList)
             {
                 Log.Warning("Start Process File: {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
@@ -263,6 +263,11 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             catch (Exception e)
             {
+                if (e.Message.Contains("404"))
+                {
+                    SetFtpConfiguration();
+                    Login();
+                }
                 Log.Error(e.ToString());
             }
             return sellThrs.ToArray();
@@ -270,8 +275,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         private IEnumerable<string[]> GetRawFile(string FileName)
         {
             var liststringArray = new List<string[]>();
-            var downloadUrl = "https://ftp.genpa.com.tr/?download&filename=" + FileName + "&" + Token + "&r=0.9193858193742144";
-            Log.Info("Genpa Dosya Adı : " + FileName);
+            var downloadUrl = "https://ftp.genpa.com.tr/?download&filename=" + FileName + "&" + Token;
             var webRequest = WebRequest.Create(downloadUrl);
             using (var response = webRequest.GetResponse())
             using (var content = response.GetResponseStream())

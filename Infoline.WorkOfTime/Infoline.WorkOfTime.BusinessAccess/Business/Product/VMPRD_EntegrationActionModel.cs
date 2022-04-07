@@ -20,7 +20,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public ResultStatus SellOutReportData(DateTime startDate, DateTime endDate)
         {
             db = db ?? new WorkOfTimeDatabase();
-            var getData = db.GetPRD_SellOutReportDistrubitorQuery(startDate, endDate);
+            var getData = db.GetPRD_SellOutReportByDistrubitor(startDate, endDate);
 
             return new ResultStatus
             {
@@ -43,16 +43,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
     public class SellOutReportNewModel
     {
         public Guid DistributorId { get; set; }
-        public string dataCompanyId_Title { get; set; }
+        public string DistributorName { get; set; }
         public int DistSalesCount { get; set; }
         public int SalesCount { get; set; }
         public int ActivatedData { get; set; }
-        public string Types { get; set; }
         public int AssignmentCount { get; set; }
         public Guid pid { get; set; }
         public string pid_Title { get; set; }
-        public Guid productId { get; set; }
-        public string productId_Title { get; set; }
-
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; }
     }
 }
