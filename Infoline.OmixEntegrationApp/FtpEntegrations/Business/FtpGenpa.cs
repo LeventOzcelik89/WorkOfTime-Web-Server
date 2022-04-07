@@ -271,6 +271,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         {
             var liststringArray = new List<string[]>();
             var downloadUrl = "https://ftp.genpa.com.tr/?download&filename=" + FileName + "&" + Token + "&r=0.9193858193742144";
+            Log.Info("Genpa Dosya Adı : " + FileName);
             var webRequest = WebRequest.Create(downloadUrl);
             using (var response = webRequest.GetResponse())
             using (var content = response.GetResponseStream())

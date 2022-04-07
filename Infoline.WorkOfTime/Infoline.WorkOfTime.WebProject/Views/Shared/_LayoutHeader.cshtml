@@ -303,18 +303,21 @@
                                     })
                                 </script>
                                 <div>
-                                    @*@(Html.Akilli()
-                                    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserPendingTask>("VWSH_UserPendingTask")
-                                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceUserPendingTask", "VWSH_User", new { area = "SH" }))
-                                    .Sort(a => a.Add(c => c.count).Descending()).PageSize(25))
-                                    .Columns(x =>
+                                    @if (getURL == "http://localhost:62224/")
                                     {
-                                        x.Bound(y => y.title).Filterable(false).Sortable(false).Title("İşlemler").ClientTemplate("#=TemplateEngine('VWSH_UserPendingTaskTemplate',data)#").Width(90);
-                                    })
-                                    .NoRecords(a => a.Template("Bekleyen bir işlem bulunmamaktadır."))
-                                    .Scrollable(x => x.Height(245))
-                                    .Pageable(a => a.Enabled(false))
-                                    .Selectable(x => x.Mode(GridSelectionMode.Single)))*@
+                                        @(Html.Akilli()
+                                        .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserPendingTask>("VWSH_UserPendingTask")
+                                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceUserPendingTask", "VWSH_User", new { area = "SH" }))
+                                        .Sort(a => a.Add(c => c.count).Descending()).PageSize(25))
+                                        .Columns(x =>
+                                        {
+                                            x.Bound(y => y.title).Filterable(false).Sortable(false).Title("İşlemler").ClientTemplate("#=TemplateEngine('VWSH_UserPendingTaskTemplate',data)#").Width(90);
+                                        })
+                                        .NoRecords(a => a.Template("Bekleyen bir işlem bulunmamaktadır."))
+                                        .Scrollable(x => x.Height(245))
+                                        .Pageable(a => a.Enabled(false))
+                                        .Selectable(x => x.Mode(GridSelectionMode.Single)))
+                                    }
                                 </div>
                             </div>
                         </li>
@@ -694,7 +697,9 @@
                     <ul class="dropdown-menu dropdown-messages" id="Favorite" style="background:#e7eaef"></ul>
                 </li>
 
-                <li class="dropdown  pull-right hidden" id="fvrid">
+                @if (getURL == "http://localhost:62224/")
+                        {
+                <li class="dropdown  pull-right" id="fvrid">
                     <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#" aria-expanded="true" title="Sayfayı favorilerime eklemek için yıldıza çift tıklayınız.">
                         <i id="" class="fa fa-star" style="color: grey;"></i>
                     </a>
@@ -720,25 +725,28 @@
                                 </div>
                             </div>
                         </script>
-                        @*<div>
-                            @(Html.Akilli()
-                            .Grid<Infoline.WorkOfTime.BusinessData.VWFVR_Favorites>("VWFVR_Favorite")
-                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFVR_Favorites", new { area = "FVR" }))
-                            .PageSize(15))
-                            .Columns(x =>
-                            {
-                                x.Bound(y => y.createdby_Title).Filterable(false).Sortable(false).Title("Favoriler").ClientTemplate("#=TemplateEngine('VWFVR_FavoritesTemplate',data)#").Width(90);
-                            })
-                            .NoRecords(a => a.Template("Kayıtlı favori bulunamadı."))
-                            .Scrollable(x => x.Height(200))
-                            .Pageable(a => a.Enabled(false))
-                            .Selectable(x => x.Mode(GridSelectionMode.Single)))
-                        </div>*@
+                        
+                            <div>
+                                @(Html.Akilli()
+                                    .Grid<Infoline.WorkOfTime.BusinessData.VWFVR_Favorites>("VWFVR_Favorite")
+                                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFVR_Favorites", new { area = "FVR" }))
+                                    .PageSize(15))
+                                    .Columns(x =>
+                                    {
+                                        x.Bound(y => y.createdby_Title).Filterable(false).Sortable(false).Title("Favoriler").ClientTemplate("#=TemplateEngine('VWFVR_FavoritesTemplate',data)#").Width(90);
+                                    })
+                                    .NoRecords(a => a.Template("Kayıtlı favori bulunamadı."))
+                                    .Scrollable(x => x.Height(200))
+                                    .Pageable(a => a.Enabled(false))
+                                    .Selectable(x => x.Mode(GridSelectionMode.Single)))
+                            </div>
+                        
 
                         <a class="btn btn-sm btn-block btn-outline-primary mt-2 favorites_button" style=" color: #fff !important;" data-task="Insert" data-href="/FVR/VWFVR_Favorites/Insert?title=@getTitle&url=@getURL" data-modal="true" data-method="get"><i data-feather="plus" data-toggle="tooltip" title=""></i> Favorilere Ekle</a>
 
                     </div>
                 </li>
+                }
 
                 <li>
                     <a href="#" id="selectLanguage" data-toggle="dropdown"><i class="fa fa-globe"></i> <strong>@Configs.languages[0] </strong> <b class="caret"></b></a>
@@ -752,11 +760,13 @@
 
                 @if (userStatus.user.id == Guid.Empty || (Request.Url.AbsoluteUri.IndexOf("localhost") > -1 || Request.Url.AbsoluteUri.IndexOf("developer.workoftime.com") > -1 || Request.Url.AbsoluteUri.IndexOf("demo.workoftime.com") > -1))
                 {
-                    <li class="dropdown pull-right hidden">
+                    if (getURL == "http://localhost:62224/")
+                    {
+                    <li class="dropdown pull-right">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="true">
                             <i class="fa fa-user-secret" style="color:grey"></i>
                         </a>
-                        <div class="dropdown-menu dropdown-messages" id="" style="width: 250px;height:360px;overflow:auto">
+                        <div class="dropdown-menu dropdown-messages" id="" style="width: 250px;height:325px;overflow:auto">
                             <script type="text/x-kendo-template" id="VWSH_UserChangeTemplate">
                                 <div class="media" style="cursor:pointer;display: flex;align-items: center;gap: 10px;" data-task="Insert" data-ask="Geçiş yapmak istediğinize eminmisiniz?" data-method="POST" data-href="/General/SetUser?id=#:id#">
                                      <img src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#"  onerror="ImageError(this, '/Content/Custom/img/na.png' )" class="employee-photo w3" alt="avatar" style="max-width: 30px;border-radius: 25px;">
@@ -766,7 +776,7 @@
                                      </div>
                                  </div>
                             </script>
-                            @*<div>
+                            <div>
                                 @(Html.Akilli()
                                 .Grid<Infoline.WorkOfTime.BusinessData.VWSH_User>("VWSH_UserChange")
                                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource2", "VWSH_User", new { area = "SH" })).PageSize(1500))
@@ -778,9 +788,10 @@
                                 .Scrollable(x => x.Height(300))
                                 .Pageable(a => a.Enabled(false))
                                 .Selectable(x => x.Mode(GridSelectionMode.Single)))
-                            </div>*@
+                            </div>
                         </div>
                     </li>
+                    }
 
                     <li class="dropdown pull-right">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="true">

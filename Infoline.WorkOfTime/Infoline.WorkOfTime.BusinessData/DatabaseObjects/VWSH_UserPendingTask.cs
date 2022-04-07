@@ -13,5 +13,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string roleid { get; set;}
         public int? count { get; set;}
         public Guid? userid { get; set;}
+        public Guid? customerId { get; set;}
     }
 }
