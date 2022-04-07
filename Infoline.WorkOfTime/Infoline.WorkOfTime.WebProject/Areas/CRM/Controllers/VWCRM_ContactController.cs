@@ -38,6 +38,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
+        [PageInfo("Aktivite/Randevu Methodu"),AllowEveryone]
+        public ContentResult DataSourceForContactAction([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            request.Page = 1;
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWCRM_ContactAction(condition).RemoveGeographies().ToDataSourceResult(request);
+            data.Total = db.GetVWCRM_ContactActionCount(condition.Filter);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
+
         [AllowEveryone]
         [PageInfo("Toplantı İlgililer Grid Metodu")]
         public ContentResult DataSourceDropDownForRelations([DataSourceRequest] DataSourceRequest request)
@@ -95,13 +106,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
         [PageInfo("Aktivite/Randevu Detayı", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli)]
-        public ActionResult Detail(Guid id)
+        public ActionResult Detail(VMCRM_ContactModel model)
         {
             var db = new WorkOfTimeDatabase();
-            var data = db.GetVWCRM_ContactById(id);
+         
+            var data = db.GetVWCRM_ContactById(model.id);
             ViewBag.IdUsers = db.GetCRM_ContactUserByContactId(data.id).Select(c => c.UserId).ToArray();
 
-            return View(data);
+            return View(model.Load());
         }
 
 
@@ -197,6 +209,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 ContactId = item.id,
                 UserType = GetUserByType(a)
             }), trans);
+
+            dbresult &= db.InsertCRM_ContactAction(new CRM_ContactAction
+            {
+                created = DateTime.Now,
+                createdby = userStatus.user.id,
+                description = "Yeni aktivite/randevu eklendi.",
+                ContactId = item.id,
+                location = location
+            }, trans);
 
             if (item.PresentationStageId != null && item.PresentationId.HasValue)
             {
@@ -386,7 +407,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }
             catch (Exception ex)
             {
-                new Email().Send((Int16)EmailSendTypes.Toplanti, "ahmet.undemir@infoline-tr.com", "Toplantı Hata", ex.Message);
+                new Email().Send((Int16)EmailSendTypes.Toplanti, "volkan.tabanli@infoline-tr.com", "Toplantı Hata", ex.Message);
             }
             return Json(new ResultStatusUI
             {
@@ -500,6 +521,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                         description = "Yeni aşama : " + newStage.Name + " ||  Eski aşama :  " + oldState.Name,
                         location = location
                     }, trans);
+
+                    dbRes &= db.InsertCRM_ContactAction(new CRM_ContactAction
+                    {
+                        created = DateTime.Now,
+                        createdby = userStatus.user.id,
+                        description = "Yeni aşama : " + newStage.Name + " ||  Eski aşama :  " + oldState.Name,
+                        ContactId = item.id,
+                        location = location
+                    }, trans);
+
+
                     oldPresentation.PresentationStageId = item.PresentationStageId;
                     oldPresentation.changedby = userStatus.user.id;
                     oldPresentation.changed = DateTime.Now;
@@ -521,6 +553,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 ContactId = item.id,
                 UserType = GetUserByType(a)
             }), trans);
+
+            dbRes &= db.InsertCRM_ContactAction(new CRM_ContactAction
+            {
+                created = DateTime.Now,
+                createdby = userStatus.user.id,
+                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
+                ContactId = item.id,
+                location = location
+            }, trans);
 
             if (dbRes.result == false)
             {
@@ -611,11 +652,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var item = id.Select(a => new CRM_Contact { id = new Guid(a) });
             var _contactUser = db.GetCRM_ContactUserByContactId(new Guid(id[0]));
             var _file = db.GetSYS_FilesByDataIdArray(new Guid(id[0]));
-
+            var _contactActions = db.GetCRM_ContactActionByContactId(new Guid(id[0]));
 
             var trans = db.BeginTransaction();
             var dbresult = db.BulkDeleteCRM_Contact(item, trans);
             dbresult &= db.BulkDeleteCRM_ContactUser(_contactUser, trans);
+            dbresult &= db.BulkDeleteCRM_ContactAction(_contactActions, trans);
             dbresult &= db.BulkDeleteSYS_Files(_file, trans);
 
             if (dbresult.result == false)
@@ -740,4 +782,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return request;
         }
     }
+
+ 
 }

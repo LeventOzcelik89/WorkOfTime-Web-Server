@@ -49,4 +49,59 @@ else
         .on('ready', function () {
             FilterDate();
         })
+        .on("click", '[data-name="filterType"]', function (e) {
+            var _this = $(this);
+
+            _this.parent().find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+            _this.parent().find('.fa-check').removeClass('fa fa-check');
+            _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+            _this.find('span').addClass("fa fa-check");
+        })
+        .on("selected:grid", "#VWCRM_ContactAction", function (e, res) {
+            debugger;
+
+
+            var usersId = res.createdby;
+            var createdDate = res.created;
+            var contactEndDateTime = res.created.addDays(-1);
+            var contactStartDateTime = contactEndDateTime.addDays(-5);
+            var x = new Date();
+
+
+  
+            if (usersId != undefined && usersId != "") {
+                getContactDataAndApplysTwo(usersId, contactStartDateTime, x);
+            };
+
+
+
+        })
+        .on("hover:feature", "#contactMap", function (e, resp) {
+            debugger;
+            page.dfn.harita.overlay.remove('slider-station');
+
+            if (resp.type == "add") {
+                var elem = resp.element;
+                var prop = elem.get("properties");
+
+                if (prop) {
+                    text = page.getPersonDetailForHover(prop);
+                    var geometry = resp.element.getGeometry();
+                    var coordinate = geometry.getCoordinates();
+                    var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+
+                    var tooltiplocation = "";
+
+                    if (pixel[1] < 400)
+                        tooltiplocation = "top-right";
+                    else if (screen.height - pixel[1] < 400)
+                        tooltiplocation = "bottom-right";
+                    else
+                        tooltiplocation = "center-right";
+
+                    page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+                    page.dfn.harita.map.updateSize();
+                }
+            }
+        })
 </script>

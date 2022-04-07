@@ -1,8 +1,377 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWCRM_Contact
+﻿@model VMCRM_ContactModel
 @{
     ViewBag.Title = "Potansiyel/Fırsat Aktivite Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var contactAction = Model.contactActions.OrderByDescending(a => a.created).FirstOrDefault();
 }
+
+
+<link href="/Content/UserLocationMap/map.css" rel="stylesheet" data-selector="modalContainer" />
+<script src="/Content/UserLocationMap/map.js" data-selector="modalContainer"></script>
+
+<script type="text/javascript" data-selector="modalContainer">
+        var control = false;
+        var selectedFeature = null;
+
+        var page = {
+            popup: null,
+        defines: {
+            data: [],
+        filteredData: [],
+            },
+        dfn: {
+            harita: new AkilliHarita('contactMap', {
+            zoom: 7,
+        minZoom: 0,
+        altlik: "Default1",
+        uiAltlik: false,
+        uiDefault: true,
+        uiSearch: false,
+        uiMinimap: false,
+        uiScaleLine: false,
+        uiMousePosition: false,
+        uiMesurement: false,
+        uiInfo: false
+                }),
+            },
+        fn: {
+        zoomIns: function (e) {
+           $('.ol-zoom-in').trigger("click");
+                },
+        zoomOut: function (e) {
+            $('.ol-zoom-out').trigger("click");
+                },
+        zoomMove: function (e) {
+            $(e).toggleClass("active");
+        if ($(e).hasClass("active")) {
+            $('[data-tool="DragZoom"]').trigger("click");
+                    } else {
+            $('[data-tool="DragPan"]').trigger("click");
+                    }
+                },
+        homes: function (e) {
+            $('[data-tool="Home"]').trigger("click");
+                },
+        fullScreen: function (e) {
+            $(e).toggleClass("active");
+        $('.ol-full-screen-false').trigger("click");
+                },
+        layersSwip: function (e) {
+            $(e).toggleClass("active");
+        $('[data-tool="Swipe"]').trigger("click");
+                },
+        slideTab: function (elem, target) {
+
+                    var hasActive = $(elem).hasClass("active");
+        $(elem).parent().find("button").removeClass("active");
+
+        if (hasActive) {
+            $(".btn-bar.right").animate({ right: -430 }, 200);
+                    } else {
+            $(elem).addClass("active");
+        $(".btn-bar.right").animate({right: -430 }, 200, function () {
+            $('.pan-container').find('.pan-content').hide();
+        $('.pan-container').find("#" + target).show();
+        $(".btn-bar.right").animate({right: 15 }, 200);
+                        });
+                    }
+                },
+        colorSelect: function (e) {
+                    if ($('#ColorBox').hasClass("hide")) {
+            $('#ColorBox').removeClass("hide");
+                    } else {
+            $('#ColorBox').addClass("hide");
+                    }
+                },
+        colorInfoSelect: function (e) {
+                    if ($('#ColorInfo').hasClass("hide")) {
+            $('#ColorInfo').removeClass("hide");
+                    } else {
+            $('#ColorInfo').addClass("hide");
+                    }
+                },
+        searchSelect: function (e) {
+                    if ($('.search-content')[0].style.display == "none") {
+            $('[data-target=".search-content"]').trigger("click");
+                    } else {
+            $('.search-content')[0].style.display = "none";
+                    }
+                }
+            },
+        changePresId: "",
+        data: null,
+        init: function () {
+
+            $('[data-original-title]').tooltip();
+
+        var svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#1ab394" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z" /><circle fill="#ededed" cx="256" cy="160" r="96" /><path transform="rotate(180, 0, 0)  translate(-322,-200) scale(0.12)" fill="#1ab394" d="M1070-88q0-21-2-63h-1067q0 10 0 31t-1 32q0 30 1 37 12 49 64 85t112 53 125 47 97 65q17 22 17 38 0 22-11 73-4 21-10 37t-16 33-16 31q-15 35-33 132-6 38-6 75 0 105 54 168t157 63 158-63 53-168q0-31-7-75-14-89-32-132-6-14-15-31t-16-33-11-37q-11-51-11-73 0-18 17-38 31-36 97-65t125-47 111-53 64-85q2-8 2-37z" /></svg>';
+        var firstLocation = new ol.style.Style({
+            image: new ol.style.Icon({
+            opacity: 1,
+        src: 'data:image/svg+xml,' + escape(svg),
+        scale: 1.0,
+        anchor: [0.5, 64],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+                    })
+                });
+
+        svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#ff0202" d="M256,0C115.39,0,0,115.39,0,256s115.39,256,256,256s256-115.39,256-256S396.61,0,256,0z" /></svg>';
+        var locations = new ol.style.Style({
+            image: new ol.style.Icon({
+            opacity: 1,
+        src: 'data:image/svg+xml,' + escape(svg),
+        scale: 0.18,
+        anchor: [0.5, 64],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+                    })
+                });
+
+        svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#f8ac59" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z" /><circle fill="#ededed" cx="256" cy="160" r="96" /><path transform="rotate(180, 0, 0)  translate(-322,-200) scale(0.12)" fill="#f8ac59" d="M1070-88q0-21-2-63h-1067q0 10 0 31t-1 32q0 30 1 37 12 49 64 85t112 53 125 47 97 65q17 22 17 38 0 22-11 73-4 21-10 37t-16 33-16 31q-15 35-33 132-6 38-6 75 0 105 54 168t157 63 158-63 53-168q0-31-7-75-14-89-32-132-6-14-15-31t-16-33-11-37q-11-51-11-73 0-18 17-38 31-36 97-65t125-47 111-53 64-85q2-8 2-37z" /></svg>';
+        var lastLocation = new ol.style.Style({
+            image: new ol.style.Icon({
+            opacity: 1,
+        src: 'data:image/svg+xml,' + escape(svg),
+        scale: 1.0,
+        anchor: [0.5, 64],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+                    })
+                });
+
+
+        page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
+        page.dfn.harita.style.addCustom("locationsStyle", locations);
+        page.dfn.harita.style.addCustom("lastLocationStyle", lastLocation);
+        page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
+        page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
+        page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
+
+        page.dfn.harita.layer.addVector("Action", "Action");
+
+        page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+
+            },
+        locateFeatureToMap: function () {
+                var points = [];
+
+        if (page.defines.filteredData != undefined) {
+
+                    var trackingDatas = page.defines.filteredData.LocationTrackings;
+        if (trackingDatas != null) {
+
+                        if (trackingDatas.length > 0) {
+            $.each($.Enumerable.From(trackingDatas).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
+
+                if (data.location != null) {
+                    if (i == 0) {
+
+                        var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.location);
+                        if (feature) {
+                            feature.set("properties", data);
+
+                            points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
+                        }
+                    }
+                    else if (i == trackingDatas.length - 1) {
+
+                        var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.location);
+                        if (feature) {
+                            feature.set("properties", data);
+
+                            points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
+                        }
+                    }
+                    else {
+
+                        var feature = page.dfn.harita.feature.add("Locations", data.id, data.location);
+                        if (feature) {
+                            feature.set("properties", data);
+                            var coords = page.dfn.harita.helper.SQLtoGeometry(data.location);
+                            if (coords != null) {
+                                points.push(data.location.replace('POINT (', '').replace(')', ''));
+                            }
+
+                        }
+                    }
+                }
+            });
+        var line = "LINESTRING(" + points.join(", ") + ")";
+        page.dfn.harita.feature.add("Action", "linestring", line);
+
+        page.dfn.harita.layer.panTo("Locations");
+
+                        }
+
+                    }
+                }
+            },
+        applyFilter: function () {
+        page.dfn.harita.layer.get("FirstLocation")["FirstLocation"].getSource().clear();
+        page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
+        page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
+        page.dfn.harita.layer.get("Action")["Action"].getSource().clear();
+        page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+
+        page.locateFeatureToMap();
+
+        if ($('#searchButton').hasClass("active")) {
+            $('#searchButton').trigger("click");
+                }
+
+            },
+        goLocation: function (_this) {
+                var featureId = $(_this).attr("data-personId");
+
+        if (featureId && featureId != null && featureId != "") {
+                    var feature = page.dfn.harita.feature.get(featureId)[featureId];
+        if (feature) {
+            page.dfn.harita.helper.PanTo(feature.getGeometry().getExtent());
+        page.dfn.harita.map.getView().setZoom(14);
+
+        $("#contactMap").trigger("select:feature", {type: "add", element: feature });
+
+        $(".btn-bar.right").animate({right: -800 }, 200);
+                    }
+        else {
+            MesajWarning("Konum bulunamadı.", "Uyarı");
+                    }
+                }
+        else {
+            MesajWarning("Konum bulunamadı.", "Uyarı");
+                }
+            },
+            @*onChangeDate: function () {
+
+            var startDateTime = new Date();
+            var endDateTime = new Date();
+            var personId = '@userStatus.user.id';
+                if (personId != undefined && personId != "") {
+                    getDataAndApplys(personId, startDateTime, endDateTime);
+                }
+            },*@
+        search: function (_this) {
+                var type = $(_this).attr("data-content");
+        var key = $(_this).val();
+
+        page.loadPanelData(type, key);
+            },
+            getPersonDetailForHover: function (data) {
+                var person = page.defines.filteredData;
+                var locations = data.location.split('(')[1].replace(')', "");
+                var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+                var firstLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderBy(x => x.timeStamp).FirstOrDefault();
+                var lastLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+                var text = '<div class="item">                                                                                  ' +
+                    '  <div class="head text-center clearfix">                                                                  ' +
+                    '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
+                    '  </div>                                                                                                   ' +
+                    '   <ul class="list-group clear-list m-t">                                                                  ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    page.parseTimeStamps(data.takenDate) +
+                    '            </span>                                                                                        ' +
+                    '            Konumun Alındığı Tarih :                                                                       ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    longitude + " " + latitude +
+                    '            </span>                                                                                        ' +
+                    '            Konum Bilgisi :                                                                                ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    (data.deviceId != null ? data.deviceId : "Cihaz bilgisi bulunamadı.") +
+                    '            </span>                                                                                        ' +
+                    '            Cihaz Bilgisi :                                                                                ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    page.parseTimeStamps(firstLocationInfo.takenDate) +
+                    '            </span>                                                                                        ' +
+                    '            İlk Konum Tarihi :                                                                             ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    page.parseTimeStamps(lastLocationInfo.takenDate) +
+                    '            </span>                                                                                        ' +
+                    '            Son Konum Tarihi :                                                                             ' +
+                    '        </li>                                                                                              ' +
+                    '    </ul>                                                                                                  ' +
+                    '</div>';
+
+                return text;
+            },
+            parseTimeStamps: function (takenDate) {
+                return takenDate.replace('T', ' ');
+            }
+        }
+    debugger;
+    page.init();
+    $('[data-target=".search-content"]').attr("data-placement", "left");
+    $('[data-target=".search-content"]').tooltip();
+
+       @*var personId = '@contactAction.createdby';
+       var createdDate = '@contactAction.created';
+       var endDateTime = '@contactAction.created.Value.AddHours(2)';
+    var startDateTime = '@contactAction.created.Value.AddHours(-2)';*@
+
+    var personId = '@Model.createdby';
+       var createdDate = '@Model.created';
+       var endDateTime = '@Model.created.Value.AddHours(2)';
+       var startDateTime = '@Model.created.Value.AddHours(-2)';
+
+
+    if (personId != undefined && personId != "") {
+        getContactDataAndApplys(personId, startDateTime, startDateTime);
+    };
+
+    function getContactDataAndApplys(userId, startDateTime, endDateTime) {
+        debugger;
+        GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapData', { startDate: startDateTime, endDate: endDateTime, userId: userId }, function (res) {
+            if (res.LocationTrackings != null) {
+                debugger;
+                page.defines.filteredData = res;
+                page.applyFilter();
+                page.dfn.harita.map.updateSize();
+            }
+            else {
+                debugger;
+                MesajWarning("Son Konum bulunamadı", "Uyarı");
+                page.dfn.harita.map.updateSize();
+            }
+        }, "Veriler Yükleniyor...");
+    }
+
+
+    function getContactDataAndApplysTwo(userId, startDateTime, endDateTime) {
+        debugger;
+        GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapData', { startDate: kendo.toString(startDateTime, 'yyyy-MM-dd HH:mm'), endDate: kendo.toString(endDateTime, 'yyyy-MM-dd HH:mm'), userId: userId }, function (res) {
+            debugger;
+            if (res.LocationTrackings != null) {
+                debugger;
+                page.defines.filteredData = res;
+                page.applyFilter();
+                page.dfn.harita.map.updateSize();
+            }
+            else {
+                debugger;
+                MesajWarning("Son Konum bulunamadı", "Uyarı");
+                page.dfn.harita.map.updateSize();
+            }
+        }, "Veriler Yükleniyor...");
+    }
+
+
+
+
+
+</script>
+
+
 
 
 @using (Html.BeginForm("Detail", "VWCRM_Contact", FormMethod.Post, new Dictionary<string, object>() {
@@ -97,7 +466,7 @@
                 })
         </div>
     </div>
-    
+
     <div class="form-group">
         <div class="col-md-3">
             <label class="control-label label-md " for="ContactType">Aktivite/Randevu Tipi</label>
@@ -184,6 +553,117 @@
     </div>
 
 
+    <div class="form-group">
+        <div class="col-md-6">
+            <div id="contactMap" style="height:calc(63vh - 80px); position: relative; overflow: hidden; cursor: default !important">
+                <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom:50px; z-index: 99 !important;">
+                    <div id="ColorInfo" class="color-bar" style="z-index: 99 !important; left: 13px !important; ">
+                        <table class="slider">
+                            <tbody>
+                                <tr>
+                                    <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;">İlk Konum</td>
+                                    <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;">Konum</td>
+                                    <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(247 166 44); padding: 0 10px 0 10px;">Son Konum</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
+                    <div class="btn-container m-b-lg">
+                        <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
+                        <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+                    </div>
+                    <div class="pan-container">
+                        <div id="personTemplate"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="ibox m-b-none">
+                <div class="ibox-title">
+                    <h5>Aktivite ve Randevu Geçmişi </h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    @(Html.Akilli()
+                      .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_ContactAction>("VWCRM_ContactAction")
+                      .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceForContactAction", "VWCRM_Contact", new { area = "CRM" })).PageSize(25).Filter(a => a.ContactId == Model.id).Sort(a => a.Add("created").Descending()))
+                      .Columns(x =>
+                      {
+                          x.Bound(y => y.description).Title("Açıklama");
+                      })
+                      .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                      .Scrollable(x => x.Height(350))             
+                      .ToolBar(x =>
+                      {
+                      }))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/template" id="selectedPerson">
+        <div class="pan-content">
+            <div class="pan-head clearfix" style="margin-left: 15px;">
+                <div style="padding-top: 7px;">
+                    <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
+                        <span style="padding-left: 5px;text-transform: uppercase;">SATIŞ EKİBİ PERSONEL BİLGİLERİ</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="clearfix">
+
+                </div>
+                <div class="cardPerson" style="padding-bottom: 10px;">
+                    <div class="col-md-2">
+                        <a href="#">
+                            <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
+                        </a>
+                    </div>
+                    <div class="col-md-10">
+                        <nav class="nav">
+                            <ul>
+                                <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
+                                <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <div class="pan-bodyCustom">
+                    <div class="col-md-12">
+                        <div class="panContentPresentation">
+                            <div class="card col-md-12">
+                                <header class="header">
+                                    <div class="card-details">
+                                        <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
+                                    </div>
+                                </header>
+                                <nav class="nav">
+                                    <ul>
+                                        <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
+                                        <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
+                                        <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
+                                        <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
+                                        <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
     </div>
@@ -193,7 +673,8 @@
 <script type="text/javascript" data-selector="modalContainer">
 
     var _contact = {
-        Model: @Html.Raw(Json.Encode(Model)),
+        @*Model: @Html.Raw(Json.Encode(Model)),*@
+        Model: '@Model',
         init: function (users) {
 
             $.each($('[data-readurl]'), function (i, item) {

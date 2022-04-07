@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -36,13 +37,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool mailForParticipants { get; set; }
         public List<Participants> Participants { get; set; }
         public Guid? RelationId { get; set; }
-
+        public List<VWCRM_ContactAction> contactActions { get; set; }
+        public IGeometry location { get; set; }
 
         public VMCRM_ContactModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var contact = db.GetVWCRM_ContactById(this.id);
             var participantList = new List<Participants>();
+            this.contactActions = db.GetVWCRM_ContactActionByContactId(this.id).ToList();
+
 
             if (contact != null)
             {
@@ -147,7 +151,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 description = "Yeni aktivite/randevu eklendi.",
                 presentationId = this.PresentationId.Value,
                 type = (short)EnumCRM_PresentationActionType.YeniAktivite,
-                contactId = this.id,
+                contactId = this.id
             }, this.trans);
 
 
@@ -416,6 +420,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 presentationId = this.PresentationId.Value,
                 contactId = this.id,
                 type = (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
+                location = this.location
             }, trans);
 
             var stageId = this.PresentationStageId;
@@ -451,6 +456,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 ContactId = this.id,
                 UserType = GetUserByType(a)
             }), trans);
+
+            dbRes &= db.InsertCRM_ContactAction(new CRM_ContactAction
+            {
+                created = DateTime.Now,
+                createdby = this.createdby,
+                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
+                ContactId = this.id,
+                location = this.location
+            }, trans);
 
 
             if (dbRes.result == false)
@@ -520,11 +534,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var db = new WorkOfTimeDatabase();
             var item = db.GetCRM_ContactById(this.id);
             var _contactUser = db.GetCRM_ContactUserByContactId(this.id);
+            var _contactAction = db.GetCRM_ContactActionByContactId(this.id);
             var _file = db.GetSYS_FilesByDataIdArray(this.id);
 
             var _trans = db.BeginTransaction();
             var dbresult = db.DeleteCRM_Contact(item, trans);
             dbresult &= db.BulkDeleteCRM_ContactUser(_contactUser, trans);
+            dbresult &= db.BulkDeleteCRM_ContactAction(_contactAction, trans);
             dbresult &= db.BulkDeleteSYS_Files(_file, trans);
 
             if (dbresult.result == false)

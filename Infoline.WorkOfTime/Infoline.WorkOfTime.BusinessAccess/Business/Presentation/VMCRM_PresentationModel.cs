@@ -344,6 +344,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     presentationId = this.id,
                     type = (short)EnumCRM_PresentationActionType.FırsatDüzenle,
                     description = "Tahmini Beklenen Ciro güncellendi." + oldPresentation.VodafoneOffer + " => " + this.VodafoneOffer,
+                    location = this.location
                 });
             }
 

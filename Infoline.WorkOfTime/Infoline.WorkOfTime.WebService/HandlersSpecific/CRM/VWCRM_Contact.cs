@@ -95,6 +95,8 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                         presentationId = model.PresentationId.Value,
                         type = data == null ? (short)EnumCRM_PresentationActionType.YeniAktivite : (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
                         contactId = model.id,
+                        location = model.location
+                        
                     }, trans);
                 }
                 var conctactUsers = db.GetCRM_ContactUserByContactId(model.id);
@@ -108,6 +110,16 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     ContactId = model.id,
                     UserType = GetUserByType(a.UserId)
                 }), trans);
+
+
+                dbresult &= db.InsertCRM_ContactAction(new CRM_ContactAction
+                {
+                    created = DateTime.Now,
+                    createdby = CallContext.Current.UserId,
+                    description = "Yeni aktivite/randevu eklendi.",
+                    ContactId = model.id,
+                    location = model.location,
+                }, trans);
 
                 if (model.PresentationStageId != null && model.PresentationId.HasValue)
                 {
@@ -129,7 +141,8 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                                 presentationId = model.PresentationId,
                                 color = newstage.color,
                                 type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
-                                description = "Aşama Güncellendi.  " + oldStage.Name + " => " + newstage.Name
+                                description = "Aşama Güncellendi.  " + oldStage.Name + " => " + newstage.Name,
+                                location = model.location
                             }, trans);
                         }
                     }
@@ -281,6 +294,24 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
+
+        [HandleFunction("VWCRM_Contact/Update")]
+        public void VWCRM_ContactUpdate(HttpContext context)
+        {
+            try
+            {
+                var model = ParseRequest<VMCRM_ContactModel>(context);
+                var userId = CallContext.Current.UserId;
+                var rs = model.Save(userId);
+                RenderResponse(context, rs);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
+
 
         [HandleFunction("VWCRM_Contact/GetById")]
         public void VWCRM_ContactGetById(HttpContext context)
@@ -434,5 +465,25 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
+
+
+
+        [HandleFunction("VWCRM_ContactAction/GetAll")]
+        public void VWCRM_ContactActionGetAll(HttpContext context)
+        {
+            try
+            {
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
+                var db = new WorkOfTimeDatabase();
+                var data = db.GetVWCRM_ContactAction(cond);
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
     }
 }
