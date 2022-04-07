@@ -3,11 +3,11 @@
     ViewBag.Title = "Potansiyel/Fırsat Aktivite Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var contactAction = Model.contactActions.OrderByDescending(a => a.created).FirstOrDefault();
+    //var contactAction = Model.contactActions.OrderByDescending(a => a.created).FirstOrDefault();
 }
 
 
-<link href="/Content/UserLocationMap/map.css" rel="stylesheet" data-selector="modalContainer" />
+<!--<link href="/Content/UserLocationMap/map.css" rel="stylesheet" data-selector="modalContainer" />
 <script src="/Content/UserLocationMap/map.js" data-selector="modalContainer"></script>
 
 <script type="text/javascript" data-selector="modalContainer">
@@ -18,7 +18,8 @@
             popup: null,
         defines: {
             data: [],
-        filteredData: [],
+            filteredData: [],
+            locationsData: [],
             },
         dfn: {
             harita: new AkilliHarita('contactMap', {
@@ -139,15 +140,30 @@
         anchorXUnits: 'fraction',
         anchorYUnits: 'pixels',
                     })
+        });
+
+        var actionLocation = new ol.style.Style({
+            image: new ol.style.Icon({
+            opacity: 1,
+        src: 'data:image/svg+xml,' + escape(svg),
+        scale: 1.0,
+        anchor: [0.5, 64],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+                    })
                 });
+
 
 
         page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
         page.dfn.harita.style.addCustom("locationsStyle", locations);
         page.dfn.harita.style.addCustom("lastLocationStyle", lastLocation);
+            page.dfn.harita.style.addCustom("actionLocationStyle", actionLocation);
         page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
         page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
         page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
+        page.dfn.harita.layer.addVector("Aksiyon Konum", "ActionLocation", "actionLocationStyle", "actionLocationStyle", "actionLocationStyle")
+
 
         page.dfn.harita.layer.addVector("Action", "Action");
 
@@ -167,7 +183,7 @@
 
                 if (data.location != null) {
                     if (i == 0) {
-
+                        debugger;
                         var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.location);
                         if (feature) {
                             feature.set("properties", data);
@@ -186,6 +202,8 @@
                     }
                     else {
 
+
+
                         var feature = page.dfn.harita.feature.add("Locations", data.id, data.location);
                         if (feature) {
                             feature.set("properties", data);
@@ -198,6 +216,28 @@
                     }
                 }
             });
+
+
+
+                            debugger;
+
+                            if (page.defines.locationsData != undefined) {
+
+                                debugger;
+
+                                var locationDatas = page.defines.locationsData.location;
+                                if (locationDatas != null) {
+                                    var feature = page.dfn.harita.feature.add("ActionLocation", page.defines.locationsData.id, locationDatas);
+                                    if (feature) {
+                                        feature.set("properties", locationDatas);
+
+                                        points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
+                                    }
+
+                                }
+                            }
+
+
         var line = "LINESTRING(" + points.join(", ") + ")";
         page.dfn.harita.feature.add("Action", "linestring", line);
 
@@ -206,12 +246,19 @@
                         }
 
                     }
-                }
+            }
+
+
+
+
+
+
             },
         applyFilter: function () {
         page.dfn.harita.layer.get("FirstLocation")["FirstLocation"].getSource().clear();
         page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
         page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
+        page.dfn.harita.layer.get("ActionLocation")["ActionLocation"].getSource().clear();
         page.dfn.harita.layer.get("Action")["Action"].getSource().clear();
         page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
 
@@ -242,7 +289,7 @@
         else {
             MesajWarning("Konum bulunamadı.", "Uyarı");
                 }
-            },
+            },-->
             @*onChangeDate: function () {
 
             var startDateTime = new Date();
@@ -252,7 +299,7 @@
                     getDataAndApplys(personId, startDateTime, endDateTime);
                 }
             },*@
-        search: function (_this) {
+        <!--search: function (_this) {
                 var type = $(_this).attr("data-content");
         var key = $(_this).val();
 
@@ -364,7 +411,7 @@
 
 
 
-</script>
+</script>-->
 
 
 
@@ -547,8 +594,9 @@
         </div>
     </div>
 
+
     <br />
-    <div class="form-group">
+    @*<div class="form-group">
         <div class="col-md-6">
             <div id="contactMap" style="height: 511px; position: relative; overflow: hidden; cursor: default !important">
                 <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom:50px; z-index: 99 !important;">
@@ -594,7 +642,7 @@
                           x.Bound(y => y.description).Title("Açıklama");
                       })
                       .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                      .Scrollable(x => x.Height(270))             
+                      .Scrollable(x => x.Height(270))
                       .ToolBar(x =>
                       {
                       }))
@@ -657,7 +705,7 @@
                 </div>
             </div>
         </div>
-    </script>
+    </script>*@
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
@@ -668,8 +716,8 @@
 <script type="text/javascript" data-selector="modalContainer">
 
     var _contact = {
-        @*Model: @Html.Raw(Json.Encode(Model)),*@
-        Model: '@Model',
+        Model: @Html.Raw(Json.Encode(Model)),
+        @*Model: '@Model',*@
         init: function (users) {
 
             $.each($('[data-readurl]'), function (i, item) {
