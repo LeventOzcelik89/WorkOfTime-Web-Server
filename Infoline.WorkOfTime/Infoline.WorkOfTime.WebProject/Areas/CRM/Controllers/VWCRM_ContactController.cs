@@ -38,7 +38,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Aktivite/Randevu Methodu"),AllowEveryone]
+        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult DataSourceForContactAction([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
