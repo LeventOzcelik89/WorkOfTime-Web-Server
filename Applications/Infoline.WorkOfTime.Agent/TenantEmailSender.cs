@@ -286,7 +286,7 @@ namespace Infoline.WorkOfTime.Agent
                     {
                         var text = "<h3>Sayın " + user.FullName + "</h3>";
                         text += "<p>" + tender.rowNumber + " kodlu onayınızı bekleyen teklifin üzerinden 24 saat geçmiştir. </p>";
-                        text += "<p>Teklif detayını görüntülemek ve işlem yapmak için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/CMP/VWCMP_Tender/DetailSelling?id=" + tender.id + "'>tıklayınız.</a> </p>";
+                        text += "<p>Teklif detayını görüntülemek ve işlem yapmak için <a href='" + _url + "/CMP/VWCMP_Tender/DetailSelling?id=" + tender.id + "'>tıklayınız.</a> </p>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Oluşturuldu", true);
                     }
