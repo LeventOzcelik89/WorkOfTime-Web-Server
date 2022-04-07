@@ -828,7 +828,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                  $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={this.id}'> Buraya tıklayınız!</a></p>";
 
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
-                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Personel Kayıt İsteği"), true);
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName, "Bayi Personel Kayıt İsteği"), true);
         }
     }
 

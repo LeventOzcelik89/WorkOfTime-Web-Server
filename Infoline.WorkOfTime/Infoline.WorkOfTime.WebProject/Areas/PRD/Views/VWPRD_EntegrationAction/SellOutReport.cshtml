@@ -104,6 +104,7 @@
             return page.colorArray[page.randomColorNumber];
         },
         setDataSourceForProductSellOut: function (data) {
+            debugger;
             $("#sellOutProduct").kendoGrid({
                 toolbar: ["excel"],
                 excel: {
@@ -123,7 +124,7 @@
                 reorderable: true,
                 resizable: true,
                 columns: [
-                    { field: "pid_Title", title: "Distribütör Adı", width: 200 },
+                    { field: "DistributorName", title: "Distribütör Adı", width: 200 },
                     { field: "SalesCount", title: "Diste Satış", width: 110 },
                     { field: "DistSalesCount", title: "Distin Sattığı", width: 125 },
                     { field: "AssignmentCount", title: "Temlik Data", width: 125 },
@@ -145,18 +146,19 @@
                 },
                 dataSource: {
                     data: data.objects,
-                    pageSize: 25
+                    pageSize: 25,
+                    group: { field: "DistributorName", text:"Bayi Adı"}
                 },
                 height: 550,
                 sortable: true,
                 pageable: true,
+                groupable: true,
                 filterable: true,
                 columnMenu: true,
                 reorderable: true,
                 resizable: true,
                 columns: [
-                    { field: "pid_Title", title: "Distribütör Adı", width: 200 },
-                    { field: "productId_Title", title: "Ürün Adı", width: 200 },
+                    { field: "ProductName", title: "Ürün Adı", width: 200 },
                     { field: "SalesCount", title: "Diste Satış", width: 110 },
                     { field: "DistSalesCount", title: "Distin Sattığı", width: 125 },
                     { field: "AssignmentCount", title: "Temlik Data", width: 125 },
@@ -172,8 +174,9 @@
 
             getPageRecords: function (startDate, endDate) {
                 GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageReport", { startDate: startDate, endDate: endDate }, function (data) {
-                    page.setDataSourceForProductSellOut(data.ProductSellOutDistrubitorData);
-                    page.setDataSourceForProductSellOutDist(data.setDataSourceForProductSellOutDist);
+                    debugger;
+                    page.setDataSourceForProductSellOut(data.DistDataSourceReport);
+                    page.setDataSourceForProductSellOutDist(data.DistAndProductDataSourceReport);
                 });
             }
 

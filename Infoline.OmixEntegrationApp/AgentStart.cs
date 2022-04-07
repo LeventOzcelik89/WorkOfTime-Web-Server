@@ -25,7 +25,7 @@ namespace Infoline.OmixEntegrationApp
         public void Run()
         {
             //new ProcessLogoEntegration().Run();
-            //new ProcessTitanEntegration().Run();
+            new ProcessTitanEntegration().Run();
             new ProcessFtpEntegration().Run();
         }
 
