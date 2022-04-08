@@ -19,7 +19,8 @@
             popup: null,
         defines: {
             data: [],
-        filteredData: [],
+            filteredData: [],
+            locationsData: [],
             },
         dfn: {
             harita: new AkilliHarita('potentialMap', {
@@ -140,15 +141,32 @@
         anchorXUnits: 'fraction',
         anchorYUnits: 'pixels',
                     })
-                });
+        });
+
+            svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#757575" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z" /><circle fill="#ededed" cx="256" cy="160" r="96" /><path transform="rotate(180, 0, 0)  translate(-322,-200) scale(0.12)" fill="#f8ac59" d="M1070-88q0-21-2-63h-1067q0 10 0 31t-1 32q0 30 1 37 12 49 64 85t112 53 125 47 97 65q17 22 17 38 0 22-11 73-4 21-10 37t-16 33-16 31q-15 35-33 132-6 38-6 75 0 105 54 168t157 63 158-63 53-168q0-31-7-75-14-89-32-132-6-14-15-31t-16-33-11-37q-11-51-11-73 0-18 17-38 31-36 97-65t125-47 111-53 64-85q2-8 2-37z" /></svg>';
+
+
+
+        var actionLocation = new ol.style.Style({
+                image: new ol.style.Icon({
+                    opacity: 1,
+                    src: 'data:image/svg+xml,' + escape(svg),
+                    scale: 1.0,
+                    anchor: [0.5, 64],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'pixels',
+                })
+            });
 
 
         page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
         page.dfn.harita.style.addCustom("locationsStyle", locations);
         page.dfn.harita.style.addCustom("lastLocationStyle", lastLocation);
+        page.dfn.harita.style.addCustom("actionLocationStyle", actionLocation);
         page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
         page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
         page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
+        page.dfn.harita.layer.addVector("Aksiyon Konum", "ActionLocation", "actionLocationStyle", "actionLocationStyle", "actionLocationStyle")
 
         page.dfn.harita.layer.addVector("Action", "Action");
 
@@ -156,7 +174,25 @@
 
             },
         locateFeatureToMap: function () {
-                var points = [];
+            var points = [];
+
+            if (page.defines.locationsData != undefined) {
+
+                debugger;
+
+                var locationDatas = page.defines.locationsData;
+                var locationId = newGuid();
+
+                if (locationDatas != null) {
+                    var feature = page.dfn.harita.feature.add("ActionLocation", locationId, locationDatas);
+                    if (feature) {
+                        feature.set("properties", locationDatas);
+                    }
+
+                    page.dfn.harita.layer.panTo("ActionLocation");
+
+                }
+            }
 
         if (page.defines.filteredData != undefined) {
 
@@ -199,6 +235,7 @@
                     }
                 }
             });
+
         var line = "LINESTRING(" + points.join(", ") + ")";
         page.dfn.harita.feature.add("Action", "linestring", line);
 
@@ -212,7 +249,8 @@
         applyFilter: function () {
         page.dfn.harita.layer.get("FirstLocation")["FirstLocation"].getSource().clear();
         page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
-        page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
+            page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
+            page.dfn.harita.layer.get("ActionLocation")["ActionLocation"].getSource().clear();
         page.dfn.harita.layer.get("Action")["Action"].getSource().clear();
         page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
 
@@ -245,7 +283,7 @@
                 }
             },
             onChangeDate: function () {
-         
+
             var startDateTime = new Date();
             var endDateTime = new Date();
             var personId = '@userStatus.user.id';
@@ -260,51 +298,93 @@
         page.loadPanelData(type, key);
             },
             getPersonDetailForHover: function (data) {
-                var person = page.defines.filteredData;
-                var locations = data.location.split('(')[1].replace(')', "");
-                var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
-                var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
-                var firstLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderBy(x => x.timeStamp).FirstOrDefault();
-                var lastLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderByDescending(x => x.timeStamp).FirstOrDefault();
-                var text = '<div class="item">                                                                                  ' +
-                    '  <div class="head text-center clearfix">                                                                  ' +
-                    '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
-                    '  </div>                                                                                                   ' +
-                    '   <ul class="list-group clear-list m-t">                                                                  ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseTimeStamps(data.takenDate) +
-                    '            </span>                                                                                        ' +
-                    '            Konumun Alındığı Tarih :                                                                       ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    longitude + " " + latitude +
-                    '            </span>                                                                                        ' +
-                    '            Konum Bilgisi :                                                                                ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    (data.deviceId != null ? data.deviceId : "Cihaz bilgisi bulunamadı.") +
-                    '            </span>                                                                                        ' +
-                    '            Cihaz Bilgisi :                                                                                ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseTimeStamps(firstLocationInfo.takenDate) +
-                    '            </span>                                                                                        ' +
-                    '            İlk Konum Tarihi :                                                                             ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseTimeStamps(lastLocationInfo.takenDate) +
-                    '            </span>                                                                                        ' +
-                    '            Son Konum Tarihi :                                                                             ' +
-                    '        </li>                                                                                              ' +
-                    '    </ul>                                                                                                  ' +
-                    '</div>';
 
-                return text;
+                if (data.location != undefined && data.location != "") {
+                    var person = page.defines.filteredData;
+                    var locations = data.location.split('(')[1].replace(')', "");
+                    var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                    var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+                    var firstLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderBy(x => x.timeStamp).FirstOrDefault();
+                    var lastLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+                    var text = '<div class="item"  style="height: 189px !important;width: 240px!important; font-size:10px; padding: 1px 20px;">                                                                                  ' +
+                        '  <div class="head text-center clearfix">                                                                  ' +
+                        '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
+                        '  </div>                                                                                                   ' +
+                        '   <ul class="list-group clear-list" style="margin-top: 5px;">                                                                  ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        page.parseTimeStamps(data.takenDate) +
+                        '            </span>                                                                                        ' +
+                        '            Konumun Alındığı Tarih :                                                                       ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        longitude + " " + latitude +
+                        '            </span>                                                                                        ' +
+                        '            Konum Bilgisi :                                                                                ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        (data.deviceId != null ? data.deviceId : "Cihaz bilgisi bulunamadı.") +
+                        '            </span>                                                                                        ' +
+                        '            Cihaz Bilgisi :                                                                                ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        page.parseTimeStamps(firstLocationInfo.takenDate) +
+                        '            </span>                                                                                        ' +
+                        '            İlk Konum Tarihi :                                                                             ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        page.parseTimeStamps(lastLocationInfo.takenDate) +
+                        '            </span>                                                                                        ' +
+                        '            Son Konum Tarihi :                                                                             ' +
+                        '        </li>                                                                                              ' +
+                        '    </ul>                                                                                                  ' +
+                        '</div>';
+
+                    return text;
+
+                }
+                else
+                {
+                    //var person = page.defines.filteredData;
+                    //var s = page.defines.locationsData;
+                    //var locations = data.split('(')[1].replace(')', "");
+                    //var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                    //var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+                    //var text = '<div class="item" style="height: 123px  !important;width: 240px!important; font-size:10px; padding: 1px 20px;">                                                                                  ' +
+                    //    '  <div class="head text-center clearfix">                                                                  ' +
+                    //    '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
+                    //    '  </div>                                                                                                   ' +
+                    //    '   <ul class="list-group clear-list" style="margin-top: 5px;">                                                                  ' +
+                    //    '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                    //    '            <span class="pull-right listGroupValue">                                                       ' +
+                    //    s.created.toLocaleString() +
+                    //    '            </span>                                                                                        ' +
+                    //    '            İşlem Yapılan Tarih :                                                                       ' +
+                    //    '        </li>                                                                                              ' +
+                    //    '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                    //    '            <span class="pull-right listGroupValue">                                                       ' +
+                    //    s.createdby_Title +
+                    //    '            </span>                                                                                        ' +
+                    //    '            İşlem Yapan :                                                                                ' +
+                    //    '        </li>                                                                                              ' +
+                    //    '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                    //    '            <span class="pull-right listGroupValue">                                                       ' +
+                    //    longitude + " " + latitude +
+                    //    '            </span>                                                                                        ' +
+                    //    '            Konum Bilgisi :                                                                                ' +
+                    //    '        </li>                                                                                              ' +
+
+                    //    '    </ul>                                                                                                  ' +
+                    //    '</div>';
+
+                    //return text;
+
+                }
+             
             },
             parseTimeStamps: function (takenDate) {
                 return takenDate.replace('T', ' ');
@@ -314,16 +394,20 @@
     page.init();
     $('[data-target=".search-content"]').attr("data-placement", "left");
     $('[data-target=".search-content"]').tooltip();
-     
+    debugger;
        var personId = '@Model.createdby';
        var createdDate = '@Model.created';
        var endDateTime = '@Model.created.Value.AddHours(2)';
        var startDateTime = '@Model.created.Value.AddHours(-2)';
+
+
+    page.defines.locationsData = '@Model.location';
+
     if (personId != undefined && personId != "") {
        getDataAndApplys(personId, startDateTime, endDateTime);
     };
 
-    function getDataAndApplys(userId, startDateTime, endDateTime) { 
+    function getDataAndApplys(userId, startDateTime, endDateTime) {
         GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapData', { startDate: startDateTime, endDate: endDateTime, userId: userId }, function (res) {
             if (res.LocationTrackings != null) {
                 page.defines.filteredData = res;
@@ -331,7 +415,13 @@
                 page.dfn.harita.map.updateSize();
             }
             else {
-                MesajWarning("Son Konum bulunamadı", "Uyarı");
+                debugger;
+                if (page.defines.locationsData != undefined && page.defines.locationsData != "") {
+                    page.applyFilter();
+                }
+                else {
+                    MesajWarning("Son Konum bulunamadı", "Uyarı");
+                }
                 page.dfn.harita.map.updateSize();
             }
         }, "Veriler Yükleniyor...");
@@ -391,640 +481,642 @@
                     })
         </div>
     </div>
-<div class="form-group">
-    <div class="col-md-3">     
-    </div>
-    <div class="col-md-9">
-        <div id="potentialMap" style="height:calc(63vh - 80px); position: relative; overflow: hidden; cursor: default !important">     
-            <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom:50px; z-index: 99 !important;">
-                <div id="ColorInfo" class="color-bar" style="z-index: 99 !important; left: 13px !important; ">
-                    <table class="slider">
-                        <tbody>
-                            <tr>
-                                <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;">İlk Konum</td>
-                                <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;">Konum</td>
-                                <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(247 166 44); padding: 0 10px 0 10px;">Son Konum</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
-                <div class="btn-container m-b-lg">
-                    <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
-                    <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
-                </div>
-                <div class="pan-container">
-                    <div id="personTemplate"></div>
-                </div>
-            </div>
+    <div class="form-group">
+        <div class="col-md-3">
         </div>
-    </div>
-</div>
+        <div class="col-md-9">
+            <div id="potentialMap" style="height:calc(63vh - 80px); position: relative; overflow: hidden; cursor: default !important">
+                <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom: 50px; z-index: 99 !important; left: 4px; ">
+                    <div id="ColorInfo" class="color-bar" style="z-index: 99 !important; left: 13px !important; ">
+                        <table class="slider">
+                            <tbody>
+                                <tr>
+                                    <td class="category" style="height: 48px; width: 100px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;">İlk Konum</td>
+                                    <td class="category" style="height: 48px; width: 100px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;">Konum</td>
+                                    <td class="category" style="height: 48px; width: 100px; line-height: 48px; background-color: #757575; padding: 0 10px 0 10px; ">İşlem Anı</td>
+                                    <td class="category" style="height: 48px; width: 100px; line-height: 48px; background-color: rgb(247 166 44); padding: 0 10px 0 10px;">Son Konum</td>
 
-<script type="text/template" id="selectedPerson">
-    <div class="pan-content">
-        <div class="pan-head clearfix" style="margin-left: 15px;">
-            <div style="padding-top: 7px;">
-                <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
-                    <span style="padding-left: 5px;text-transform: uppercase;">SATIŞ EKİBİ PERSONEL BİLGİLERİ</span>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div>
-            <div class="clearfix">
-
-            </div>
-            <div class="cardPerson" style="padding-bottom: 10px;">
-                <div class="col-md-2">
-                    <a href="#">
-                        <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
-                    </a>
-                </div>
-                <div class="col-md-10">
-                    <nav class="nav">
-                        <ul>
-                            <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
-                            <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-
-            <div class="pan-bodyCustom">
-                <div class="col-md-12">
-                    <div class="panContentPresentation">
-                        <div class="card col-md-12">
-                            <header class="header">
-                                <div class="card-details">
-                                    <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
-                                </div>
-                            </header>
-                            <nav class="nav">
-                                <ul>
-                                    <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
-                                    <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
-                                    <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
-                                    <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
-                                    <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
-                                </ul>
-                            </nav>
-                        </div>
+                <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
+                    <div class="btn-container m-b-lg">
+                        <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
+                        <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+                    </div>
+                    <div class="pan-container">
+                        <div id="personTemplate"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</script>
+
+    <script type="text/template" id="selectedPerson">
+        <div class="pan-content">
+            <div class="pan-head clearfix" style="margin-left: 15px;">
+                <div style="padding-top: 7px;">
+                    <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
+                        <span style="padding-left: 5px;text-transform: uppercase;">SATIŞ EKİBİ PERSONEL BİLGİLERİ</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="clearfix">
+
+                </div>
+                <div class="cardPerson" style="padding-bottom: 10px;">
+                    <div class="col-md-2">
+                        <a href="#">
+                            <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
+                        </a>
+                    </div>
+                    <div class="col-md-10">
+                        <nav class="nav">
+                            <ul>
+                                <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
+                                <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <div class="pan-bodyCustom">
+                    <div class="col-md-12">
+                        <div class="panContentPresentation">
+                            <div class="card col-md-12">
+                                <header class="header">
+                                    <div class="card-details">
+                                        <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
+                                    </div>
+                                </header>
+                                <nav class="nav">
+                                    <ul>
+                                        <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
+                                        <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
+                                        <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
+                                        <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
+                                        <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
 
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
     </div>
-    }
+}
 
-    @section Css{
-        <style type="text/css">
-            .search-control.ol-control {
-                left: auto !important;
-                right: 20px !important;
+@section Css{
+    <style type="text/css">
+        .search-control.ol-control {
+            left: auto !important;
+            right: 20px !important;
+        }
+
+            .search-control.ol-control button {
+                float: right !important;
             }
 
-                .search-control.ol-control button {
-                    float: right !important;
-                }
+        .btn-bar {
+            position: absolute;
+            z-index: 99 !important;
+        }
 
-            .btn-bar {
-                position: absolute;
-                z-index: 99 !important;
+            .btn-bar.left {
+                left: 15px;
             }
 
-                .btn-bar.left {
-                    left: 15px;
-                }
-
-                .btn-bar.right {
-                    right: 15px;
-                }
-
-                .btn-bar.bottom {
-                    bottom: 60px;
-                }
-
-                .btn-bar.top {
-                    top: 15px;
-                }
-
-            .btn-container {
-                border-radius: 100px;
-                background: #2f404f;
-                float: left;
-                width: 50px;
+            .btn-bar.right {
+                right: 15px;
             }
 
-            .btn-custom {
-                background: #2f404f;
-                color: #fff;
-                width: 46px;
-                height: 46px;
-                padding: 0;
-                margin-top: 5px;
-                font-size: 15px !important;
-                border: 3px #2f404f solid;
-                padding: 0 !important;
-                border-radius: 25px !important;
-                width: 50px !important;
+            .btn-bar.bottom {
+                bottom: 60px;
             }
 
-            .btn-container .btn-custom:first-child {
-                margin-top: 0px;
+            .btn-bar.top {
+                top: 15px;
             }
 
-            .btn-custom span {
-                font-size: 11px;
-                font-weight: Bold;
+        .btn-container {
+            border-radius: 100px;
+            background: #2f404f;
+            float: left;
+            width: 50px;
+        }
+
+        .btn-custom {
+            background: #2f404f;
+            color: #fff;
+            width: 46px;
+            height: 46px;
+            padding: 0;
+            margin-top: 5px;
+            font-size: 15px !important;
+            border: 3px #2f404f solid;
+            padding: 0 !important;
+            border-radius: 25px !important;
+            width: 50px !important;
+        }
+
+        .btn-container .btn-custom:first-child {
+            margin-top: 0px;
+        }
+
+        .btn-custom span {
+            font-size: 11px;
+            font-weight: Bold;
+        }
+
+        .btn-custom:hover, .btn-custom:focus, .btn-custom.active {
+            background-color: #1ab394;
+            color: #fff;
+            -webkit-box-shadow: none !important;
+            box-shadow: none !important;
+        }
+
+        .ol-control.default-control {
+            display: none;
+        }
+
+        #potentialMap {
+            background: #fff;
+        }
+
+        fieldset {
+            border: 1px rgba(255,255,255,0.5) solid !important;
+            padding: 5px 15px 15px 15px !important;
+            -webkit-box-shadow: 0px 0px 0px 0px #000;
+            box-shadow: 0px 0px 0px 0px #000;
+            border-radius: 0px;
+            margin-top: 10px !important;
+            margin-bottom: 10px !important;
+        }
+
+            fieldset .form-group:first-child {
+                margin-top: 0px !important;
             }
 
-            .btn-custom:hover, .btn-custom:focus, .btn-custom.active {
-                background-color: #1ab394;
-                color: #fff;
-                -webkit-box-shadow: none !important;
-                box-shadow: none !important;
+            fieldset .form-group:last-child {
+                margin-bottom: 0px !important;
             }
 
-            .ol-control.default-control {
-                display: none;
-            }
-
-            #potentialMap {
-                background: #fff;
-            }
-
-            fieldset {
-                border: 1px rgba(255,255,255,0.5) solid !important;
-                padding: 5px 15px 15px 15px !important;
-                -webkit-box-shadow: 0px 0px 0px 0px #000;
-                box-shadow: 0px 0px 0px 0px #000;
-                border-radius: 0px;
-                margin-top: 10px !important;
-                margin-bottom: 10px !important;
-            }
-
-                fieldset .form-group:first-child {
-                    margin-top: 0px !important;
-                }
-
-                fieldset .form-group:last-child {
-                    margin-bottom: 0px !important;
-                }
-
-                fieldset legend {
-                    font-size: 14px !important;
-                    font-weight: bold !important;
-                    text-align: left !important;
-                    width: auto;
-                    padding: 0 10px;
-                    border-bottom: none;
-                    color: #fff;
-                    margin-bottom: 10px !important;
-                    margin-left: -8px;
-                }
-
-            .form-control.k-widget {
-                padding: 0px !important;
-            }
-
-            .form-control .k-dropdown-wrap, .form-control .k-picker-wrap, .form-control .k-multiselect-wrap {
-                padding: 0px !important;
-            }
-
-            .pan-container {
-                width: 430px;
-                background: #2f404f;
-                height: calc(100vh - 170px);
-                float: right;
-                border-radius: 15px;
-                padding: 15px;
-            }
-
-            .pan-head {
-                margin-bottom: 5px !important;
-                padding-bottom: 10px;
-                color: #fff;
-                font-size: 15px;
-                font-weight: bold;
-                border-bottom: 1px #fff solid;
-            }
-
-                .pan-head .inputContainer {
-                    width: 100% !important;
-                }
-
-                    .pan-head .inputContainer input {
-                        border: 1px #d9d9d3 solid;
-                    }
-
-                    .pan-head .inputContainer i {
-                        color: #d9d9d3;
-                    }
-
-            .inputContainer .searchInput:active, .inputContainer .searchInput:focus {
-                outline: none !important;
-            }
-
-            .pan-head .inputContainer .searchInput::-webkit-input-placeholder {
-                color: #d9d9d3 !important;
-            }
-
-            .pan-body {
-                height: calc(100vh - 270px);
-                position: relative;
-                overflow-y: auto;
-                overflow-x: hidden;
-            }
-
-
-            .pan-bodyCustom {
-                height: calc(100vh - 325px);
-                position: relative;
-                overflow-y: auto;
-                overflow-x: hidden;
-            }
-
-            .pan-body label {
-                color: #d9d9d3;
-                font-weight: 500 !important;
-            }
-
-            .buttongroup {
-                margin-top: 10px;
-            }
-
-                .buttongroup .btn-group {
-                    width: 19% !important;
-                }
-
-            @@media (min-width: 768px) {
-                .form-horizontal .control-label {
-                    text-align: left !important;
-                }
-            }
-
-            group + group {
-                margin-top: 20px;
-            }
-
-            .inline-radio {
-                display: flex;
-                border-radius: 3px;
-                overflow: hidden;
-                border: 1px solid #b6b6b6;
-            }
-
-                .inline-radio div {
-                    position: relative;
-                    flex: 1;
-                }
-
-                .inline-radio input {
-                    width: 100%;
-                    height: 30px;
-                    opacity: 0;
-                    cursor: pointer;
-                }
-
-                .inline-radio label {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    color: #ffffff;
-                    width: 100%;
-                    height: 100%;
-                    background: #ed5565;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    pointer-events: none;
-                    border-right: 1px solid #b6b6b6;
-                }
-
-                .inline-radio div:last-child label {
-                    border-right: 0;
-                }
-
-                .inline-radio input:checked + label {
-                    font-weight: 800;
-                    color: #fff;
-                    background: #1ab394;
-                }
-
-            .filterButtonActive {
-                background-color: #2f96b4;
-                border-color: #2f96b4;
-                color: white;
-            }
-
-            .filterButtonPassive {
-                background-color: #49afcd;
-                border-color: #2f96b4;
-                color: white;
-            }
-
-            #personFilterButtons .filterButtonActive {
-                background-color: #074f7c;
-                border-color: #08507d;
-                color: white;
-            }
-
-            #personFilterButtons .filterButtonPassive {
-                background-color: #1d84c6;
-                border-color: #08507d;
-                color: white;
-            }
-
-            #contactFilterButtons .filterButtonActive {
-                background-color: #95101e;
-                border-color: #95101e;
-                color: white;
-            }
-
-            #contactFilterButtons .filterButtonPassive {
-                background-color: #ed5666;
-                border-color: #95101e;
-                color: white;
-            }
-
-            #presentationFilterButtons .filterButtonActive {
-                background-color: #e37d11;
-                border-color: #e37d11;
-                color: white;
-            }
-
-            #presentationFilterButtons .filterButtonPassive {
-                background-color: #f8ac5a;
-                border-color: #e37d11;
-                color: white;
-            }
-
-            #filterButtonGroup .filterButtonActive {
-                background-color: #1bb394;
-                border-color: #1bb394;
-                color: white;
-            }
-
-            #filterButtonGroup .filterButtonPassive {
-                background-color: #5a9e90;
-                border-color: #5a9e90;
-                color: white;
-            }
-
-            #ColorBox {
-                background: rgb(48, 65, 80);
-                position: absolute;
-                left: 54px;
-                padding: 8px;
-                z-index: -1;
-                border: 1px solid rgb(204, 204, 204);
-                border-radius: 10px;
-                width: 500px;
-            }
-
-            #PersonSearch {
-                background: rgb(48, 65, 80);
-                position: absolute;
-                padding: 6px;
-                z-index: -1;
-                border: 1px solid rgb(204, 204, 204);
-                border-radius: 10px;
-                width: 350px;
-                height: 49px;
-            }
-
-            #AddPerson {
-                background: rgb(48, 65, 80);
-                left: 54px;
-                padding: 6px;
-                z-index: -1;
-                border: 1px solid rgb(204, 204, 204);
-                border-radius: 10px;
-                width: 113px;
-                height: 49px;
-            }
-
-            #MarkerBox {
-                background: rgb(48, 65, 80);
-                position: absolute;
-                left: 54px;
-                padding: 8px;
-                z-index: -1;
-                border: 1px solid rgb(204, 204, 204);
-                border-radius: 10px;
-                width: 500px;
-            }
-
-            #ColorInfo {
-                background: rgb(255, 255, 255);
-                position: absolute;
-                left: 54px;
-                z-index: -1;
-                border: 1px solid rgb(204, 204, 204);
-                border-radius: 10px;
+            fieldset legend {
+                font-size: 14px !important;
+                font-weight: bold !important;
+                text-align: left !important;
                 width: auto;
-                height: 50px;
+                padding: 0 10px;
+                border-bottom: none;
+                color: #fff;
+                margin-bottom: 10px !important;
+                margin-left: -8px;
             }
 
-            .balSlider .k-label {
-                color: white !important;
+        .form-control.k-widget {
+            padding: 0px !important;
+        }
+
+        .form-control .k-dropdown-wrap, .form-control .k-picker-wrap, .form-control .k-multiselect-wrap {
+            padding: 0px !important;
+        }
+
+        .pan-container {
+            width: 430px;
+            background: #2f404f;
+            height: calc(100vh - 170px);
+            float: right;
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .pan-head {
+            margin-bottom: 5px !important;
+            padding-bottom: 10px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom: 1px #fff solid;
+        }
+
+            .pan-head .inputContainer {
+                width: 100% !important;
             }
 
-            #slider-station .item {
-                background: #212c36 !important;
-                height: 220px;
-                width: 350px;
-                box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
-                padding: 5px 20px;
-                border-radius: 15px;
+                .pan-head .inputContainer input {
+                    border: 1px #d9d9d3 solid;
+                }
+
+                .pan-head .inputContainer i {
+                    color: #d9d9d3;
+                }
+
+        .inputContainer .searchInput:active, .inputContainer .searchInput:focus {
+            outline: none !important;
+        }
+
+        .pan-head .inputContainer .searchInput::-webkit-input-placeholder {
+            color: #d9d9d3 !important;
+        }
+
+        .pan-body {
+            height: calc(100vh - 270px);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+
+        .pan-bodyCustom {
+            height: calc(100vh - 325px);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .pan-body label {
+            color: #d9d9d3;
+            font-weight: 500 !important;
+        }
+
+        .buttongroup {
+            margin-top: 10px;
+        }
+
+            .buttongroup .btn-group {
+                width: 19% !important;
             }
 
-                #slider-station .item .head .col-xs-12 {
-                    padding-top: 10px;
-                    color: #fff;
-                    font-size: 16px;
-                    text-transform: uppercase;
-                }
+        @@media (min-width: 768px) {
+            .form-horizontal .control-label {
+                text-align: left !important;
+            }
+        }
 
-                #slider-station .item .head .col-xs-2 img {
-                    width: 70%;
-                    margin: 0 15%;
-                }
+        group + group {
+            margin-top: 20px;
+        }
 
-                #slider-station .item .head .presentationHead {
-                    color: #babbc0;
-                }
+        .inline-radio {
+            display: flex;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid #b6b6b6;
+        }
 
-            #slider-station .list-group-item {
+            .inline-radio div {
+                position: relative;
+                flex: 1;
+            }
+
+            .inline-radio input {
+                width: 100%;
+                height: 30px;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+            .inline-radio label {
+                position: absolute;
+                top: 0;
+                left: 0;
+                color: #ffffff;
+                width: 100%;
+                height: 100%;
+                background: #ed5565;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
+                border-right: 1px solid #b6b6b6;
+            }
+
+            .inline-radio div:last-child label {
+                border-right: 0;
+            }
+
+            .inline-radio input:checked + label {
+                font-weight: 800;
+                color: #fff;
+                background: #1ab394;
+            }
+
+        .filterButtonActive {
+            background-color: #2f96b4;
+            border-color: #2f96b4;
+            color: white;
+        }
+
+        .filterButtonPassive {
+            background-color: #49afcd;
+            border-color: #2f96b4;
+            color: white;
+        }
+
+        #personFilterButtons .filterButtonActive {
+            background-color: #074f7c;
+            border-color: #08507d;
+            color: white;
+        }
+
+        #personFilterButtons .filterButtonPassive {
+            background-color: #1d84c6;
+            border-color: #08507d;
+            color: white;
+        }
+
+        #contactFilterButtons .filterButtonActive {
+            background-color: #95101e;
+            border-color: #95101e;
+            color: white;
+        }
+
+        #contactFilterButtons .filterButtonPassive {
+            background-color: #ed5666;
+            border-color: #95101e;
+            color: white;
+        }
+
+        #presentationFilterButtons .filterButtonActive {
+            background-color: #e37d11;
+            border-color: #e37d11;
+            color: white;
+        }
+
+        #presentationFilterButtons .filterButtonPassive {
+            background-color: #f8ac5a;
+            border-color: #e37d11;
+            color: white;
+        }
+
+        #filterButtonGroup .filterButtonActive {
+            background-color: #1bb394;
+            border-color: #1bb394;
+            color: white;
+        }
+
+        #filterButtonGroup .filterButtonPassive {
+            background-color: #5a9e90;
+            border-color: #5a9e90;
+            color: white;
+        }
+
+        #ColorBox {
+            background: rgb(48, 65, 80);
+            position: absolute;
+            left: 54px;
+            padding: 8px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 500px;
+        }
+
+        #PersonSearch {
+            background: rgb(48, 65, 80);
+            position: absolute;
+            padding: 6px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 350px;
+            height: 49px;
+        }
+
+        #AddPerson {
+            background: rgb(48, 65, 80);
+            left: 54px;
+            padding: 6px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 113px;
+            height: 49px;
+        }
+
+        #MarkerBox {
+            background: rgb(48, 65, 80);
+            position: absolute;
+            left: 54px;
+            padding: 8px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 500px;
+        }
+
+        #ColorInfo {
+            background: rgb(255, 255, 255);
+            position: absolute;
+            left: 54px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: auto;
+            height: 50px;
+        }
+
+        .balSlider .k-label {
+            color: white !important;
+        }
+
+        #slider-station .item {
+            background: #212c36 !important;
+            height: 220px;
+            width: 350px;
+            box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+            padding: 5px 20px;
+            border-radius: 15px;
+        }
+
+            #slider-station .item .head .col-xs-12 {
+                padding-top: 10px;
+                color: #fff;
+                font-size: 16px;
+                text-transform: uppercase;
+            }
+
+            #slider-station .item .head .col-xs-2 img {
+                width: 70%;
+                margin: 0 15%;
+            }
+
+            #slider-station .item .head .presentationHead {
                 color: #babbc0;
             }
 
-            #slider-station .listGroupValue {
-                color: #d9d9d3;
-            }
+        #slider-station .list-group-item {
+            color: #babbc0;
+        }
 
-            #ColorInfo .category {
-                float: left;
-            }
+        #slider-station .listGroupValue {
+            color: #d9d9d3;
+        }
 
-            #ColorInfo .color-bar {
-                width: 100%;
-            }
+        #ColorInfo .category {
+            float: left;
+        }
+
+        #ColorInfo .color-bar {
+            width: 100%;
+        }
+
+        #ColorInfo .slider tr {
+        }
+
+        #ColorInfo tbody {
+        }
+
+        #ColorInfo .slider {
+            color: white;
+            padding-top: 6px;
+        }
 
             #ColorInfo .slider tr {
+                vertical-align: middle;
+                display: flex;
+                border: none;
             }
 
-            #ColorInfo tbody {
+            #ColorInfo .slider td {
+                text-align: center;
+                border: none;
+                opacity: 1;
             }
 
-            #ColorInfo .slider {
-                color: white;
-                padding-top: 6px;
+        #ColorInfo .color-bar {
+            width: 100%;
+        }
+
+        #ColorInfo .category {
+            min-height: 24px;
+        }
+
+        #ColorInfo .slider tr td:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        #ColorInfo .slider tr td:last-child {
+            border-radius: 0 10px 10px 0px;
+        }
+
+        .card {
+            background: rgba(0,0,0,0.17);
+            border-radius: 10px;
+            margin-top: 10px;
+            max-width: 370px;
+            min-height: 226px;
+            padding: 20px;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+            .card .header {
+                align-items: flex-start;
+                display: flex;
+                justify-content: space-between;
             }
 
-                #ColorInfo .slider tr {
-                    vertical-align: middle;
-                    display: flex;
-                    border: none;
-                }
-
-                #ColorInfo .slider td {
-                    text-align: center;
-                    border: none;
-                    opacity: 1;
-                }
-
-            #ColorInfo .color-bar {
-                width: 100%;
+            .card .card-picture {
+                border-radius: 6px;
+                width: 50px;
             }
 
-            #ColorInfo .category {
-                min-height: 24px;
+            .card .card-name {
+                font-weight: 700;
+                margin: 0 0 10px;
             }
 
-            #ColorInfo .slider tr td:first-child {
-                border-radius: 10px 0 0 10px;
+            .card .card-title {
+                font-weight: 400;
+                margin: 0;
             }
 
-            #ColorInfo .slider tr td:last-child {
-                border-radius: 0 10px 10px 0px;
+            .card .nav {
+                align-items: center;
+                padding-top: 15px;
+                display: table-cell;
+                justify-content: space-between;
+                z-index: 1;
             }
 
-            .card {
-                background: rgba(0,0,0,0.17);
-                border-radius: 10px;
-                margin-top: 10px;
-                max-width: 370px;
-                min-height: 226px;
-                padding: 20px;
-                position: relative;
-                width: 100%;
-                overflow: hidden;
-            }
-
-                .card .header {
-                    align-items: flex-start;
-                    display: flex;
-                    justify-content: space-between;
-                }
-
-                .card .card-picture {
-                    border-radius: 6px;
-                    width: 50px;
-                }
-
-                .card .card-name {
-                    font-weight: 700;
-                    margin: 0 0 10px;
-                }
-
-                .card .card-title {
-                    font-weight: 400;
+                .card .nav ul {
+                    list-style-type: none;
                     margin: 0;
+                    padding: 0;
                 }
 
-                .card .nav {
-                    align-items: center;
-                    padding-top: 15px;
-                    display: table-cell;
-                    justify-content: space-between;
-                    z-index: 1;
-                }
-
-                    .card .nav ul {
-                        list-style-type: none;
-                        margin: 0;
-                        padding: 0;
+                    .card .nav ul li {
+                        display: table-row;
                     }
 
-                        .card .nav ul li {
-                            display: table-row;
-                        }
-
-                        .card .nav ul span {
-                            display: table-cell;
-                            text-decoration: none;
-                            color: #f0f8ff;
-                            padding: 5px 15px;
-                        }
-
-
-            .cardPerson {
-                border-radius: 10px;
-                position: relative;
-                width: 100%;
-                overflow: hidden;
-            }
-
-                .cardPerson .nav {
-                    align-items: center;
-                    display: table-cell;
-                    justify-content: space-between;
-                    z-index: 1;
-                }
-
-                    .cardPerson .nav ul {
-                        list-style-type: none;
-                        margin: 0;
-                        padding: 0;
+                    .card .nav ul span {
+                        display: table-cell;
+                        text-decoration: none;
+                        color: #f0f8ff;
+                        padding: 5px 15px;
                     }
 
-                        .cardPerson .nav ul li {
-                            display: table-row;
-                        }
 
-                            .cardPerson .nav ul li strong {
-                                color: white;
-                            }
+        .cardPerson {
+            border-radius: 10px;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
 
-                        .cardPerson .nav ul span {
-                            display: table-cell;
-                            text-decoration: none;
-                            color: #f0f8ff;
-                            padding: 5px 15px;
-                        }
-
-            .datetimeTemp {
-                background: rgb(48, 65, 80);
-                position: absolute;
-                left: 382px;
-                padding: 6px;
-                z-index: -1;
-                border: 1px solid rgb(204, 204, 204);
-                border-radius: 10px;
-                width: 259px;
-                height: 49px;
+            .cardPerson .nav {
+                align-items: center;
+                display: table-cell;
+                justify-content: space-between;
+                z-index: 1;
             }
 
-            #selectCompany {
-                margin-top: 0px;
-            }
-        </style>
-    }
+                .cardPerson .nav ul {
+                    list-style-type: none;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                    .cardPerson .nav ul li {
+                        display: table-row;
+                    }
+
+                        .cardPerson .nav ul li strong {
+                            color: white;
+                        }
+
+                    .cardPerson .nav ul span {
+                        display: table-cell;
+                        text-decoration: none;
+                        color: #f0f8ff;
+                        padding: 5px 15px;
+                    }
+
+        .datetimeTemp {
+            background: rgb(48, 65, 80);
+            position: absolute;
+            left: 382px;
+            padding: 6px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 259px;
+            height: 49px;
+        }
+
+        #selectCompany {
+            margin-top: 0px;
+        }
+    </style>
+}

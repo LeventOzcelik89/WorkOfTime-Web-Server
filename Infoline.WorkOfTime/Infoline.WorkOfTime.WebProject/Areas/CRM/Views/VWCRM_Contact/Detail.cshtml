@@ -3,11 +3,11 @@
     ViewBag.Title = "Potansiyel/Fırsat Aktivite Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    //var contactAction = Model.contactActions.OrderByDescending(a => a.created).FirstOrDefault();
+    var contactAction = Model.contactActions.OrderByDescending(a => a.created).FirstOrDefault();
 }
 
 
-<!--<link href="/Content/UserLocationMap/map.css" rel="stylesheet" data-selector="modalContainer" />
+<link href="/Content/UserLocationMap/map.css" rel="stylesheet" data-selector="modalContainer" />
 <script src="/Content/UserLocationMap/map.js" data-selector="modalContainer"></script>
 
 <script type="text/javascript" data-selector="modalContainer">
@@ -142,23 +142,24 @@
                     })
         });
 
+            svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#757575" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z" /><circle fill="#ededed" cx="256" cy="160" r="96" /><path transform="rotate(180, 0, 0)  translate(-322,-200) scale(0.12)" fill="#f8ac59" d="M1070-88q0-21-2-63h-1067q0 10 0 31t-1 32q0 30 1 37 12 49 64 85t112 53 125 47 97 65q17 22 17 38 0 22-11 73-4 21-10 37t-16 33-16 31q-15 35-33 132-6 38-6 75 0 105 54 168t157 63 158-63 53-168q0-31-7-75-14-89-32-132-6-14-15-31t-16-33-11-37q-11-51-11-73 0-18 17-38 31-36 97-65t125-47 111-53 64-85q2-8 2-37z" /></svg>';
+
+
+
         var actionLocation = new ol.style.Style({
             image: new ol.style.Icon({
             opacity: 1,
-        src: 'data:image/svg+xml,' + escape(svg),
+                src: 'data:image/svg+xml,' + escape(svg),
         scale: 1.0,
         anchor: [0.5, 64],
         anchorXUnits: 'fraction',
         anchorYUnits: 'pixels',
                     })
                 });
-
-
-
         page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
         page.dfn.harita.style.addCustom("locationsStyle", locations);
         page.dfn.harita.style.addCustom("lastLocationStyle", lastLocation);
-            page.dfn.harita.style.addCustom("actionLocationStyle", actionLocation);
+        page.dfn.harita.style.addCustom("actionLocationStyle", actionLocation);
         page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
         page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
         page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
@@ -171,7 +172,21 @@
 
             },
         locateFeatureToMap: function () {
-                var points = [];
+            var points = [];
+
+            if (page.defines.locationsData != undefined) {
+
+
+                var locationDatas = page.defines.locationsData.location;
+                if (locationDatas != null) {
+                    var feature = page.dfn.harita.feature.add("ActionLocation", page.defines.locationsData.id, locationDatas);
+                    if (feature) {
+                        feature.set("properties", locationDatas);
+                    }
+                    page.dfn.harita.layer.panTo("ActionLocation");
+
+                }
+            }
 
         if (page.defines.filteredData != undefined) {
 
@@ -183,7 +198,6 @@
 
                 if (data.location != null) {
                     if (i == 0) {
-                        debugger;
                         var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.location);
                         if (feature) {
                             feature.set("properties", data);
@@ -202,8 +216,6 @@
                     }
                     else {
 
-
-
                         var feature = page.dfn.harita.feature.add("Locations", data.id, data.location);
                         if (feature) {
                             feature.set("properties", data);
@@ -217,43 +229,17 @@
                 }
             });
 
-
-
-                            debugger;
-
-                            if (page.defines.locationsData != undefined) {
-
-                                debugger;
-
-                                var locationDatas = page.defines.locationsData.location;
-                                if (locationDatas != null) {
-                                    var feature = page.dfn.harita.feature.add("ActionLocation", page.defines.locationsData.id, locationDatas);
-                                    if (feature) {
-                                        feature.set("properties", locationDatas);
-
-                                        points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
-                                    }
-
-                                }
-                            }
-
-
         var line = "LINESTRING(" + points.join(", ") + ")";
         page.dfn.harita.feature.add("Action", "linestring", line);
 
         page.dfn.harita.layer.panTo("Locations");
 
-                        }
+                       }
 
-                    }
+                   }
             }
 
-
-
-
-
-
-            },
+      },
         applyFilter: function () {
         page.dfn.harita.layer.get("FirstLocation")["FirstLocation"].getSource().clear();
         page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
@@ -289,74 +275,105 @@
         else {
             MesajWarning("Konum bulunamadı.", "Uyarı");
                 }
-            },-->
-            @*onChangeDate: function () {
-
-            var startDateTime = new Date();
-            var endDateTime = new Date();
-            var personId = '@userStatus.user.id';
-                if (personId != undefined && personId != "") {
-                    getDataAndApplys(personId, startDateTime, endDateTime);
-                }
-            },*@
-        <!--search: function (_this) {
+            },
+        search: function (_this) {
                 var type = $(_this).attr("data-content");
         var key = $(_this).val();
 
         page.loadPanelData(type, key);
             },
             getPersonDetailForHover: function (data) {
-                var person = page.defines.filteredData;
-                var locations = data.location.split('(')[1].replace(')', "");
-                var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
-                var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
-                var firstLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderBy(x => x.timeStamp).FirstOrDefault();
-                var lastLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderByDescending(x => x.timeStamp).FirstOrDefault();
-                var text = '<div class="item">                                                                                  ' +
-                    '  <div class="head text-center clearfix">                                                                  ' +
-                    '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
-                    '  </div>                                                                                                   ' +
-                    '   <ul class="list-group clear-list m-t">                                                                  ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseTimeStamps(data.takenDate) +
-                    '            </span>                                                                                        ' +
-                    '            Konumun Alındığı Tarih :                                                                       ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    longitude + " " + latitude +
-                    '            </span>                                                                                        ' +
-                    '            Konum Bilgisi :                                                                                ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    (data.deviceId != null ? data.deviceId : "Cihaz bilgisi bulunamadı.") +
-                    '            </span>                                                                                        ' +
-                    '            Cihaz Bilgisi :                                                                                ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseTimeStamps(firstLocationInfo.takenDate) +
-                    '            </span>                                                                                        ' +
-                    '            İlk Konum Tarihi :                                                                             ' +
-                    '        </li>                                                                                              ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseTimeStamps(lastLocationInfo.takenDate) +
-                    '            </span>                                                                                        ' +
-                    '            Son Konum Tarihi :                                                                             ' +
-                    '        </li>                                                                                              ' +
-                    '    </ul>                                                                                                  ' +
-                    '</div>';
 
-                return text;
+                if (data.location != undefined) {
+
+                    var person = page.defines.filteredData;
+                    var locations = data.location.split('(')[1].replace(')', "");
+                    var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                    var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+                    var firstLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderBy(x => x.timeStamp).FirstOrDefault();
+                    var lastLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+                    var text = '<div class="item" style="height: 189px !important;width: 240px!important; font-size:10px; padding: 1px 20px;">                                                                                  ' +
+                        '  <div class="head text-center clearfix">                                                                  ' +
+                        '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
+                        '  </div>                                                                                                   ' +
+                        '   <ul class="list-group clear-list" style="margin-top: 5px;">                                                                  ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        page.parseTimeStamps(data.takenDate) +
+                        '            </span>                                                                                        ' +
+                        '            Konumun Alındığı Tarih :                                                                       ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        longitude + " " + latitude +
+                        '            </span>                                                                                        ' +
+                        '            Konum Bilgisi :                                                                                ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        (data.deviceId != null ? data.deviceId : "Cihaz bilgisi bulunamadı.") +
+                        '            </span>                                                                                        ' +
+                        '            Cihaz Bilgisi :                                                                                ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        page.parseTimeStamps(firstLocationInfo.takenDate) +
+                        '            </span>                                                                                        ' +
+                        '            İlk Konum Tarihi :                                                                             ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        page.parseTimeStamps(lastLocationInfo.takenDate) +
+                        '            </span>                                                                                        ' +
+                        '            Son Konum Tarihi :                                                                             ' +
+                        '        </li>                                                                                              ' +
+                        '    </ul>                                                                                                  ' +
+                        '</div>';
+
+                    return text;
+                }
+                else {
+                    var person = page.defines.filteredData;
+                    var s = page.defines.locationsData;
+                    var locations = data.split('(')[1].replace(')', "");
+                    var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                    var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+                    var text = '<div class="item" style="height: 123px  !important;width: 240px!important; font-size:10px; padding: 1px 20px;">                                                                                  ' +
+                        '  <div class="head text-center clearfix">                                                                  ' +
+                        '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
+                        '  </div>                                                                                                   ' +
+                        '   <ul class="list-group clear-list" style="margin-top: 5px;">                                                                  ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        s.created.toLocaleString() +
+                        '            </span>                                                                                        ' +
+                        '            İşlem Yapılan Tarih :                                                                       ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        s.createdby_Title +
+                        '            </span>                                                                                        ' +
+                        '            İşlem Yapan :                                                                                ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        longitude + " " + latitude +
+                        '            </span>                                                                                        ' +
+                        '            Konum Bilgisi :                                                                                ' +
+                        '        </li>                                                                                              ' +
+                      
+                        '    </ul>                                                                                                  ' +
+                        '</div>';
+
+                    return text;
+
+                }
+
             },
             parseTimeStamps: function (takenDate) {
                 return takenDate.replace('T', ' ');
             }
         }
-    debugger;
     page.init();
     $('[data-target=".search-content"]').attr("data-placement", "left");
     $('[data-target=".search-content"]').tooltip();
@@ -364,7 +381,8 @@
     var personId = '@Model.createdby';
        var createdDate = '@Model.created';
        var endDateTime = '@Model.created.Value.AddHours(2)';
-       var startDateTime = '@Model.created.Value.AddHours(-2)';
+    var startDateTime = '@Model.created.Value.AddHours(-2)';
+
 
 
     if (personId != undefined && personId != "") {
@@ -372,17 +390,23 @@
     };
 
     function getContactDataAndApplys(userId, startDateTime, endDateTime) {
-        debugger;
+
         GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapData', { startDate: startDateTime, endDate: endDateTime, userId: userId }, function (res) {
             if (res.LocationTrackings != null) {
-                debugger;
+
                 page.defines.filteredData = res;
                 page.applyFilter();
                 page.dfn.harita.map.updateSize();
             }
             else {
-                debugger;
-                MesajWarning("Son Konum bulunamadı", "Uyarı");
+                if (page.defines.locationsData != undefined && page.defines.locationsData != "") {
+                    page.applyFilter();
+                }
+                else {
+
+                }
+
+
                 page.dfn.harita.map.updateSize();
             }
         }, "Veriler Yükleniyor...");
@@ -390,28 +414,28 @@
 
 
     function getContactDataAndApplysTwo(userId, startDateTime, endDateTime) {
-        debugger;
+
         GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapData', { startDate: kendo.toString(startDateTime, 'yyyy-MM-dd HH:mm'), endDate: kendo.toString(endDateTime, 'yyyy-MM-dd HH:mm'), userId: userId }, function (res) {
-            debugger;
+
             if (res.LocationTrackings != null) {
-                debugger;
+
                 page.defines.filteredData = res;
                 page.applyFilter();
                 page.dfn.harita.map.updateSize();
             }
             else {
-                debugger;
-                MesajWarning("Son Konum bulunamadı", "Uyarı");
+
+                if (page.defines.locationsData != undefined && page.defines.locationsData != "") {
+                    page.applyFilter();
+                }
+                else {
+                    MesajWarning("Son Konum bulunamadı", "Uyarı");
+                }
                 page.dfn.harita.map.updateSize();
             }
         }, "Veriler Yükleniyor...");
     }
-
-
-
-
-
-</script>-->
+</script>
 
 
 
@@ -596,17 +620,18 @@
 
 
     <br />
-    @*<div class="form-group">
+    <div class="form-group">
         <div class="col-md-6">
             <div id="contactMap" style="height: 511px; position: relative; overflow: hidden; cursor: default !important">
-                <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom:50px; z-index: 99 !important;">
-                    <div id="ColorInfo" class="color-bar" style="z-index: 99 !important; left: 13px !important; ">
+                <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom: 50px; z-index: 99 !important; left: -8px; ">
+                    <div id="ColorInfo" class="color-bar" style="z-index: 99 !important; left: 13px !important; height: 25px; ">
                         <table class="slider">
                             <tbody>
                                 <tr>
-                                    <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;">İlk Konum</td>
-                                    <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;">Konum</td>
-                                    <td class="category" style="height: 48px; width: 90px; line-height: 48px; background-color: rgb(247 166 44); padding: 0 10px 0 10px;">Son Konum</td>
+                                    <td class="category" style="font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px; ">İlk Konum</td>
+                                    <td class="category" style="font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px; ">Konum</td>
+                                    <td class="category" style=" font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: #757575; padding: 0 10px 0 10px; ">İşlem Anı</td>
+                                    <td class="category" style="font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: rgb(247 166 44); padding: 0 10px 0 10px; ">Son Konum</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -705,7 +730,7 @@
                 </div>
             </div>
         </div>
-    </script>*@
+    </script>
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>

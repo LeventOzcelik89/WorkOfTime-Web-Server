@@ -10,9 +10,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string title { get; set;}
         public string process { get; set;}
         public string url { get; set;}
-        public string roleid { get; set;}
-        public int? count { get; set;}
         public Guid? userid { get; set;}
-        public Guid? customerId { get; set;}
+        public int? count { get; set;}
     }
 }
