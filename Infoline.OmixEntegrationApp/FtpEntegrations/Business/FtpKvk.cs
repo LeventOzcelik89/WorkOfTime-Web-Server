@@ -26,7 +26,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         public ResultStatus ExportFilesToDatabase()
         {
             var entegrationFileList = GetFilesInFtp();
-            var result = new ResultStatus();
+            var result = new ResultStatus { result = true };
             foreach (var entegrationFile in entegrationFileList)
             {
                 Log.Warning("Start Process File: {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);

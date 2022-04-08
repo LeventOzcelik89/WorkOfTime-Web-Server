@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Linq.Expressions;
 using System.Data.Common;
 using Infoline.WorkOfTime.BusinessData;
+using System.Globalization;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
@@ -30,86 +31,60 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_EntegrationAction>().Where(a => a.Imei == imei).Execute().FirstOrDefault();
             }
         }
-        public SellOutReportNewModel[] GetPRD_SellOutReportDistrubitorQuery(DateTime startDate, DateTime endDate)
+        public SellOutReportNewModel[] GetPRD_SellOutProductReportDistrubitorQuery(DateTime startDate, DateTime endDate)
         {
             var data = new List<SellOutReportNewModel>();
+            string startDateSql = startDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            string endDateSql = endDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             using (var db = GetDB())
             {
-                var query = $@"Select DistributorId, Count(*) as DistSalesCount, SUM(CASE WHEN ActivationDate is not null THEN 1 ELSE 0 END) as ActivatedData
-                           FROM VWPRD_EntegrationAction
-                           Where
-                           Invoice_Address >= '{startDate.ToString("yyyy-MM-dd")}' and
-                           Invoice_Address <= '{endDate.ToString("yyyy-MM-dd")}' and
-                           Quantity = 1
-                           Group by DistributorId";
-                var query2 = $@"Select dataCompanyId as DistributorId, dataCompanyId_Title, Count(*) as SalesCount From VWPRD_InventoryAction
-                            Where
-                            type = 3 and
-                           created >= '{startDate.ToString("yyyy-MM-dd")}' and
-                           created <= '{endDate.ToString("yyyy-MM-dd")}'
-                           Group by dataCompanyId_Title, dataCompanyId
-                           order by Count(*) desc";
-                var query3 = $@"select pid,pid_title, Count(*) as AssignmentCount from VWPRD_ProductProgressPaymentImport
-					            Where
-                                created >= '{startDate.ToString("yyyy-MM-dd")}' and
-                                created <= '{endDate.ToString("yyyy-MM-dd")}'
-				                group by pid,pid_Title";
-                var queryExecute = db.ExecuteReader<SellOutReportNewModel>(query.ToString()).ToArray();
-                var query2Execute = db.ExecuteReader<SellOutReportNewModel>(query2.ToString()).ToArray();
-                var query3Execute = db.ExecuteReader<SellOutReportNewModel>(query3.ToString()).ToArray();
-                data.AddRange(query2Execute.Select(a => new SellOutReportNewModel
+                var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var IntegrationActionQuery = $@"select * from VWPRD_InventoryActionSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var TitanDeviceActivatedQuery = $@"select * from VWPRD_TitanDeviceActivatedSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var ProductProgressPaymentQuery = $@"select * from VWPRD_ProductProgressPaymentImportSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var queryExecute = db.ExecuteReader<SellOutReportNewModel>(EntegrationActionQuery.ToString()).ToArray();
+                var query2Execute = db.ExecuteReader<SellOutReportNewModel>(IntegrationActionQuery.ToString()).ToArray();
+                var query3Execute = db.ExecuteReader<SellOutReportNewModel>(TitanDeviceActivatedQuery.ToString()).ToArray();
+                var query4Execute = db.ExecuteReader<SellOutReportNewModel>(ProductProgressPaymentQuery.ToString()).ToArray();
+                data.AddRange(queryExecute.GroupBy(v => v.ProductId).Select(a => new SellOutReportNewModel
                 {
-                    ActivatedData = queryExecute.Where(b => b.DistributorId == a.DistributorId).Select(c => c.ActivatedData).FirstOrDefault(),
-                    DistSalesCount = queryExecute.Where(b => b.DistributorId == a.DistributorId).Select(c => c.DistSalesCount).FirstOrDefault(),
-                    SalesCount = a.SalesCount,
-                    dataCompanyId_Title = a.dataCompanyId_Title,
-                    Types = (GetVWCMP_CompanyById(a.DistributorId) != null ? GetVWCMP_CompanyById(a.DistributorId).CMPTypes_Title : null) == "Distribütör" ? "Distribütör" : "Bayi",
-                    DistributorId = a.DistributorId,
-                    pid_Title= GetVWCMP_CompanyById(a.DistributorId)!=null ? query3Execute.Where(d => GetVWCMP_CompanyById(a.DistributorId).pid == d.pid).Select(c=>c.pid_Title).FirstOrDefault(): null,
-                    AssignmentCount = GetVWCMP_CompanyById(a.DistributorId)!=null ? query3Execute.Where(d => GetVWCMP_CompanyById(a.DistributorId).pid == d.pid).Select(t => t.AssignmentCount).FirstOrDefault() : 0,
+                    DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
+                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    SalesCount = queryExecute.Where(b => b.DistributorId == a.Select(v => v.DistributorId).FirstOrDefault()).Sum(c => c.SalesCount),
+                    ActivatedData = query3Execute.Where(b => b.DistributorId == a.Select(v => v.DistributorId).FirstOrDefault()).Sum(c => c.ActivatedData),
+                    AssignmentCount = query4Execute.Where(b => b.DistributorId == a.Select(v => v.DistributorId).FirstOrDefault()).Sum(c => c.AssignmentCount),
+                    DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Select(v => v.DistributorId).FirstOrDefault()).Sum(c => c.DistSalesCount),
+                    ProductId = a.Key,
+                    ProductName = a.Select(b => GetPRD_ProductById(a.Key).name).FirstOrDefault()
                 }));
             }
             return data.ToArray();
         }
-        public SellOutReportNewModel[] GetPRD_SellOutProductReportDistrubitorQuery(DateTime startDate, DateTime endDate)
+
+        public SellOutReportNewModel[] GetPRD_SellOutReportByDistrubitor(DateTime startDate, DateTime endDate)
         {
             var data = new List<SellOutReportNewModel>();
+            string startDateSql = startDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            string endDateSql = endDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             using (var db = GetDB())
             {
-                var query = $@"Select DistributorId, Count(*) as DistSalesCount, SUM(CASE WHEN ActivationDate is not null THEN 1 ELSE 0 END) as ActivatedData
-                           FROM VWPRD_EntegrationAction
-                           Where
-                           Invoice_Address >= '{startDate.ToString("yyyy-MM-dd")}' and
-                           Invoice_Address <= '{endDate.ToString("yyyy-MM-dd")}' and
-                           Quantity = 1
-                           Group by DistributorId";
-                var query2 = $@"Select dataCompanyId as DistributorId, dataCompanyId_Title, Count(*) as SalesCount From VWPRD_InventoryAction
-                            Where
-                            type = 3 and
-                           created >= '{startDate.ToString("yyyy-MM-dd")}' and
-                           created <= '{endDate.ToString("yyyy-MM-dd")}'
-                           Group by dataCompanyId_Title, dataCompanyId
-                           order by Count(*) desc";
-                var query3 = $@"select pid , pid_Title ,productId,productId_Title, Count(*) as counts from VWPRD_ProductProgressPaymentImport
-	                            Where
-                                created >= '{startDate.ToString("yyyy-MM-dd")}' and
-                                created <= '{endDate.ToString("yyyy-MM-dd")}'
-	                            group by pid , pid_Title,productId,productId_Title
-	                            order by pid_Title desc";
-                var queryExecute = db.ExecuteReader<SellOutReportNewModel>(query.ToString()).ToArray();
-                var query2Execute = db.ExecuteReader<SellOutReportNewModel>(query2.ToString()).ToArray();
-                var query3Execute = db.ExecuteReader<SellOutReportNewModel>(query3.ToString()).ToArray();
-                data.AddRange(query2Execute.Select(a => new SellOutReportNewModel
+                var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var IntegrationActionQuery = $@"select * from VWPRD_InventoryActionSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var TitanDeviceActivatedQuery = $@"select * from VWPRD_TitanDeviceActivatedSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var ProductProgressPaymentQuery = $@"select * from VWPRD_ProductProgressPaymentImportSummary where date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
+                var queryExecute = db.ExecuteReader<SellOutReportNewModel>(EntegrationActionQuery.ToString()).ToArray();
+                var query2Execute = db.ExecuteReader<SellOutReportNewModel>(IntegrationActionQuery.ToString()).ToArray();
+                var query3Execute = db.ExecuteReader<SellOutReportNewModel>(TitanDeviceActivatedQuery.ToString()).ToArray();
+                var query4Execute = db.ExecuteReader<SellOutReportNewModel>(ProductProgressPaymentQuery.ToString()).ToArray();
+                data.AddRange(queryExecute.GroupBy(v => v.DistributorId).Select(a => new SellOutReportNewModel
                 {
+                    DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
+                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
+                    ActivatedData = query3Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.ActivatedData),
+                    AssignmentCount = query4Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.AssignmentCount),
+                    DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
 
-                    ActivatedData = queryExecute.Where(b => b.DistributorId == a.DistributorId).Select(c => c.ActivatedData).FirstOrDefault(),
-                    DistSalesCount = queryExecute.Where(b => b.DistributorId == a.DistributorId).Select(c => c.DistSalesCount).FirstOrDefault(),
-                    SalesCount = a.SalesCount,
-                    dataCompanyId_Title = a.dataCompanyId_Title,
-                    Types = (GetVWCMP_CompanyById(a.DistributorId) != null ? GetVWCMP_CompanyById(a.DistributorId).CMPTypes_Title : null) == "Distribütör" ? "Distribütör" : "Bayi",
-                    DistributorId = a.DistributorId,
-                    pid_Title = GetVWCMP_CompanyById(a.DistributorId) != null ? query3Execute.Where(d => GetVWCMP_CompanyById(a.DistributorId).pid == d.pid).Select(c => c.pid_Title).FirstOrDefault() : null,
-                    AssignmentCount = GetVWCMP_CompanyById(a.DistributorId) != null ? query3Execute.Where(d => GetVWCMP_CompanyById(a.DistributorId).pid == d.pid).Select(t => t.AssignmentCount).FirstOrDefault() : 0,
                 }));
             }
             return data.ToArray();

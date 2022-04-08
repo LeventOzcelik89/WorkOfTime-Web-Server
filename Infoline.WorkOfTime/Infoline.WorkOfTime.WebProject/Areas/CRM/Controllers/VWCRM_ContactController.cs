@@ -44,7 +44,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var condition = KendoToExpression.Convert(request);
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
-            var data = db.GetVWCRM_ContactAction(condition).RemoveGeographies().ToDataSourceResult(request);
+            var data = db.GetVWCRM_ContactAction(condition).ToDataSourceResult(request);
             data.Total = db.GetVWCRM_ContactActionCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
