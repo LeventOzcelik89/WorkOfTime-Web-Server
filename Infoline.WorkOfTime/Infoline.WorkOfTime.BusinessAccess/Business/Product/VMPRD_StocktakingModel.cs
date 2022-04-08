@@ -25,7 +25,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
-                this.items = db.GetVWPRD_StocktakingItemByStocktakingId(this.id);
+                this.items = db.GetVWPRD_StocktakingItemByStocktakingId(this.id).B_RemoveGeographies();
                 this.stocktakingUsers = db.GetVWPRD_StocktakingUserByStocktakingId(this.id);
                 stockTakingSummaries.AddRange(this.items.Where(a => a.serialNumber == null).GroupBy(a => a.productId).Select(a => new VWPRD_StockTakingItemModel
                 {
@@ -416,23 +416,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     }
 
-    public class VWPRD_StockTakingItemModel
+    public class VWPRD_StockTakingItemModel : VWPRD_StocktakingItem
     {
-        public int storageQuantity { get; set; }
-        public Guid? stocktakingId { get; set; }
-        public Guid? productId { get; set; }
-        public string serialNumber { get; set; }
-        public Single? quantity { get; set; }
-        public Guid? unitId { get; set; }
-        public short? status { get; set; }
-        public string createdby_Title { get; set; }
-        public string changedby_Title { get; set; }
-        public string stocktakingId_Title { get; set; }
-        public string productId_Title { get; set; }
-        public string productImage { get; set; }
-        public Guid? storageId { get; set; }
-        public string responsibleUserId_Title { get; set; }
-        public short? productStockType { get; set; }
-        public string unitId_Title { get; set; }
+		public int storageQuantity { get; set; }
     }
 }
