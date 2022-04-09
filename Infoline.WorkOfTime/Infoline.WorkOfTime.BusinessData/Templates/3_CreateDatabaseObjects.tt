@@ -1,0 +1,58 @@
+﻿<#@ template language="C#" hostspecific="True" debug="True" #>
+<#@ include file="General_Manager.tt"#>
+<#@ include file="1_ConnectionString.tt"#>
+<#@ import namespace="System.IO" #>
+<#
+	DatabaseObjects.Run(Host, GenerationEnvironment);
+#>
+<#+
+	public class DatabaseObjects
+	{
+		public static void Run(ITextTemplatingEngineHost host, StringBuilder template)
+		{
+			template.AppendLine("DatabaseObjects");
+			template.AppendLine(string.Format("Son Çalıştırma Tarihi: {0}", DateTime.Now));
+
+			var cnn = new ConnectionStringBase();
+			var manager = Manager.Create(host, template, false); //3.Parametre False alırsa Var Olan Dosyaların Üzerine Yazar.
+			
+            var connectionString = cnn.GetConnectionStringBase();
+            if (connectionString == null)
+                return;
+
+			var frameworkDir = Path.GetDirectoryName(manager.GetProjectFilePath("Infoline.Framework"));
+			var frameworkDll = Path.Combine(frameworkDir, "bin", "Debug", "Infoline.Framework.dll");
+			var DLL = Assembly.LoadFile(frameworkDll);
+
+			var type = DLL.GetType("Infoline.Framework.CodeGeneration.CodeGenerators.SQLClassGenerator"); 
+			var gen = Activator.CreateInstance(type, null); 
+			var code = (Dictionary<string, string>)type.GetMethod("GenerateMultiFile").Invoke(gen, new object[] { cnn.GetConnectionStringBase() } );
+			
+
+			manager.StartHeader();
+			template.AppendLine("using System;");
+			template.AppendLine("using Microsoft.SqlServer.Types;");
+			template.AppendLine("using GeoAPI.Geometries;");
+			template.AppendLine("");
+			template.AppendLine("namespace " + manager.SolutionName +  ".BusinessData");
+			template.AppendLine("{");
+			manager.EndBlock();
+			
+			manager.StartFooter();
+			template.AppendLine("}");
+			manager.EndBlock();
+			 
+			foreach(var kvp in code)
+			{	
+				string project = manager.SolutionName + ".BusinessData";
+				string directory = @"DatabaseObjects";
+				string fileName = string.Format("{0}.cs", kvp.Key);
+				manager.StartNewFile(project, directory, fileName);
+				template.AppendLine(kvp.Value); 
+				manager.EndBlock();
+			}
+			manager.Process(true);
+		}
+	}
+#>
+

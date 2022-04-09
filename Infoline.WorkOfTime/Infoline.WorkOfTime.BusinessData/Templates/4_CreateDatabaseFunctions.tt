@@ -1,0 +1,68 @@
+﻿<#@ template language="C#" hostspecific="True" debug="True" #>
+<#@ include file="General_Manager.tt"#>
+<#@ include file="1_ConnectionString.tt"#>
+<#@ import namespace="System.IO" #>
+<#
+	DatabaseFunctions.Run(Host, GenerationEnvironment);
+#>
+<#+
+	public class DatabaseFunctions
+	{
+		public static void Run(ITextTemplatingEngineHost host, StringBuilder template)
+		{
+			template.AppendLine("SQLDatabaseFunctions");
+			template.AppendLine(string.Format("Son Çalıştırma Tarihi: {0}", DateTime.Now));
+
+			var cnn = new ConnectionStringBase();
+			var manager = Manager.Create(host, template, false); //3.Parametre False alırsa Var Olan Dosyaların Üzerine Yazar.
+			
+            var connectionString = cnn.GetConnectionStringBase();
+            if (connectionString == null)
+                return;
+
+			var frameworkDir = Path.GetDirectoryName(manager.GetProjectFilePath("Infoline.Framework"));
+			var frameworkDll = Path.Combine(frameworkDir, "bin", "Debug", "Infoline.Framework.dll");
+			var DLL = Assembly.LoadFile(frameworkDll);
+
+			var type = DLL.GetType("Infoline.Framework.CodeGeneration.CodeGenerators.SQLDatabaseFunctions"); 
+			var gen = Activator.CreateInstance(type, null); 
+			var code = (Dictionary<string, string>)type.GetMethod("GenerateMultiFile").Invoke(gen, new object[] { cnn.GetConnectionStringBase() } );
+
+
+			manager.StartHeader();
+			
+			template.AppendLine("using System;");
+			template.AppendLine("using System.Collections.Generic;");
+			template.AppendLine("using System.Linq;");
+			template.AppendLine("using System.Text;");
+			template.AppendLine("using System.Threading.Tasks;");
+			template.AppendLine("using Infoline.Framework.Database;");
+			template.AppendLine("using System.Data.SqlClient;");
+			template.AppendLine("using System.Linq.Expressions;");
+            template.AppendLine("using System.Data.Common; ");
+
+
+            template.AppendLine("using " + manager.SolutionName +  ".BusinessData;");
+			
+			template.AppendLine("");
+			template.AppendLine("namespace " + manager.SolutionName +  ".BusinessAccess");
+			template.AppendLine("{");
+			manager.EndBlock();
+			
+			manager.StartFooter();
+			template.AppendLine("}");
+			manager.EndBlock();
+			
+			foreach(var kvp in code)
+			{	
+				string project = manager.SolutionName + ".BusinessAccess";
+				string directory = @"DatabaseFunctions\AutoGenerate";
+				string fileName = string.Format("DB{0}.cs", kvp.Key);
+				manager.StartNewFile(project, directory, fileName);
+				template.AppendLine(kvp.Value); 
+				manager.EndBlock();
+			}
+			manager.Process(true);
+		}
+	}
+#>

@@ -1,0 +1,189 @@
+﻿<#@ template debug="True" hostspecific="True" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE"#>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.IO"#>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating"#>
+<#@ include file="1_ConnectionString.tt"#>
+
+<#@ output extension=".txt" #>
+<#
+
+var cnn = new ConnectionStringBase();
+var connectionString = cnn.GetConnectionStringBase();
+
+
+var check_table = "SELECT count(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{0}'";
+var default_command1 = "ALTER TABLE [dbo].[{0}] ADD  CONSTRAINT [DF_{0}_id]  DEFAULT (newid()) FOR [id]";
+
+var sh_pages = @"
+CREATE TABLE [dbo].[SH_Pages](
+	[id] [uniqueidentifier] NOT NULL,
+	[created] [datetime] NULL,
+	[changed] [datetime] NULL,
+	[createdby] [uniqueidentifier] NULL,
+	[changedby] [uniqueidentifier] NULL,
+	[Bread] [nvarchar](300) NULL,
+	[Description] [nvarchar](300) NULL,
+	[Action] [nvarchar](300) NULL,
+	[Status] [bit] NULL,
+	[Area] [nvarchar](300) NULL,
+	[Controller] [nvarchar](300) NULL,
+	[Method] [nvarchar](300) NULL,
+	[BreadCrumbStatu] [bit] NULL,
+	[ReturnParametre] [nvarchar](300) NULL,
+	[MethodParametre] [nvarchar](300) NULL,
+ CONSTRAINT [PK_SH_Pages_Id] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]";
+
+var sh_pages1 = "ALTER TABLE [dbo].[SH_Pages] ADD  DEFAULT ((0)) FOR [BreadCrumbStatu]";
+var sh_pages2 = "ALTER TABLE [dbo].[SH_Pages] ADD  CONSTRAINT [DF_SH_Pages_created]  DEFAULT (getdate()) FOR [created]";
+
+
+var sh_role = @"
+CREATE TABLE [dbo].[SH_Role](
+	[id] [uniqueidentifier] NOT NULL,
+	[created] [datetime] NULL,
+	[changed] [datetime] NULL,
+	[createdby] [uniqueidentifier] NULL,
+	[changedby] [uniqueidentifier] NULL,
+	[idcode] [nvarchar](50) NULL,
+	[rolname] [nvarchar](100) NULL,
+ CONSTRAINT [PK_SH_Role] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]";
+var sh_role1 = "ALTER TABLE [dbo].[SH_Role] ADD  CONSTRAINT [DF_SH_Role_created]  DEFAULT (getdate()) FOR [created]";
+
+
+var sh_ticket = @"
+CREATE TABLE [dbo].[SH_Ticket](
+	[id] [uniqueidentifier] NOT NULL,
+	[userid] [uniqueidentifier] NOT NULL,
+	[createtime] [datetime] NOT NULL,
+	[endtime] [datetime] NOT NULL,
+	[IP] [nvarchar](50) NULL,
+ CONSTRAINT [PK_SH_Ticket] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]";
+
+
+var sh_user = @"
+CREATE TABLE [dbo].[SH_User](
+	[id] [uniqueidentifier] NOT NULL,
+	[created] [datetime] NULL,
+	[changed] [datetime] NULL,
+	[createdby] [uniqueidentifier] NULL,
+	[changedby] [uniqueidentifier] NULL,
+	[idcode] [nvarchar](50) NULL,
+	[tckimlikno] [nvarchar](11) NULL,
+	[type] [int] NULL,
+	[loginname] [nvarchar](50) NULL,
+	[firstname] [nvarchar](100) NULL,
+	[lastname] [nvarchar](100) NULL,
+	[birthday] [datetime] NULL,
+	[password] [nvarchar](200) NULL,
+	[title] [nvarchar](150) NULL,
+	[email] [nvarchar](100) NULL,
+	[phone] [nvarchar](50) NULL,
+	[cellphone] [nvarchar](50) NULL,
+	[address] [nvarchar](max) NULL,
+	[status] [bit] NOT NULL,
+	[city] [uniqueidentifier] NULL,
+	[town] [uniqueidentifier] NULL,
+ CONSTRAINT [PK_SH_User] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]";
+
+var sh_userRole =	@"
+CREATE TABLE [dbo].[SH_UserRole](
+	[id] [uniqueidentifier] NOT NULL,
+	[created] [datetime] NULL,
+	[changed] [datetime] NULL,
+	[createdby] [uniqueidentifier] NULL,
+	[changedby] [uniqueidentifier] NULL,
+	[userid] [uniqueidentifier] NULL,
+	[roleid] [uniqueidentifier] NULL,
+	[status] [bit] NULL,
+ CONSTRAINT [PK_SH_UserRole] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]";
+
+var SH_PagesRole = @"
+CREATE TABLE [dbo].[SH_PagesRole](
+	[id] [uniqueidentifier] NOT NULL,
+	[created] [datetime] NULL,
+	[changed] [datetime] NULL,
+	[createdby] [uniqueidentifier] NULL,
+	[changedby] [uniqueidentifier] NULL,
+	[actionid] [uniqueidentifier] NULL,
+	[roleid] [uniqueidentifier] NULL,
+	[Status] [bit] NULL
+ CONSTRAINT [PK_PagesRole] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]";
+
+var tables = new Dictionary<string, string[]>();
+tables.Add("SH_Pages",                  new string[] { sh_pages, sh_pages1, sh_pages2 });
+tables.Add("SH_Role",                   new string[] { sh_role,  sh_role1             });
+tables.Add("SH_Ticket",                 new string[] { sh_ticket                      });
+tables.Add("SH_User",                   new string[] { sh_user                        });
+tables.Add("SH_UserRole",               new string[] { sh_userRole                    });
+tables.Add("SH_PagesRole",    new string[] { SH_PagesRole         });
+
+
+if(connectionString != null)
+{
+    StringBuilder template = GenerationEnvironment;
+    ITextTemplatingEngineHost host = Host;
+    
+    var solution = ((EnvDTE.DTE)(((IServiceProvider)host).GetService(typeof(EnvDTE.DTE)))).Solution;
+    var project = solution.Projects.Cast<EnvDTE.Project>().Where(a => a.Name == "Infoline.Framework").FirstOrDefault();
+    
+    var frameworkDir = Path.GetDirectoryName(project.FullName);
+    var frameworkDll = Path.Combine(frameworkDir, "bin", "Debug", "Infoline.Framework.dll");
+    var geoApiDll = Path.Combine(frameworkDir, "libs", "GeoAPI.dll");
+	var netTopoSuitDll = Path.Combine(frameworkDir, "libs", "NetTopologySuite.dll");
+	var npgsqlDll = Path.Combine(frameworkDir, "libs", "Npgsql.dll");
+	var DLL = Assembly.LoadFile(frameworkDll);
+    var GeoApiDLL = Assembly.LoadFile(geoApiDll);
+	var netTopoSuitDLL = Assembly.LoadFile(netTopoSuitDll);
+	var npgsqlDLL = Assembly.LoadFile(npgsqlDll);
+	var type = DLL.GetType("Infoline.Framework.Database.Database"); 
+    var enumType = DLL.GetType("Infoline.Framework.Database.DatabaseType");
+	object enumInstance = Enum.Parse(enumType, "Mssql");
+	template.AppendLine(enumInstance.ToString());
+    
+    using(var db = (IDisposable)Activator.CreateInstance(type, new object[] { connectionString, enumInstance, null }))
+    {
+    	foreach(var table in tables)
+    	{
+    		MethodInfo method = type.GetMethod("ExecuteScaler");
+            MethodInfo generic = method.MakeGenericMethod(typeof(int));
+    		var count = (int)generic.Invoke(db, new object[] { string.Format(check_table, table.Key), new string[0] });
+    		if(count == 0)
+    		{
+    			for(int i = 0; i < table.Value.Length; i++)
+    			    type.InvokeMember("ExecuteNonQuery", BindingFlags.InvokeMethod, null, db, new object[] { table.Value[i] });
+    			type.InvokeMember("ExecuteNonQuery", BindingFlags.InvokeMethod, null, db, new object[] { string.Format(default_command1, table.Key) });
+    		}
+    	}
+    }
+}
+
+#>

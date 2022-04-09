@@ -1,0 +1,38 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".txt" #>
+<#+
+	public class ConnectionStringBase
+	{
+		public string Server { get; private set; }
+		public string DBName { get; private set; }
+		public string User   { get; private set; }
+		public string Pass   { get; private set; }
+		
+		public ConnectionStringBase()
+		{
+			Server = null;
+			DBName = null;
+			User   = null;
+			Pass   = null;
+		}
+
+		public string GetConnectionStringBase()
+		{
+            if(Server == null || DBName == null || User == null || Pass == null)
+                return null;
+			
+			var builder = new SqlConnectionStringBuilder();
+			builder.DataSource = Server;
+            builder.InitialCatalog = DBName;
+            builder.UserID = User;
+            builder.Password = Pass;
+            return builder.ToString();
+		}
+	}
+#>

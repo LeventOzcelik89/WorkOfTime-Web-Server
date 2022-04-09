@@ -1,0 +1,45 @@
+﻿<#@ template language="C#" hostspecific="True" debug="True" #>
+<#@ include file="General_Manager.tt"#>
+<#@ include file="1_ConnectionString.tt"#>
+<#@ import namespace="System.IO" #>
+<#
+	CreateSecurityClass.Run(Host, GenerationEnvironment);
+#>
+<#+
+	public class CreateSecurityClass
+	{
+		public static void Run(ITextTemplatingEngineHost host, StringBuilder template)
+		{
+			template.AppendLine("CreateSecurityClass");
+			template.AppendLine(string.Format("Son Çalıştırma Tarihi: {0}", DateTime.Now));
+
+			var cnn = new ConnectionStringBase();
+			var manager = Manager.Create(host, template, false); 
+			var solutionName = manager.SolutionName;
+
+            var connectionString = cnn.GetConnectionStringBase();
+            if (connectionString == null)
+                return;
+
+			var frameworkDir = Path.GetDirectoryName(manager.GetProjectFilePath("Infoline.Framework"));
+			var frameworkDll = Path.Combine(frameworkDir, "bin", "Debug", "Infoline.Framework.dll");
+			var DLL = Assembly.LoadFile(frameworkDll);
+
+			var type = DLL.GetType("Infoline.Framework.CodeGeneration.CodeGenerators.SecurityClassGenerator"); 
+			var gen = Activator.CreateInstance(type, null); 
+			var code = (Dictionary<string, string>)type.GetMethod("GenerateMultiFile").Invoke(gen, new object[] { solutionName, cnn.DBName } );
+
+			foreach(var kvp in code)
+			{	
+				string project = manager.SolutionName + ".BusinessAccess";
+				string directory = @"Security";
+				string fileName = string.Format("{0}.cs", kvp.Key);
+				manager.StartNewFile(project, directory, fileName);
+				template.AppendLine(kvp.Value); 
+				manager.EndBlock();
+			}
+			manager.Process(true);
+		}
+	}
+#>
+

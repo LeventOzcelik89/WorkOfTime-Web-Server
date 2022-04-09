@@ -1,0 +1,102 @@
+﻿<#@ template language="C#" hostspecific="True" debug="True" #>
+<#@ include file="General_Manager.tt"#>
+<#@ include file="1_ConnectionString.tt"#>
+<#@ import namespace="System.IO" #>
+<#
+	DatabaseMVCGenerator.Run(Host, GenerationEnvironment);
+#>
+<#+
+	public class DatabaseMVCGenerator
+	{
+		public static void Run(ITextTemplatingEngineHost host, StringBuilder template)
+		{
+		
+			var cnn = new ConnectionStringBase();
+			var manager = Manager.Create(host, template, false); 
+
+			var frameworkDir = Path.GetDirectoryName(manager.GetProjectFilePath("Infoline.Framework"));
+			var frameworkDll = Path.Combine(frameworkDir, "bin", "Debug", "Infoline.Framework.dll");
+			var DLL = Assembly.LoadFile(frameworkDll);
+
+			var pageSetupType = DLL.GetType("Infoline.Framework.CodeGeneration.CodeGenerators.MVCPageSetup");
+			var generatorType = DLL.GetType("Infoline.Framework.CodeGeneration.CodeGenerators.MVCGenerator"); 
+			var genController = Activator.CreateInstance(generatorType, null); 
+
+			
+			var projectName = "Infoline.Sevice.Test.WebProject";
+			var pages = new object[]
+            {
+				Activator.CreateInstance(pageSetupType, new object[] { "Station2", "VWST_Istasyon", "ST_Istasyon", true, true, true, true, true }),
+				Activator.CreateInstance(pageSetupType, new object[] { "Station2", "VWBK_Bitki", "BK_Bitki", true, true, true, true, true }),
+            };
+
+
+			
+			template.AppendLine("MVCGenerator");
+			template.AppendLine(string.Format("Son Çalıştırma Tarihi: {0}", DateTime.Now));
+
+						
+			var solutionName = manager.SolutionName;
+            var connectionString = cnn.GetConnectionStringBase();
+            if (connectionString == null)
+                return;
+
+			template.AppendLine(genController == null ? "null" : genController.ToString());
+
+			var controllers = (Dictionary<string, string>)generatorType.GetMethod("GenerateControllers").Invoke(genController, new object[] { connectionString, solutionName, projectName, pages } );
+			var views = (Dictionary<string, string>)generatorType.GetMethod("GenerateViews").Invoke(genController, new object[] { connectionString, solutionName, pages } );
+		
+			
+			WriteControllers(manager, template, projectName, controllers);
+			WriteViews(host, template, projectName, views);
+
+		}
+
+		private static void WriteControllers(Manager manager, StringBuilder template, string projectName, Dictionary<string, string> controllers)
+		{
+			manager.StartHeader();
+			manager.EndBlock();
+			
+			manager.StartFooter();
+			manager.EndBlock();
+			 
+			foreach(var controller in controllers)
+			{	
+				string project = projectName;
+				string directory = System.IO.Path.GetDirectoryName(controller.Key);
+				string fileName = System.IO.Path.GetFileName(controller.Key);
+				template.AppendLine(directory);
+				template.AppendLine(fileName);
+				manager.StartNewFile(project, directory, fileName);
+				template.AppendLine(controller.Value); 
+				manager.EndBlock();
+			}
+
+			manager.Process(true);
+		}
+
+		private static void WriteViews(ITextTemplatingEngineHost host, StringBuilder template, string projectName, Dictionary<string, string> views)
+		{
+			var manager = Manager.Create(host, template, false); 
+
+			manager.StartHeader();
+			manager.EndBlock();
+			
+			manager.StartFooter();
+			manager.EndBlock();
+			
+			foreach(var view in views)
+			{	
+				string project = projectName;
+				string directory = System.IO.Path.GetDirectoryName(view.Key);
+				string fileName = System.IO.Path.GetFileName(view.Key);
+				manager.StartNewFile(project, directory, fileName);
+				template.AppendLine(view.Value); 
+				manager.EndBlock();
+			}
+
+			manager.Process(true);
+		}
+
+	}
+#>

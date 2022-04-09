@@ -1,0 +1,64 @@
+﻿<#@ template language="C#" hostspecific="True" debug="True" #>
+<#@ include file="General_Manager.tt"#>
+<#@ include file="1_ConnectionString.tt"#>
+<#@ import namespace="System.IO" #>
+<#
+	DatabaseServices.Run(Host, GenerationEnvironment);
+#>
+<#+
+	public class DatabaseServices
+	{
+		public static void Run(ITextTemplatingEngineHost host, StringBuilder template)
+		{
+			
+			template.AppendLine("SQLServiceGenerator");
+			template.AppendLine(string.Format("Son Çalıştırma Tarihi: {0}", DateTime.Now));
+
+			
+			var cnn = new ConnectionStringBase();
+			var manager = Manager.Create(host, template, false); 
+			
+            var connectionString = cnn.GetConnectionStringBase();
+            if (connectionString == null)
+                return;
+
+			var frameworkDir = Path.GetDirectoryName(manager.GetProjectFilePath("Infoline.Framework"));
+			var frameworkDll = Path.Combine(frameworkDir, "bin", "Debug", "Infoline.Framework.dll");
+			var DLL = Assembly.LoadFile(frameworkDll);
+
+			var type = DLL.GetType("Infoline.Framework.CodeGeneration.CodeGenerators.SQLServiceGenerator"); 
+			var gen = Activator.CreateInstance(type, null); 
+			var code = (Dictionary<string, string>)type.GetMethod("GenerateMultiFile").Invoke(gen, new object[] { cnn.GetConnectionStringBase() } );
+			
+
+			manager.StartHeader();
+			template.AppendLine("using System;");
+			template.AppendLine(string.Format("using {0}.BusinessData;", manager.SolutionName));
+			template.AppendLine("using Infoline.Web.SmartHandlers;");
+			template.AppendLine("using System.ComponentModel.Composition;");
+			template.AppendLine("using System.Web;");
+			template.AppendLine("using Infoline.Framework.Database;");
+			template.AppendLine(string.Format("using {0}.BusinessAccess;", manager.SolutionName));
+			template.AppendLine("");
+			template.AppendLine("namespace " + manager.SolutionName + ".WebService");
+			template.AppendLine("{");
+			manager.EndBlock();
+			
+			manager.StartFooter();
+			template.AppendLine("}");
+			manager.EndBlock();
+			
+			foreach(var kvp in code)
+			{	
+				string project = manager.SolutionName + ".WebService";
+				string directory = @"Handlers";
+				string fileName = string.Format("{0}.cs", kvp.Key);
+				manager.StartNewFile(project, directory, fileName);
+				template.AppendLine(kvp.Value); 
+				manager.EndBlock();
+			}
+			manager.Process(true);
+		}
+	}
+#>
+
