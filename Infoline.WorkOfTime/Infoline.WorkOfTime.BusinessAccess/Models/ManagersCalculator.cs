@@ -89,7 +89,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 res.AddRange(GetChilds(depart));
             }
 
-            return res.Distinct().ToArray();
+            return res.GroupBy(a => a.IdUser).Select(a => a.First()).ToArray();
 
         }
 
@@ -126,7 +126,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
 
             var department = Departments.Where(a => a.id == Departmentid).FirstOrDefault();
-            if (department!=null)
+            if (department != null)
             {
                 var departmentParent = Departments.Where(a => a.id == department.PID && a.Type == department.Type && a.ProjectId == department.ProjectId).FirstOrDefault();
 
