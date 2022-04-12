@@ -10,6 +10,11 @@
     var startDateAll = new DateTime(now.Year, now.Month, 1).AddYears(-10).Date;
     var endDateAll = new DateTime(now.Year, now.Month, 1).AddYears(1).Date;
 }
+<script type="text/x-kendo-template" id="template">
+    <a  data-href="" data-button="ApprovedBut" id="ApprovedButton" data-method="GET" data-target="_blank" data-modal="false" class="k-button hidden"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
+    <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
+    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span></a>
+</script>
 <style type="text/css">
     .filterButtonActive {
         background-color: #2f96b4;
@@ -104,9 +109,8 @@
             return page.colorArray[page.randomColorNumber];
         },
         setDataSourceForProductSellOut: function (data) {
-            debugger;
             $("#sellOutProduct").kendoGrid({
-                toolbar: ["excel"],
+                toolbar: kendo.template($("#template").html()),
                 excel: {
                     fileName: "Bayi Bazlı Toplam Kanal Sell-Out Raporu.xlsx",
                     allPages: true,
@@ -121,13 +125,28 @@
                 pageable: true,
                 filterable: true,
                 columnMenu: true,
+                selectable: 'Single, Row',
                 reorderable: true,
                 resizable: true,
+                change: function (e, resp) {
+                    $('#ApprovedButton').removeClass('hidden')
+                    var grid = $("#sellOutProduct").data("kendoGrid");
+                    var startDate = $('#startDate').val();
+                    var endDate = $('#endDate').val();
+                    var selectedItem = grid.dataItem(grid.select());
+                    if (selectedItem.hasThePayment == 1) {
+                        $('[data-button="ApprovedBut"]').hide();
+                    }
+                    else {
+                        $('[data-button="ApprovedBut"]').show();
+                    }
+                    $('[data-button="ApprovedBut"]').attr('data-href', '/PRD/VWPRD_EntegrationAction/SellOutReportDetail?DistributorId=' + selectedItem.DistributorId + '&startDate=' + startDate + '&endDate=' + endDate + '');
+                },
                 columns: [
                     { field: "DistributorName", title: "Distribütör Adı", width: 200 },
-                    { field: "SalesCount", title: "Diste Satış", width: 110 },
-                    { field: "DistSalesCount", title: "Distin Sattığı", width: 125 },
-                    { field: "AssignmentCount", title: "Temlik Data", width: 125 },
+                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110 },
+                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
+                    { field: "AssignmentCount", title: "Temlik", width: 125 },
                     { field: "ActivatedData", title: "Aktivasyon", width: 125 },
                 ],
             });
@@ -136,7 +155,8 @@
             $("#sellOutProduct .k-grid-excel").text("");
             $("#sellOutProduct .k-grid-excel").append(icon);
         },
-         setDataSourceForProductSellOutDist: function (data) {
+        
+        setDataSourceForProductSellOutDist: function (data) {
              $("#sellOutProducts").kendoGrid({
                 toolbar: ["excel"],
                 excel: {
@@ -147,7 +167,7 @@
                 dataSource: {
                     data: data.objects,
                     pageSize: 25,
-                    group: { field: "DistributorName", text:"Bayi Adı"}
+                    group: { field: "DistributorName" }
                 },
                 height: 550,
                 sortable: true,
@@ -159,9 +179,9 @@
                 resizable: true,
                 columns: [
                     { field: "ProductName", title: "Ürün Adı", width: 200 },
-                    { field: "SalesCount", title: "Diste Satış", width: 110 },
-                    { field: "DistSalesCount", title: "Distin Sattığı", width: 125 },
-                    { field: "AssignmentCount", title: "Temlik Data", width: 125 },
+                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110 },
+                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
+                    { field: "AssignmentCount", title: "Temlik", width: 125 },
                     { field: "ActivatedData", title: "Aktivasyon", width: 125 },
                 ],
             });
@@ -169,12 +189,12 @@
              var icon = $("#sellOutProducts .k-i-excel");
              $("#sellOutProducts .k-grid-excel").text("");
              $("#sellOutProducts .k-grid-excel").append(icon);
+            
         },
 
 
             getPageRecords: function (startDate, endDate) {
                 GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageReport", { startDate: startDate, endDate: endDate }, function (data) {
-                    debugger;
                     page.setDataSourceForProductSellOut(data.DistDataSourceReport);
                     page.setDataSourceForProductSellOutDist(data.DistAndProductDataSourceReport);
                 });

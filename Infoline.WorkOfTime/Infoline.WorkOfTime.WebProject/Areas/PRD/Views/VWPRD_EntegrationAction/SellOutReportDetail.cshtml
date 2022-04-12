@@ -1,0 +1,179 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_EntegrationActionModel
+@{
+    ViewBag.Title = Model.DistName + " SellOut Detayları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var now = DateTime.Now;
+    var start = new DateTime(Model.startDate.Year, Model.startDate.Month, Model.startDate.Day).Date;
+    var end = new DateTime(Model.endDate.Year, Model.endDate.Month, Model.endDate.Day).Date;
+}
+@Html.HiddenFor(a => a.DistributorId)
+@Html.HiddenFor(a => a.startDate)
+@Html.HiddenFor(a => a.endDate)
+<style type="text/css">
+    .filterButtonActive {
+        background-color: #2f96b4;
+        border-color: #2f96b4;
+        color: white;
+    }
+
+    .k-grid-header th.k-header > .k-link {
+        padding: 0;
+        margin: 0;
+        min-height: 16px;
+        line-height: inherit;
+        text-align: center;
+    }
+</style>
+<div class="row" style="padding-bottom:15px;">
+    <div class="ibox">
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>@Model.DistName Toplam Kanal Sell-Out / Aktivasyon</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 215px; max-height: 610px; overflow: auto; height: 215px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutProduct">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Bayi Toplam Kanal Sell-Out / Aktivasyon</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutProductDealar">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Bayi ve Ürün Toplam Kanal Sell-Out / Aktivasyon</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutProducts">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var page = {
+        randomColorNumber: -1,
+        colorArray: ["badge-primary", "badge-danger", "badge-warning", "badge-info"],
+        getRandomColor: function () {
+            if (page.randomColorNumber >= page.colorArray.length - 1) {
+                page.randomColorNumber = 0;
+                return page.colorArray[page.randomColorNumber];
+            }
+            page.randomColorNumber++;
+            return page.colorArray[page.randomColorNumber];
+        },
+        setDataSourceForProductSellOut: function (data) {
+            debugger;
+            $("#sellOutProduct").kendoGrid({
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25
+                },
+                height: 155,
+                sortable: true,
+                pageable: false,
+                filterable: true,
+                columnMenu: true,
+                reorderable: true,
+                resizable: true,
+                columns: [
+                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 125, attributes: { style: "font-size: 16px;text-align:center" } },
+                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125, attributes: { style: "font-size: 16px;text-align:center" } },
+                    { field: "AssignmentCount", title: "Temlik", width: 125, attributes: { style: "font-size: 16px;text-align:center" } },
+                    { field: "ActivatedData", title: "Aktivasyon", width: 125, attributes: { style: "font-size: 16px;text-align:center" } },
+                ],
+            });
+
+            var icon = $("#sellOutProduct .k-i-excel");
+            $("#sellOutProduct .k-grid-excel").text("");
+            $("#sellOutProduct .k-grid-excel").append(icon);
+        },
+        setDataSourceForProductSellOutDealar: function (data) {
+            $("#sellOutProductDealar").kendoGrid({
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Bayi Bazlı Toplam Kanal Sell-Out Raporu.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                filterable: true,
+                columnMenu: true,
+                reorderable: true,
+                resizable: true,
+                columns: [
+                    { field: "DealarName", title: "Bayi Adı", width: 125 },
+                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "AssignmentCount", title: "Temlik", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "ActivatedData", title: "Aktivasyon", width: 125, attributes: { style: "text-align:center" } },
+                ],
+            });
+
+            var icon = $("#sellOutProductDealar .k-i-excel");
+            $("#sellOutProductDealar .k-grid-excel").text("");
+            $("#sellOutProductDealar .k-grid-excel").append(icon);
+        },
+        setDataSourceForProductSellOutDealarAndProduct: function (data) {
+            debugger;
+             $("#sellOutProducts").kendoGrid({
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Ürün ve Bayi Bazlı Toplam Kanal Sell-Out Raporu.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25,
+                    group: { field: "DealarName" }
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                groupable: true,
+                filterable: true,
+                columnMenu: true,
+                reorderable: true,
+                resizable: true,
+                columns: [
+                    { field: "ProductName", title: "Ürün Adı", width: 200, attributes: { style: "text-align:center" } },
+                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110, attributes: { style: "text-align:center" } },
+                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "AssignmentCount", title: "Temlik", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "ActivatedData", title: "Aktivasyon", width: 125, attributes: { style: "text-align:center" } },
+                ],
+            });
+
+             var icon = $("#sellOutProducts .k-i-excel");
+             $("#sellOutProducts .k-grid-excel").text("");
+             $("#sellOutProducts .k-grid-excel").append(icon);
+
+        },
+
+        getPageRecords: function (startDate, endDate, dist) {
+            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageReportDetail", { startDate: startDate, endDate: endDate, DistrubitorId: dist }, function (data) {
+                    page.setDataSourceForProductSellOut(data.DistData);
+                    page.setDataSourceForProductSellOutDealar(data.DealarDetailData);
+                    page.setDataSourceForProductSellOutDealarAndProduct(data.DealarAndProductData);
+                });
+            }
+    }
+    var dist = $('#DistributorId').val();
+    $(document).ready(page.getPageRecords('@start', '@end', dist));
+</script>

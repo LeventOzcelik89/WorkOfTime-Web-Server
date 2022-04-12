@@ -31,6 +31,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return View();
         }
 
+        [PageInfo("Titan Cihaz Sell Out Raporu", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli, SHRoles.SistemYonetici)]
+        public ActionResult SellOutReportDetail(VMPRD_EntegrationActionModel item,DateTime startDate, DateTime endDate)
+        {
+            item.startDate = startDate;
+            item.endDate = endDate;
+            var data = item.Load();
+            return View(data);
+        }
 
         [AllowEveryone]
         [PageInfo("Bayi Aktivasyon Raporu DataSource", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici, SHRoles.UretimYonetici)]
@@ -65,6 +73,30 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             t1.Wait();
             t2.Wait();
+            return Json(pageReport, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowEveryone]
+        [PageInfo("Dashboard Sayfası Verileri")]
+        public JsonResult GetPageReportDetail(DateTime startDate, DateTime endDate,Guid DistrubitorId)
+        {
+            VMPRD_EntegrationActionModel pageReport = new VMPRD_EntegrationActionModel();
+            var t1 = Task.Run(() =>
+            {
+                pageReport.DistData = new VMPRD_EntegrationActionModel().SellOutProductDetailDistData(startDate, endDate, DistrubitorId);
+            });
+            var t2 = Task.Run(() =>
+            {
+                pageReport.DealarDetailData = new VMPRD_EntegrationActionModel().SellOutProductDealarData(startDate, endDate, DistrubitorId);
+            });
+            var t3 = Task.Run(() =>
+            {
+                pageReport.DealarAndProductData= new VMPRD_EntegrationActionModel().SellOutProductDealarProductData(startDate, endDate, DistrubitorId);
+            });
+
+            t1.Wait();
+            t2.Wait();
+            t3.Wait();
             return Json(pageReport, JsonRequestBehavior.AllowGet);
         }
     }
