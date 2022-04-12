@@ -31,6 +31,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_EntegrationAction>().Where(a => a.Imei == imei).Execute().FirstOrDefault();
             }
         }
+
+
+
         public SellOutReportNewModel[] GetPRD_SellOutProductReportDistrubitorQuery(DateTime startDate, DateTime endDate)
         {
             var data = new List<SellOutReportNewModel>();
@@ -96,6 +99,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return data.ToArray();
         }
+
+
 
         public SellOutReportNewModel[] GetPRD_SellOutReportByDistrubitorDetail(DateTime startDate, DateTime endDate, Guid DistrubitorId)
         {
@@ -171,7 +176,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 foreach (var dist in query4Execute.GroupBy(n => n.DealarId))
                 {
                     var distrubitorList = query4Execute.Where(a => a.DealarId == dist.Key);
-                    foreach (var product in distrubitorList.GroupBy(v=>v.ProductId))
+                    foreach (var product in distrubitorList.GroupBy(v => v.ProductId))
                     {
                         list.Add(new SellOutReportNewModel
                         {
@@ -184,6 +189,138 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             AssignmentCount = query4Execute.Where(a => a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.AssignmentCount),
                             ProductName = GetPRD_ProductById(product.Key).name,
                             ProductId = product.Key,
+                        });
+                    }
+                }
+            }
+            return list.ToArray();
+        }
+
+
+
+        public DistStockReportModel[] GetPRD_DistStockReportByDistrubitor()
+        {
+            var data = new List<DistStockReportModel>();
+            using (var db = GetDB())
+            {
+                var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary";
+                var IntegrationActionQuery = $@"select * from VWPRD_InventoryActionSummary";
+                var queryExecute = db.ExecuteReader<DistStockReportModel>(EntegrationActionQuery.ToString()).ToArray();
+                var query2Execute = db.ExecuteReader<DistStockReportModel>(IntegrationActionQuery.ToString()).ToArray();
+                data.AddRange(queryExecute.GroupBy(v => v.DistributorId).Select(a => new DistStockReportModel
+                {
+                    DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
+                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    DealarSalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount),
+                    DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
+                    TotalStock = (query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount)),
+                }));
+            }
+            return data.ToArray();
+        }
+
+        public DistStockReportModel[] GetPRD_StockProductReportDistrubitorQuery()
+        {
+            var data = new List<DistStockReportModel>();
+            var list = new List<DistStockReportModel>();
+            using (var db = GetDB())
+            {
+                var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary";
+                var IntegrationActionQuery = $@"select * from VWPRD_InventoryActionSummary";
+                var queryExecute = db.ExecuteReader<DistStockReportModel>(EntegrationActionQuery.ToString()).ToArray();
+                var query2Execute = db.ExecuteReader<DistStockReportModel>(IntegrationActionQuery.ToString()).ToArray();
+                foreach (var dist in queryExecute.GroupBy(n => n.DistributorId))
+                {
+                    var distrubitorList = queryExecute.Where(a => a.DistributorId == dist.Key);
+                    foreach (var product in distrubitorList)
+                    {
+                        list.Add(new DistStockReportModel
+                        {
+                            DistributorName = queryExecute.Where(a => a.DistributorId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
+                            DistributorId = dist.Key,
+                            DealarSalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DealarSalesCount),
+                            DistSalesCount = query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DistSalesCount),
+                            ProductName = GetPRD_ProductById(product.ProductId).name,
+                            ProductId = product.ProductId,
+                            TotalStock = (query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DistSalesCount)- queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DealarSalesCount))
+                        });
+                    }
+                }
+            }
+            return list.ToArray();
+        }
+
+
+
+        public DistStockReportModel[] GetPRD_StockReportByDistrubitorDetail(Guid DistrubitorId)
+        {
+            var data = new List<DistStockReportModel>();
+            using (var db = GetDB())
+            {
+                var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary where DistributorId = '" + DistrubitorId + "'";
+                var IntegrationActionQuery = $@"select * from VWPRD_InventoryActionSummary where DistributorId = '" + DistrubitorId + "'";
+                var queryExecute = db.ExecuteReader<DistStockReportModel>(EntegrationActionQuery.ToString()).ToArray();
+                var query2Execute = db.ExecuteReader<DistStockReportModel>(IntegrationActionQuery.ToString()).ToArray();
+                data.AddRange(queryExecute.GroupBy(v => v.DistributorId).Select(a => new DistStockReportModel
+                {
+                    DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
+                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    DealarSalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount),
+                    DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
+                    TotalStock = (query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount)),
+                }));
+            }
+            return data.ToArray();
+        }
+
+        public DistStockReportModel[] GetPRD_StockReportByDealar(Guid DistrubitorId)
+        {
+            var data = new List<DistStockReportModel>();
+            using (var db = GetDB())
+            {
+                var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary where DistributorId = '" + DistrubitorId + "'";
+                var Temlik = $@"select * from VWPRD_ProductProgressPaymentImportDealarSummary where DistributorId = '" + DistrubitorId + "'";
+                var query2Execute = db.ExecuteReader<DistStockReportModel>(Temlik.ToString()).ToArray();
+                var queryExecute = db.ExecuteReader<DistStockReportModel>(EntegrationActionQuery.ToString()).ToArray();
+                data.AddRange(queryExecute.GroupBy(v => v.DealarId).Select(a => new DistStockReportModel
+                {
+                    DistributorId = a.Where(b => b.DistributorId == DistrubitorId).Select(c => c.DistributorId).FirstOrDefault(),
+                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    DealarId = a.Key,
+                    DealarName = GetCMP_CompanyById(a.Key).name,
+                    DealarSalesCount = queryExecute.Where(b => b.DealarId == a.Key).Sum(c => c.DealarSalesCount),
+                    DistSalesCount = query2Execute.Where(b => b.DealarId == a.Key).Sum(c => c.DistSalesCount),
+                    TotalStock = (queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount) - query2Execute.Where(b => b.DealarId == a.Key).Sum(c => c.DistSalesCount) )
+                }));
+            }
+            return data.ToArray();
+        }
+
+        public DistStockReportModel[] GetPRD_StockProductReportDealarQuery(Guid DistrubitorId)
+        {
+            var data = new List<DistStockReportModel>();
+            var list = new List<DistStockReportModel>();
+            using (var db = GetDB())
+            {
+                var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary where DistributorId = '" + DistrubitorId + "'";
+                var Temlik = $@"select * from VWPRD_ProductProgressPaymentImportDealarSummary where DistributorId = '" + DistrubitorId + "'";
+                var queryExecute = db.ExecuteReader<DistStockReportModel>(EntegrationActionQuery.ToString()).ToArray();
+                var query2Execute = db.ExecuteReader<DistStockReportModel>(Temlik.ToString()).ToArray();
+                foreach (var dist in queryExecute.GroupBy(n => n.DealarId))
+                {
+                    var distrubitorList = queryExecute.Where(a => a.DealarId == dist.Key);
+                    foreach (var product in distrubitorList.GroupBy(v => v.ProductId))
+                    {
+                        list.Add(new DistStockReportModel
+                        {
+                            DealarSalesCount = queryExecute.Where(a => a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.DealarSalesCount),
+                            DistSalesCount = query2Execute.Where(a => a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount),
+                            DistributorName = queryExecute.Where(a => a.DealarId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
+                            DealarId = dist.Key,
+                            DealarName = GetCMP_CompanyById(dist.Key).name,
+                            ProductName = GetPRD_ProductById(product.Key).name,
+                            ProductId = product.Key,
+                            TotalStock = (queryExecute.Where(b => b.DistributorId == dist.Key).Sum(c => c.DealarSalesCount) - query2Execute.Where(b => b.DealarId == dist.Key).Sum(c => c.DistSalesCount) )
                         });
                     }
                 }

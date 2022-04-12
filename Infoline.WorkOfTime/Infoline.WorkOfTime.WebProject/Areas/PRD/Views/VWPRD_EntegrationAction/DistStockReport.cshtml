@@ -1,0 +1,152 @@
+﻿@{
+    ViewBag.Title = "Stok Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(DayOfWeek.Monday - now.DayOfWeek).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+    var startDateAll = new DateTime(now.Year, now.Month, 1).AddYears(-10).Date;
+    var endDateAll = new DateTime(now.Year, now.Month, 1).AddYears(1).Date;
+}
+<script type="text/x-kendo-template" id="template">
+    <a  data-href="" data-button="ApprovedBut" id="ApprovedButton" data-method="GET" data-target="_blank" data-modal="false" class="k-button hidden"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
+    <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
+    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span></a>
+</script>
+<style type="text/css">
+    .filterButtonActive {
+        background-color: #2f96b4;
+        border-color: #2f96b4;
+        color: white;
+    }
+</style>
+<div class="row" style="padding-bottom:15px;">
+    <div class="ibox">
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Distribütör Stok Raporu</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="distStock">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Ürün Bazlı Stok Raporu</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="distStockProduct">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var page = {
+        randomColorNumber: -1,
+        colorArray: ["badge-primary", "badge-danger", "badge-warning", "badge-info"],
+        getRandomColor: function () {
+            if (page.randomColorNumber >= page.colorArray.length - 1) {
+                page.randomColorNumber = 0;
+                return page.colorArray[page.randomColorNumber];
+            }
+            page.randomColorNumber++;
+            return page.colorArray[page.randomColorNumber];
+        },
+        setDataSourceForStockData: function (data) {
+            $("#distStock").kendoGrid({
+                toolbar: kendo.template($("#template").html()),
+                excel: {
+                    fileName: "Distribütör Stok Raporu.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                filterable: true,
+                columnMenu: true,
+                selectable: 'Single, Row',
+                reorderable: true,
+                resizable: true,
+                change: function (e, resp) {
+                    $('#ApprovedButton').removeClass('hidden')
+                    var grid = $("#distStock").data("kendoGrid");
+                    var selectedItem = grid.dataItem(grid.select());
+                    if (selectedItem.hasThePayment == 1) {
+                        $('[data-button="ApprovedBut"]').hide();
+                    }
+                    else {
+                        $('[data-button="ApprovedBut"]').show();
+                    }
+                    $('[data-button="ApprovedBut"]').attr('data-href', '/PRD/VWPRD_EntegrationAction/DistStockReportDetail?DistributorId=' + selectedItem.DistributorId);
+                },
+                columns: [
+                    { field: "DistributorName", title: "Distribütör Adı", width: 200 },
+                    { field: "DistSalesCount", title: "Toplam Distribütöre Satış", width: 110 },
+                    { field: "DealarSalesCount", title: "Toplam Bayiye Satış", width: 125 },
+                    { field: "TotalStock", title: "Distribütör Stok", width: 125 },
+                ],
+            });
+
+            var icon = $("#distStock .k-i-excel");
+            $("#distStock .k-grid-excel").text("");
+            $("#distStock .k-grid-excel").append(icon);
+        },
+
+        setDataSourceForProductStockData: function (data) {
+            $("#distStockProduct").kendoGrid({
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Ürün Bazlı Stok Raporu.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25,
+                    group: { field: "DistributorName" }
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                groupable: true,
+                filterable: true,
+                columnMenu: true,
+                reorderable: true,
+                resizable: true,
+                columns: [
+                    { field: "ProductName", title: "Ürün Adı", width: 200 },
+                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110 },
+                    { field: "DealarSalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
+                    { field: "TotalStock", title: "Distribütörün Bayi Satışı", width: 125 },
+                ],
+            });
+
+            var icon = $("#distStockProduct .k-i-excel");
+            $("#distStockProduct .k-grid-excel").text("");
+            $("#distStockProduct .k-grid-excel").append(icon);
+
+        },
+
+
+        getPageRecords: function () {
+            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageStockReport", null, function (data) {
+                page.setDataSourceForStockData(data.DistStockData);
+                page.setDataSourceForProductStockData(data.DistProductStockData);
+            });
+        }
+
+    }
+    $(document).ready(page.getPageRecords());
+
+</script>

@@ -1,0 +1,174 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_EntegrationActionModel
+@{
+    ViewBag.Title = Model.DistName + " Stok Detayları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@Html.HiddenFor(a => a.DistributorId)
+<style type="text/css">
+    .filterButtonActive {
+        background-color: #2f96b4;
+        border-color: #2f96b4;
+        color: white;
+    }
+
+    .k-grid-header th.k-header > .k-link {
+        padding: 0;
+        margin: 0;
+        min-height: 16px;
+        line-height: inherit;
+        text-align: center;
+    }
+</style>
+<div class="row" style="padding-bottom:15px;">
+    <div class="ibox">
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>@Model.DistName Toplam Stok</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 215px; max-height: 610px; overflow: auto; height: 215px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="DistTotalStock">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Bayi Toplam Stok</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="DealarTotalStock">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Bayi ve Ürün Toplam Stok</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="DealarAndProductStock">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var page = {
+        randomColorNumber: -1,
+        colorArray: ["badge-primary", "badge-danger", "badge-warning", "badge-info"],
+        getRandomColor: function () {
+            if (page.randomColorNumber >= page.colorArray.length - 1) {
+                page.randomColorNumber = 0;
+                return page.colorArray[page.randomColorNumber];
+            }
+            page.randomColorNumber++;
+            return page.colorArray[page.randomColorNumber];
+        },
+        setDataSourceForDistTotalStock: function (data) {
+            debugger;
+            $("#DistTotalStock").kendoGrid({
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25
+                },
+                height: 155,
+                sortable: true,
+                pageable: false,
+                filterable: true,
+                columnMenu: true,
+                reorderable: true,
+                resizable: true,
+                columns: [
+                    { field: "DistributorName", title: "Distribütör Adı", width: 200, attributes: { style: "text-align:center" }},
+                    { field: "DistSalesCount", title: "Toplam Distribütöre Satış", width: 110, attributes: { style: "text-align:center" }},
+                    { field: "DealarSalesCount", title: "Toplam Bayiye Satış", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "TotalStock", title: "Distribütör Stok", width: 125, attributes: { style: "text-align:center" }},
+                ],
+            });
+
+            var icon = $("#DistTotalStock .k-i-excel");
+            $("#DistTotalStock .k-grid-excel").text("");
+            $("#DistTotalStock .k-grid-excel").append(icon);
+        },
+        setDataSourceForDealarTotalStock: function (data) {
+            $("#DealarTotalStock").kendoGrid({
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Bayi ve Ürün Toplam Stok.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                filterable: true,
+                columnMenu: true,
+                reorderable: true,
+                resizable: true,
+                columns: [
+                    { field: "DealarName", title: "Bayi Adı", width: 125 },
+                    { field: "DealarSalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "DistSalesCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
+                    { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" } },
+
+                ],
+            });
+
+            var icon = $("#DealarTotalStock .k-i-excel");
+            $("#DealarTotalStock .k-grid-excel").text("");
+            $("#DealarTotalStock .k-grid-excel").append(icon);
+        },
+        setDataSourceForDealarAndProductStock: function (data) {
+            debugger;
+            $("#DealarAndProductStock").kendoGrid({
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Bayi ve Ürün Toplam Stok.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.objects,
+                    pageSize: 25,
+                    group: { field: "DealarName" }
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                groupable: true,
+                filterable: true,
+                columnMenu: true,
+                reorderable: true,
+                resizable: true,
+                columns: [
+                    { field: "ProductName", title: "Ürün Adı", width: 200, attributes: { style: "text-align:center" } },
+                    { field: "DealarSalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "DistSalesCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
+                    { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" } },
+                ],
+            });
+
+            var icon = $("#DealarAndProductStock .k-i-excel");
+            $("#DealarAndProductStock .k-grid-excel").text("");
+            $("#DealarAndProductStock .k-grid-excel").append(icon);
+
+        },
+
+        getPageRecords: function (dist) {
+            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageStockReportDetail", {DistrubitorId: dist }, function (data) {
+                page.setDataSourceForDistTotalStock(data.DistStockDetailData);
+                page.setDataSourceForDealarTotalStock(data.DealarStockDetailData);
+                page.setDataSourceForDealarAndProductStock(data.DealarProductStockDetailData);
+                });
+            }
+    }
+    var dist = $('#DistributorId').val();
+    $(document).ready(page.getPageRecords(dist));
+</script>

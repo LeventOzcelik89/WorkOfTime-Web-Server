@@ -23,6 +23,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string DistName { get; set; }
         public DateTime startDate { get; set; }
         public DateTime endDate { get; set; }
+        public ResultStatus DistStockData { get; set; }
+        public ResultStatus DistProductStockData { get; set; }
+        public ResultStatus DistStockDetailData { get; set; }
+        public ResultStatus DealarStockDetailData { get; set; }
+        public ResultStatus DealarProductStockDetailData { get; set; }
         public VWPRD_EntegrationAction Load()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -92,6 +97,66 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 objects = getData
             };
         }
+
+        public ResultStatus DistStockReportData()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var getData = db.GetPRD_DistStockReportByDistrubitor();
+
+            return new ResultStatus
+            {
+                result = true,
+                objects = getData
+            };
+        }
+
+        public ResultStatus DistProductStockReportData()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var getData = db.GetPRD_StockProductReportDistrubitorQuery();
+
+            return new ResultStatus
+            {
+                result = true,
+                objects = getData
+            };
+        }
+
+        public ResultStatus DistStockDetailDistData(Guid DistrubitorId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var getData = db.GetPRD_StockReportByDistrubitorDetail(DistrubitorId);
+
+            return new ResultStatus
+            {
+                result = true,
+                objects = getData
+            };
+        }
+
+        public ResultStatus DistStockProductDealarData(Guid DistrubitorId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var getData = db.GetPRD_StockReportByDealar(DistrubitorId);
+
+            return new ResultStatus
+            {
+                result = true,
+                objects = getData
+            };
+        }
+
+        public ResultStatus DistStockProductDealarProductData(Guid DistrubitorId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var getData = db.GetPRD_StockProductReportDealarQuery(DistrubitorId);
+
+            return new ResultStatus
+            {
+                result = true,
+                objects = getData
+            };
+        }
     }
     public class SellOutReportNewModel
     {
@@ -105,7 +170,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public int AssignmentCount { get; set; }
         public Guid ProductId { get; set; }
         public string ProductName { get; set; }
-        public SellOutProductReportModel[] products { get; set; }
     }
 
     public class SellOutProductReportModel
@@ -118,5 +182,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public int AssignmentCount { get; set; }
         public Guid ProductId { get; set; }
         public string ProductName { get; set; }
+    }
+
+    public class DistStockReportModel
+    {
+        public Guid DistributorId { get; set; }
+        public string DistributorName { get; set; }
+        public Guid DealarId { get; set; }
+        public string DealarName { get; set; }
+        public int DistSalesCount { get; set; }
+        public int DealarSalesCount { get; set; }
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int TotalStock { get; set; }
+    }
+    public class DistStockProductReportModel
+    {
+        public Guid DistributorId { get; set; }
+        public string DistributorName { get; set; }
+        public int DistSalesCount { get; set; }
+        public int DealarSalesCount { get; set; }
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int TotalStock { get; set; }
     }
 }

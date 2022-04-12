@@ -25,17 +25,30 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return View(model.Load());
         }
 
-        [PageInfo("Titan Cihaz Sell Out Raporu", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli,SHRoles.SistemYonetici)]
+        [PageInfo("Sell Out Raporu", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli, SHRoles.SistemYonetici)]
         public ActionResult SellOutReport()
         {
             return View();
         }
 
-        [PageInfo("Titan Cihaz Sell Out Raporu", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli, SHRoles.SistemYonetici)]
-        public ActionResult SellOutReportDetail(VMPRD_EntegrationActionModel item,DateTime startDate, DateTime endDate)
+        [PageInfo("Sell Out Raporu Detayı", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli, SHRoles.SistemYonetici)]
+        public ActionResult SellOutReportDetail(VMPRD_EntegrationActionModel item, DateTime startDate, DateTime endDate)
         {
             item.startDate = startDate;
             item.endDate = endDate;
+            var data = item.Load();
+            return View(data);
+        }
+
+        [PageInfo("Distributör Stok Raporu", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli, SHRoles.SistemYonetici)]
+        public ActionResult DistStockReport()
+        {
+            return View();
+        }
+
+        [PageInfo("Distributör Stok Raporu Detayı", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli, SHRoles.SistemYonetici)]
+        public ActionResult DistStockReportDetail(VMPRD_EntegrationActionModel item)
+        {
             var data = item.Load();
             return View(data);
         }
@@ -78,7 +91,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
         [AllowEveryone]
         [PageInfo("Dashboard Sayfası Verileri")]
-        public JsonResult GetPageReportDetail(DateTime startDate, DateTime endDate,Guid DistrubitorId)
+        public JsonResult GetPageReportDetail(DateTime startDate, DateTime endDate, Guid DistrubitorId)
         {
             VMPRD_EntegrationActionModel pageReport = new VMPRD_EntegrationActionModel();
             var t1 = Task.Run(() =>
@@ -91,9 +104,50 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             });
             var t3 = Task.Run(() =>
             {
-                pageReport.DealarAndProductData= new VMPRD_EntegrationActionModel().SellOutProductDealarProductData(startDate, endDate, DistrubitorId);
+                pageReport.DealarAndProductData = new VMPRD_EntegrationActionModel().SellOutProductDealarProductData(startDate, endDate, DistrubitorId);
             });
 
+            t1.Wait();
+            t2.Wait();
+            t3.Wait();
+            return Json(pageReport, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowEveryone]
+        [PageInfo("Stok Rapor Verileri")]
+        public JsonResult GetPageStockReport()
+        {
+            VMPRD_EntegrationActionModel pageReport = new VMPRD_EntegrationActionModel();
+            var t1 = Task.Run(() =>
+            {
+                pageReport.DistStockData = new VMPRD_EntegrationActionModel().DistStockReportData();
+            });
+            var t2 = Task.Run(() =>
+            {
+                pageReport.DistProductStockData = new VMPRD_EntegrationActionModel().DistProductStockReportData();
+            });
+            t1.Wait();
+            t2.Wait();
+            return Json(pageReport, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowEveryone]
+        [PageInfo("Stok Rapor Verileri")]
+        public JsonResult GetPageStockReportDetail(Guid DistrubitorId)
+        {
+            VMPRD_EntegrationActionModel pageReport = new VMPRD_EntegrationActionModel();
+            var t1 = Task.Run(() =>
+            {
+                pageReport.DistStockDetailData = new VMPRD_EntegrationActionModel().DistStockDetailDistData(DistrubitorId);
+            });
+            var t2 = Task.Run(() =>
+            {
+                pageReport.DealarStockDetailData = new VMPRD_EntegrationActionModel().DistStockProductDealarData(DistrubitorId);
+            });
+            var t3 = Task.Run(() =>
+            {
+                pageReport.DealarProductStockDetailData = new VMPRD_EntegrationActionModel().DistStockProductDealarProductData(DistrubitorId);
+            });
             t1.Wait();
             t2.Wait();
             t3.Wait();
