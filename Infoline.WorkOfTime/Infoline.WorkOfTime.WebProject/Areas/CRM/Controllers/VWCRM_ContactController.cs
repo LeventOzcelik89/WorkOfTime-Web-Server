@@ -210,11 +210,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 UserType = GetUserByType(a)
             }), trans);
 
+            var statusDescription = Helper.EnumsProperties.GetDescriptionFromEnumValue((EnumCRM_ContactContactStatus)item.ContactStatus);
+
             dbresult &= db.InsertCRM_ContactAction(new CRM_ContactAction
             {
                 created = DateTime.Now,
                 createdby = userStatus.user.id,
-                description = "Yeni aktivite/randevu eklendi.",
+                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
                 ContactId = item.id,
                 location = location
             }, trans);
@@ -407,7 +409,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }
             catch (Exception ex)
             {
-                new Email().Send((Int16)EmailSendTypes.Toplanti, "volkan.tabanli@infoline-tr.com", "Toplantı Hata", ex.Message);
+                new Email().Send((Int16)EmailSendTypes.Toplanti, "test@infoline-tr.com", "Toplantı Hata", ex.Message);
             }
             return Json(new ResultStatusUI
             {

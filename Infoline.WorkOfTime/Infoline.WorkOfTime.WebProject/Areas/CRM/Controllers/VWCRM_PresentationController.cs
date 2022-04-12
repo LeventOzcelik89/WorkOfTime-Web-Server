@@ -225,7 +225,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         {
             var db = new WorkOfTimeDatabase();
             var data = db.GetVWCRM_PresentationActionById(id);
-            return View(data);
+            var model = new VMVWCRM_PresentationAction().B_EntityDataCopyForMaterial(data);
+            model.Presentation = db.GetVWCRM_PresentationByPresentationActionId(data.presentationId.Value);
+            return View(model);
         }
 
 

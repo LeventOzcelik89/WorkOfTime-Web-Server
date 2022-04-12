@@ -20,6 +20,7 @@
             data: [],
             filteredData: [],
             locationsData: [],
+            customerLocation: [],
             },
         dfn: {
             harita: new AkilliHarita('contactMap', {
@@ -155,15 +156,31 @@
         anchorXUnits: 'fraction',
         anchorYUnits: 'pixels',
                     })
-                });
+        });
+
+        svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#1A237E" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z" /><circle fill="#f8ac59" cx="256" cy="160" r="96" /><path transform="rotate(180, 0, 0)  translate(-322,-200) scale(0.12)" fill="#ededed" d="M1070-88q0-21-2-63h-1067q0 10 0 31t-1 32q0 30 1 37 12 49 64 85t112 53 125 47 97 65q17 22 17 38 0 22-11 73-4 21-10 37t-16 33-16 31q-15 35-33 132-6 38-6 75 0 105 54 168t157 63 158-63 53-168q0-31-7-75-14-89-32-132-6-14-15-31t-16-33-11-37q-11-51-11-73 0-18 17-38 31-36 97-65t125-47 111-53 64-85q2-8 2-37z" /></svg>';
+
+        var customerLocation = new ol.style.Style({
+                image: new ol.style.Icon({
+                    opacity: 1,
+                    src: '/Content/Custom/img/marker-company.png',
+                    scale: 1.0,
+                    anchor: [0.5, 64],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'pixels',
+                })
+            });
+
         page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
         page.dfn.harita.style.addCustom("locationsStyle", locations);
         page.dfn.harita.style.addCustom("lastLocationStyle", lastLocation);
         page.dfn.harita.style.addCustom("actionLocationStyle", actionLocation);
+        page.dfn.harita.style.addCustom("customerLocationStyle", customerLocation);
         page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
         page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
         page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
         page.dfn.harita.layer.addVector("Aksiyon Konum", "ActionLocation", "actionLocationStyle", "actionLocationStyle", "actionLocationStyle")
+        page.dfn.harita.layer.addVector("Müşteri Konum", "CustomerLocation", "customerLocationStyle", "customerLocationStyle", "customerLocationStyle")
 
 
         page.dfn.harita.layer.addVector("Action", "Action");
@@ -176,7 +193,6 @@
 
             if (page.defines.locationsData != undefined) {
 
-
                 var locationDatas = page.defines.locationsData.location;
                 if (locationDatas != null) {
                     var feature = page.dfn.harita.feature.add("ActionLocation", page.defines.locationsData.id, locationDatas);
@@ -184,6 +200,21 @@
                         feature.set("properties", locationDatas);
                     }
                     page.dfn.harita.layer.panTo("ActionLocation");
+
+                }
+            }
+
+            if (page.defines.customerLocation != undefined) {
+
+
+                var customerLocationData = page.defines.customerLocation;
+                var locationIds = newGuid();
+
+                if (customerLocationData != null) {
+                    var feature = page.dfn.harita.feature.add("CustomerLocation", locationIds, customerLocationData);
+                    if (feature) {
+                        feature.set("properties", customerLocationData);
+                    }
 
                 }
             }
@@ -232,7 +263,7 @@
         var line = "LINESTRING(" + points.join(", ") + ")";
         page.dfn.harita.feature.add("Action", "linestring", line);
 
-        page.dfn.harita.layer.panTo("Locations");
+       /* page.dfn.harita.layer.panTo("Locations");*/
 
                        }
 
@@ -245,6 +276,7 @@
         page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
         page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
         page.dfn.harita.layer.get("ActionLocation")["ActionLocation"].getSource().clear();
+        page.dfn.harita.layer.get("CustomerLocation")["CustomerLocation"].getSource().clear();
         page.dfn.harita.layer.get("Action")["Action"].getSource().clear();
         page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
 
@@ -332,7 +364,42 @@
 
                     return text;
                 }
+                else if (data == page.defines.customerLocation)
+                {
+
+
+                    var customerCompanyId_Title = '@Model.CustomerCompanyId_Title';
+
+                    var s = page.defines.customerLocation;
+                    var locations = data.split('(')[1].replace(')', "");
+                    var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                    var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+                    var text = '<div class="item" style="height:100px !important;width: 215px!important;font-size:10px; padding: 1px 20px;">                                                                                  ' +
+                        '  <div class="head text-center clearfix">                                                                  ' +
+                        '          <div class="col-xs-12">Konum Bilgileri</div>                                                     ' +
+                        '  </div>                                                                                                   ' +
+                        '   <ul class="list-group clear-list" style="margin-top: 5px;">                                                                  ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        customerCompanyId_Title +
+                        '            </span>                                                                                        ' +
+                        '            Müşteri :                                                                       ' +
+                        '        </li>                                                                                              ' +
+                        '        <li class="list-group-item fist-item" style="padding: 6px 0;">                                                             ' +
+                        '            <span class="pull-right listGroupValue">                                                       ' +
+                        longitude + " " + latitude +
+                        '            </span>                                                                                        ' +
+                        '            Konum Bilgisi :                                                                                ' +
+                        '        </li>                                                                                              ' +
+
+                        '    </ul>                                                                                                  ' +
+                        '</div>';
+
+                    return text;
+
+                }
                 else {
+
                     var person = page.defines.filteredData;
                     var s = page.defines.locationsData;
                     var locations = data.split('(')[1].replace(')', "");
@@ -378,14 +445,16 @@
     $('[data-target=".search-content"]').attr("data-placement", "left");
     $('[data-target=".search-content"]').tooltip();
 
+    debugger;
+
+
+
     var personId = '@Model.createdby';
        var createdDate = '@Model.created';
        var endDateTime = '@Model.created.Value.AddHours(2)';
     var startDateTime = '@Model.created.Value.AddHours(-2)';
 
-
-
-
+    page.defines.customerLocation = '@Model.CustomerCompanyLocation';
 
     if (personId != undefined && personId != "") {
         getContactDataAndApplys(personId, startDateTime, startDateTime);
@@ -437,7 +506,16 @@
             }
         }, "Veriler Yükleniyor...");
     }
+
+
+
+ 
+
+
+   
 </script>
+
+
 
 
 
@@ -453,43 +531,52 @@
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id)
 
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md" for="CustomerCompanyId_Title">Müşteri</label>
+<div class="panel-group" id="accordionContact">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordionContact" href="#collapseContact1"> <i class="fa fa-info-circle text-success"></i> Aktivite/Randevu Bilgileri</a>
+            </h4>
         </div>
-        <div class="col-md-9">
-            @Html.TextBoxFor(model => model.CustomerCompanyId_Title, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"},
-            })
-        </div>
-    </div>
+        <div id="collapseContact1" class="panel-collapse collapse in">
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md" for="CustomerCompanyId_Title">Müşteri</label>
+                    </div>
+                    <div class="col-md-9">
+                        @Html.TextBoxFor(model => model.CustomerCompanyId_Title, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"readonly", "readonly"},
+                        })
+                    </div>
+                </div>
 
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md " for="IdUsers">Katılımcılar</label>
-        </div>
-        <div class="col-md-9">
-            <select required="required"
-                    id="IdUsers"
-                    name="IdUsers"
-                    style="width: 100%"
-                    class="form-control"
-                    data-readurl="/General/GetSH_UsersForPresentationById?id=@(Model.PresentationId.HasValue ? Model.PresentationId : Model.customerId)"
-                    placeholder="Lütfen Katılımcıları Seçiniz.."
-                    disabled="disabled"></select>
-        </div>
-    </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md " for="IdUsers">Katılımcılar</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select required="required"
+                                id="IdUsers"
+                                name="IdUsers"
+                                style="width: 100%"
+                                class="form-control"
+                                data-readurl="/General/GetSH_UsersForPresentationById?id=@(Model.PresentationId.HasValue ? Model.PresentationId : Model.customerId)"
+                                placeholder="Lütfen Katılımcıları Seçiniz.."
+                                disabled="disabled"></select>
+                    </div>
+                </div>
 
 
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md " for="ContactStageId">Aşama</label>
-        </div>
-        <div class="col-md-9">
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md " for="ContactStageId">Aşama</label>
+                    </div>
+                    <div class="col-md-9">
 
-            @(Html.Akilli()
+                        @(Html.Akilli()
               .DropDownListFor(model => model.PresentationStageId)
               .OptionLabel("Lütfen Aşama Seçiniz..")
               .MinLength(2)
@@ -504,164 +591,158 @@
               .Enable(false)
             )
 
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md " for="ContactStartDate">Başlangıç Tarihi</label>
+                    </div>
+                    <div class="col-md-9">
+                        @Html.TextBox("ContactStartDate", string.Format(Extensions.DateFormatFull(true), Model.ContactStartDate), new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"disabled", "disabled"},
+                            })
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md " for="ContactEndDate">Bitiş Tarihi</label>
+                    </div>
+                    <div class="col-md-9">
+                        @Html.TextBox("ContactEndDate", string.Format(Extensions.DateFormatFull(true), Model.ContactEndDate), new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"disabled", "disabled"},
+                            })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md " for="ContactType">Aktivite/Randevu Tipi</label>
+                    </div>
+                    <div class="col-md-9">
+                        @Html.TextBoxFor(model => model.ContactType_Title, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"readonly", "readonly"},
+                        })
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md " for="ContactStatusT">Aktivite/Randevu Durumu</label>
+                    </div>
+                    <div class="col-md-9">
+                        @Html.TextBoxFor(model => model.ContactStatus_Title, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"readonly", "readonly"},
+                        })
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md" for="Description">Açıklama</label>
+                    </div>
+                    <div class="col-md-9">
+                        @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"readonly", "readonly"},
+                        })
+                    </div>
+                </div>
+            </div>
         </div>
+
     </div>
-
-
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md " for="ContactStartDate">Başlangıç Tarihi</label>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordionContact" href="#collapseContact2"> <i class="fa fa-file text-success"></i> Aktivite/Randevu Dosyaları</a>
+            </h4>
         </div>
-        <div class="col-md-9">
-            @Html.TextBox("ContactStartDate", string.Format(Extensions.DateFormatFull(true), Model.ContactStartDate), new Dictionary<string, object>()
-                {
-                    {"class", "form-control"},
-                    {"disabled", "disabled"},
-                })
-        </div>
-    </div>
+        <div id="collapseContact2" class="panel-collapse collapse">
+            <div class="panel-body">
 
-
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md " for="ContactEndDate">Bitiş Tarihi</label>
-        </div>
-        <div class="col-md-9">
-            @Html.TextBox("ContactEndDate", string.Format(Extensions.DateFormatFull(true), Model.ContactEndDate), new Dictionary<string, object>()
-                {
-                    {"class", "form-control"},
-                    {"disabled", "disabled"},
-                })
-        </div>
-    </div>
-
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md " for="ContactType">Aktivite/Randevu Tipi</label>
-        </div>
-        <div class="col-md-9">
-            @Html.TextBoxFor(model => model.ContactType_Title, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"},
-            })
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md " for="ContactStatusT">Aktivite/Randevu Durumu</label>
-        </div>
-        <div class="col-md-9">
-            @Html.TextBoxFor(model => model.ContactStatus_Title, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"},
-            })
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md" for="Description">Açıklama</label>
-        </div>
-        <div class="col-md-9">
-            @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"},
-            })
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md" for="Dosya">Aktivite/Randevu Dosyaları</label>
-        </div>
-        <div class="col-md-9">
-            @(
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md" for="Dosya">Aktivite/Randevu Dosyaları</label>
+                    </div>
+                    <div class="col-md-9">
+                        @(
                 Html.Akilli().FileUpload()
                 .DataTable("CRM_Contact")
                 .DataId(Model.id)
                 .DataKey(x => x.fileGroup == "Toplantı Dosyası").PreviewMode(true)
             )
-        </div>
-    </div>
+                    </div>
+                </div>
 
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md" for="Dosya1">Kartvizitler</label>
-        </div>
-        <div class="col-md-9">
-            @(
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md" for="Dosya1">Kartvizitler</label>
+                    </div>
+                    <div class="col-md-9">
+                        @(
                 Html.Akilli().FileUpload()
                 .DataTable("CRM_Contact")
                 .DataId(Model.id)
                 .DataKey(x => x.fileGroup == "Kartvizitler").PreviewMode(true)
             )
-        </div>
-    </div>
+                    </div>
+                </div>
 
 
-    <div class="form-group">
-        <div class="col-md-3">
-            <label class="control-label label-md" style="text-align:left;" for="Dosya2">Aktivite/Randevu Diğer Dosyaları</label>
-        </div>
-        <div class="col-md-9">
-            @(
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label class="control-label label-md" style="text-align:left;" for="Dosya2">Aktivite/Randevu Diğer Dosyaları</label>
+                    </div>
+                    <div class="col-md-9">
+                        @(
                 Html.Akilli().FileUpload()
                 .DataTable("CRM_Contact")
                 .DataId(Model.id)
                 .DataKey(x => x.fileGroup == "Diğer Dosyalar").PreviewMode(true)
             )
-        </div>
-    </div>
-
-
-    <br />
-    <div class="form-group">
-        <div class="col-md-6">
-            <div id="contactMap" style="height: 511px; position: relative; overflow: hidden; cursor: default !important">
-                <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom: 50px; z-index: 99 !important; left: -8px; ">
-                    <div id="ColorInfo" class="color-bar" style="z-index: 99 !important; left: 13px !important; height: 25px; ">
-                        <table class="slider">
-                            <tbody>
-                                <tr>
-                                    <td class="category" style="font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px; ">İlk Konum</td>
-                                    <td class="category" style="font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px; ">Konum</td>
-                                    <td class="category" style=" font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: #757575; padding: 0 10px 0 10px; ">İşlem Anı</td>
-                                    <td class="category" style="font-size: 11px; height: 42px; width: 90px; line-height: 43px; background-color: rgb(247 166 44); padding: 0 10px 0 10px; ">Son Konum</td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
-                <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
-                    <div class="btn-container m-b-lg">
-                        <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
-                        <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
-                    </div>
-                    <div class="pan-container">
-                        <div id="personTemplate"></div>
-                    </div>
-                </div>
+
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="ibox m-b-none">
-                <div class="ibox-title">
-                    <h5>Aktivite ve Randevu Geçmişi </h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    @(Html.Akilli()
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordionContact" href="#collapseContact3"> <i class="fa fa-file text-success"></i> Aktivite/Randevu Geçmişi</a>
+            </h4>
+        </div>
+        <div id="collapseContact3" class="panel-collapse collapse">
+            <div class="panel-body">
+                <br />
+                <div class="form-group">
+                    <div class="col-md-5">
+                        <div class="ibox m-b-none">
+                            <div class="ibox-title">
+                                <h5>Aktivite ve Randevu Geçmişi </h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content">
+                                @(Html.Akilli()
                       .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_ContactAction>("VWCRM_ContactAction")
                       .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceForContactAction", "VWCRM_Contact", new { area = "CRM" })).PageSize(25).Filter(a => a.ContactId == Model.id).Sort(a => a.Add("created").Descending()))
                       .Columns(x =>
@@ -669,79 +750,131 @@
                           x.Bound(y => y.description).Title("Açıklama");
                       })
                       .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                      .Scrollable(x => x.Height(270))
+                      .Scrollable(x => x.Height(360))
+                      
                       .ToolBar(x =>
                       {
+                          //x.Custom().Text("<i data-original-title='Harita Detay' class='fa fa-list'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-blank", "" }, { "data-modal", "false" } });
+
                       })
                       )
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div id="contactMap" style="height: 511px; position: relative; overflow: hidden; cursor: default !important">
+                            <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px; margin-bottom: 50px; z-index: 99 !important; left: -8px; ">
+                                <div id="ColorInfo" class="color-bar" style="z-index: 99 !important; left: 13px !important; height: 0px !important; border-radius: 0px !important; border:none !important;">
+                                    <table class="slider">
+                                        <tbody>
+                                            <tr>
+                                                <td class="category" style="font-size: 8px; height: 32px; width: 60px; line-height: 35px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px; ">İlk Konum</td>
+                                                <td class="category" style="font-size: 8px; height: 32px; width: 60px; line-height: 35px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px; ">Konum</td>
+                                                <td class="category" style=" font-size: 8px; height: 32px; width: 60px; line-height: 35px; background-color: #757575; padding: 0 10px 0 10px; ">İşlem Anı</td>
+                                                <td class="category" style="font-size: 8px; height: 32px; width: 62px; line-height: 35px; background-color: rgb(247 166 44); padding: 0 10px 0 10px; ">Son Konum</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
+                                <div class="btn-container m-b-lg">
+                                    <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
+                                    <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+                                </div>
+                                <div class="pan-container">
+                                    <div id="personTemplate"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+
             </div>
+
+
+
+
+
+
+
         </div>
-    </div>
-
-
-    <script type="text/template" id="selectedPerson">
-        <div class="pan-content">
-            <div class="pan-head clearfix" style="margin-left: 15px;">
-                <div style="padding-top: 7px;">
-                    <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
-                        <span style="padding-left: 5px;text-transform: uppercase;">SATIŞ EKİBİ PERSONEL BİLGİLERİ</span>
+        <script type="text/template" id="selectedPerson">
+            <div class="pan-content">
+                <div class="pan-head clearfix" style="margin-left: 15px;">
+                    <div style="padding-top: 7px;">
+                        <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
+                            <span style="padding-left: 5px;text-transform: uppercase;">SATIŞ EKİBİ PERSONEL BİLGİLERİ</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <div class="clearfix">
+                <div>
+                    <div class="clearfix">
 
-                </div>
-                <div class="cardPerson" style="padding-bottom: 10px;">
-                    <div class="col-md-2">
-                        <a href="#">
-                            <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
-                        </a>
                     </div>
-                    <div class="col-md-10">
-                        <nav class="nav">
-                            <ul>
-                                <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
-                                <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
-                            </ul>
-                        </nav>
+                    <div class="cardPerson" style="padding-bottom: 10px;">
+                        <div class="col-md-2">
+                            <a href="#">
+                                <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
+                            </a>
+                        </div>
+                        <div class="col-md-10">
+                            <nav class="nav">
+                                <ul>
+                                    <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
+                                    <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
-                </div>
 
-                <div class="pan-bodyCustom">
-                    <div class="col-md-12">
-                        <div class="panContentPresentation">
-                            <div class="card col-md-12">
-                                <header class="header">
-                                    <div class="card-details">
-                                        <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
-                                    </div>
-                                </header>
-                                <nav class="nav">
-                                    <ul>
-                                        <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
-                                        <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
-                                        <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
-                                        <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
-                                        <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
-                                    </ul>
-                                </nav>
+                    <div class="pan-bodyCustom">
+                        <div class="col-md-12">
+                            <div class="panContentPresentation">
+                                <div class="card col-md-12">
+                                    <header class="header">
+                                        <div class="card-details">
+                                            <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
+                                        </div>
+                                    </header>
+                                    <nav class="nav">
+                                        <ul>
+                                            <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
+                                            <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
+                                            <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
+                                            <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
+                                            <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
+                                        </ul>
+                                    </nav>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </script>
-
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        </script>
     </div>
 
-}
 
-<script type="text/javascript" data-selector="modalContainer">
+
+</div>
+         
+
+
+
+
+
+
+      
+
+            <div class="buttons">
+                <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+            </div>
+
+            }
+
+            <script type="text/javascript" data-selector="modalContainer">
 
     var _contact = {
         @*Model: @Html.Raw(Json.Encode(Model)),*@
@@ -867,4 +1000,4 @@
 
     _contact.init(@Html.Raw(Json.Encode(ViewBag.IdUsers)));
 
-</script>
+            </script>

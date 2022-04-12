@@ -29,5 +29,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? CustomerCompanyId { get; set;}
         public Guid? ChannelCompanyId { get; set;}
         public string CustomerCompanyId_Title { get; set;}
+        public IGeometry  CustomerCompanyLocation { get; set;}
     }
 }

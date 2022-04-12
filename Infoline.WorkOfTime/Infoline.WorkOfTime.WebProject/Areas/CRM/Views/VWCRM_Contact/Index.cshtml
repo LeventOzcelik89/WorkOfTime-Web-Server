@@ -48,8 +48,10 @@ else
     $(document)
         .on('ready', function () {
             FilterDate();
+            
         })
         .on("click", '[data-name="filterType"]', function (e) {
+
             var _this = $(this);
 
             _this.parent().find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
@@ -57,18 +59,17 @@ else
             _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
             _this.find('span').addClass("fa fa-check");
         })
+     
         .on("selected:grid", "#VWCRM_ContactAction", function (e, res) {
 
-
-            page.defines.locationsData = res;
 
             let usersId = res.createdby;
             let createdDate = res.created;
             //let contactEndDateTime = new Date(res.created).addHours(-2);
             //let contactStartDateTime = new Date(res.created).addHours(2);
 
-            let contactEndDateTime = new Date(res.created).addDays(-8).addHours(5);
-            let contactStartDateTime = new Date(res.created).addDays(-8).addHours(1);
+            let contactEndDateTime = new Date(res.created).addDays(-12).addHours(5);
+            let contactStartDateTime = new Date(res.created).addDays(-12).addHours(1);
 
 
 
@@ -76,6 +77,34 @@ else
                 getContactDataAndApplysTwo(usersId, contactStartDateTime, contactEndDateTime);
             };
 
+            page.dfn.harita.map.updateSize();
+         
+        })
+        .on("load:grid", "#VWCRM_ContactAction", function (e, resp) {
+
+            $('[role="grid"]').attr("style", "cursor:pointer");
+
+            $('.k-floatwrap').hide();
+            $('.k-grid-toolbar').css({ "height": "26px" });
+
+            page.defines.locationsData = resp;
+            if (resp != null) {
+                let usersId = resp.createdby;
+                let createdDate = resp.created;
+                //let contactEndDateTime = new Date(res.created).addHours(-2);
+                //let contactStartDateTime = new Date(res.created).addHours(2);
+
+                let contactEndDateTime = new Date(resp.created).addDays(-12).addHours(5);
+                let contactStartDateTime = new Date(resp.created).addDays(-12).addHours(1);
+
+
+                if (usersId != undefined && usersId != "") {
+                    getContactDataAndApplysTwo(usersId, contactStartDateTime, contactEndDateTime);
+                };
+            }
+
+    
+            page.dfn.harita.map.updateSize();
         })
         .on("hover:feature", "#contactMap", function (e, resp) {
             page.dfn.harita.overlay.remove('slider-station');
@@ -104,4 +133,18 @@ else
                 }
             }
         })
+        .on("click", '[data-parent="#accordionContact"]', function (e) {
+
+            if (page.dfn.harita.map != undefined) {
+                page.dfn.harita.map.updateSize();
+            }
+         
+          
+        })
+
+
+
+
+
+
 </script>

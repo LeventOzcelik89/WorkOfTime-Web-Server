@@ -56,5 +56,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWCRM_Presentation[] GetVWCRM_PresentationByPresentationActionId(Guid presentationId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWCRM_Presentation>().Where(a => a.id == presentationId).Execute().ToArray();
+            }
+        }
+
     }
 }

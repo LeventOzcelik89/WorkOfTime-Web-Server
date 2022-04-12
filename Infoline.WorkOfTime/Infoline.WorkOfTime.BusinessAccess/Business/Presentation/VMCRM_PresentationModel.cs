@@ -763,6 +763,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWCMP_Tender LastTender { get; set; }
         public bool? isAddContact { get; set; }
     }
+    public class VMVWCRM_PresentationAction : VWCRM_PresentationAction
+    {
+        public VWCRM_Presentation[] Presentation { get; set; }
+    }
+
 
     public class VMCRM_PresentationForMap
     {
