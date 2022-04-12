@@ -216,7 +216,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
                 created = DateTime.Now,
                 createdby = userStatus.user.id,
-                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
+                description = "Aktivite/Randevu eklendi. (" + statusDescription + ")",
                 ContactId = item.id,
                 location = location
             }, trans);
