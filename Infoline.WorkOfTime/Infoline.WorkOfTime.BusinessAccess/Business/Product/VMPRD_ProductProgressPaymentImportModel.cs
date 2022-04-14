@@ -88,12 +88,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.created = DateTime.Now;
                 rs = Insert(trans);
             }
-            else
-            {
-                this.changedby = userId;
-                this.changed = DateTime.Now;
-                rs = Update(trans);
-            }
             return rs;
         }
         private ResultStatus Insert(DbTransaction trans = null)
@@ -133,14 +127,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (result.result)
             {
                 var checkIsActivated = db.GetPRD_TitanDeviceActivatedByImei(this.imei);
-                var checkIsInventory = db.GetPRD_InventoryByImei(this.imei);
                 var checkIsFTP = db.GetPRD_EntegrationActionByImei(this.imei,this.companyId);
                 var progressPayment = new PRD_ProductProgressPayment();
                 progressPayment.created = DateTime.Now;
                 progressPayment.createdby = this.createdby;
                 progressPayment.existFTP = checkIsFTP != null ? true : false;
                 progressPayment.isActivated = checkIsActivated != null ? true : false;
-                progressPayment.isInventory = checkIsInventory != null ? true : false;
                 progressPayment.imei = this.imei;
                 progressPayment.companyId = company.id;
                 progressPayment.productId = inventory.productId;
@@ -153,24 +145,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             }
             return result;
-        }
-        private ResultStatus Update(DbTransaction trans = null)
-        {
-            db = db ?? new WorkOfTimeDatabase();
-            var transaction = trans ?? db.BeginTransaction();
-            var productImport = new PRD_ProductProgressPaymentImport().B_EntityDataCopyForMaterial(this, true);
-            var result = db.UpdatePRD_ProductProgressPaymentImport(productImport, false, transaction);
-            if (result.result == true)
-            {
-                if (trans == null) transaction.Commit();
-                return new ResultStatus { result = true, message = "Temlik tanımlama işlemi başarılı." };
-            }
-            else
-            {
-                Log.Error(result.message);
-                if (trans == null) transaction.Rollback();
-                return new ResultStatus { result = false, message = "Temlik tanımlama işlemi başarısız." };
-            }
         }
         public ResultStatus Delete(DbTransaction trans = null)
         {
