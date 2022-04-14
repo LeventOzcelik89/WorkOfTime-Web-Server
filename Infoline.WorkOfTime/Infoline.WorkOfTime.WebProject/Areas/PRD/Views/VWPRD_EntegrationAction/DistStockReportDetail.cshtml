@@ -84,7 +84,7 @@
                 columns: [
                     { field: "DistributorName", title: "Distribütör Adı", width: 200, attributes: { style: "text-align:center" }},
                     { field: "DistSalesCount", title: "Toplam Distribütöre Satış", width: 110, attributes: { style: "text-align:center" }},
-                    { field: "DealarSalesCount", title: "Toplam Bayiye Satış", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "SalesCount", title: "Toplam Bayiye Satış", width: 125, attributes: { style: "text-align:center" } },
                     { field: "TotalStock", title: "Distribütör Stok", width: 125, attributes: { style: "text-align:center" }},
                 ],
             });
@@ -114,8 +114,8 @@
                 resizable: true,
                 columns: [
                     { field: "DealarName", title: "Bayi Adı", width: 125 },
-                    { field: "DealarSalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
-                    { field: "DistSalesCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
+                    { field: "SalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "AssignmentCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
                     { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" } },
 
                 ],
@@ -148,9 +148,10 @@
                 reorderable: true,
                 resizable: true,
                 columns: [
+                    { field: "DealarName", title: "Bayi Adı", hidden: true, attributes: { style: "display:none" } },
                     { field: "ProductName", title: "Ürün Adı", width: 200, attributes: { style: "text-align:center" } },
-                    { field: "DealarSalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
-                    { field: "DistSalesCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
+                    { field: "SalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "AssignmentCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
                     { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" } },
                 ],
             });
@@ -162,13 +163,20 @@
         },
 
         getPageRecords: function (dist) {
-            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageStockReportDetail", {DistrubitorId: dist }, function (data) {
+            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageStockReportDetail", { DistrubitorId: dist }, function (data) {
                 page.setDataSourceForDistTotalStock(data.DistStockDetailData);
                 page.setDataSourceForDealarTotalStock(data.DealarStockDetailData);
                 page.setDataSourceForDealarAndProductStock(data.DealarProductStockDetailData);
+                $('body').loadingModal('destroy');
                 });
             }
     }
     var dist = $('#DistributorId').val();
-    $(document).ready(page.getPageRecords(dist));
+    $(document)
+        .on('ready', function () {
+            setTimeout(function () {
+                $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
+            },2000)
+            page.getPageRecords(dist)
+        });
 </script>

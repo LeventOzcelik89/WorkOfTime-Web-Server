@@ -191,10 +191,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public Guid DealarId { get; set; }
         public string DealarName { get; set; }
         public int DistSalesCount { get; set; }
-        public int DealarSalesCount { get; set; }
+        public int SalesCount { get; set; }
         public Guid ProductId { get; set; }
         public string ProductName { get; set; }
         public int TotalStock { get; set; }
+        public int AssignmentCount { get; set; }
     }
     public class DistStockProductReportModel
     {

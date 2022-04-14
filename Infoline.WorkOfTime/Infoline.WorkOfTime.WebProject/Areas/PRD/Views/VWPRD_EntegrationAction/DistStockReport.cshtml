@@ -93,7 +93,7 @@
                 columns: [
                     { field: "DistributorName", title: "Distribütör Adı", width: 200 },
                     { field: "DistSalesCount", title: "Toplam Distribütöre Satış", width: 110 },
-                    { field: "DealarSalesCount", title: "Toplam Bayiye Satış", width: 125 },
+                    { field: "SalesCount", title: "Toplam Bayiye Satış", width: 125 },
                     { field: "TotalStock", title: "Distribütör Stok", width: 125 },
                 ],
             });
@@ -125,9 +125,10 @@
                 reorderable: true,
                 resizable: true,
                 columns: [
+                    { field: "DistributorName", title: "Distribütör Adı", hidden: true },
                     { field: "ProductName", title: "Ürün Adı", width: 200 },
                     { field: "DistSalesCount", title: "Distribütöre Satış", width: 110 },
-                    { field: "DealarSalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
+                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
                     { field: "TotalStock", title: "Distribütörün Bayi Satışı", width: 125 },
                 ],
             });
@@ -143,10 +144,16 @@
             GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageStockReport", null, function (data) {
                 page.setDataSourceForStockData(data.DistStockData);
                 page.setDataSourceForProductStockData(data.DistProductStockData);
+                $('body').loadingModal('destroy');
             });
         }
 
     }
-    $(document).ready(page.getPageRecords());
-
+    $(document)
+       .on('ready', function () {
+           setTimeout(function () {
+               $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
+           }, 1500)
+           page.getPageRecords()
+       });
 </script>

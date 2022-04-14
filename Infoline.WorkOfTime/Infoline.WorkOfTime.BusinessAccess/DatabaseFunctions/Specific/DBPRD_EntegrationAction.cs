@@ -53,18 +53,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 foreach (var dist in queryExecute.GroupBy(n => n.DistributorId))
                 {
                     var distrubitorList = queryExecute.Where(a => a.DistributorId == dist.Key);
-                    foreach (var product in distrubitorList)
+                    var distrubitorGroup = distrubitorList.GroupBy(a => a.ProductId).ToArray();
+                    foreach (var product in distrubitorGroup)
                     {
                         list.Add(new SellOutReportNewModel
                         {
-                            SalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.SalesCount),
+                            SalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount),
                             DistributorName = queryExecute.Where(a => a.DistributorId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
                             DistributorId = dist.Key,
-                            ActivatedData = query3Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.ActivatedData),
-                            AssignmentCount = query4Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.AssignmentCount),
-                            DistSalesCount = query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DistSalesCount),
-                            ProductName = GetPRD_ProductById(product.ProductId).name,
-                            ProductId = product.ProductId,
+                            ActivatedData = query3Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.ActivatedData),
+                            AssignmentCount = query4Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.AssignmentCount),
+                            DistSalesCount = query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount),
+                            ProductName = GetPRD_ProductById(product.Key).name,
+                            ProductId = product.Key,
                         });
                     }
                 }
@@ -138,21 +139,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB())
             {
                 var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
-                var IntegrationActionQuery = $@"select * from VWPRD_InventoryActionSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
                 var TitanDeviceActivatedQuery = $@"select * from VWPRD_TitanDeviceActivatedSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
                 var ProductProgressPaymentDealarQuery = $@"select * from VWPRD_ProductProgressPaymentImportDealarSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
                 var queryExecute = db.ExecuteReader<SellOutReportNewModel>(EntegrationActionQuery.ToString()).ToArray();
                 var query3Execute = db.ExecuteReader<SellOutReportNewModel>(TitanDeviceActivatedQuery.ToString()).ToArray();
                 var query4Execute = db.ExecuteReader<SellOutReportNewModel>(ProductProgressPaymentDealarQuery.ToString()).ToArray();
-                data.AddRange(query4Execute.GroupBy(v => v.DealarId).Select(a => new SellOutReportNewModel
+                data.AddRange(queryExecute.GroupBy(v => v.DealarId).Select(a => new SellOutReportNewModel
                 {
                     DistributorId = a.Where(b => b.DistributorId == DistrubitorId).Select(c => c.DistributorId).FirstOrDefault(),
                     DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
                     DealarId = a.Key,
                     DealarName = GetCMP_CompanyById(a.Key).name,
-                    SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
-                    ActivatedData = query3Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.ActivatedData),
-                    AssignmentCount = query4Execute.Where(b => b.DealarId == a.Key).Sum(c => c.AssignmentCount),
+                    SalesCount = queryExecute.Where(b => b.DistributorId == DistrubitorId && b.DealarId == a.Key).Sum(c => c.SalesCount),
+                    ActivatedData = query3Execute.Where(b => b.DistributorId == DistrubitorId && b.DealarId == a.Key).Sum(c => c.ActivatedData),
+                    AssignmentCount = query4Execute.Where(b => b.DistributorId == DistrubitorId && b.DealarId == a.Key).Sum(c => c.AssignmentCount),
                 }));
             }
             return data.ToArray();
@@ -167,26 +167,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB())
             {
                 var EntegrationActionQuery = $@"select * from VWPRD_EntegrationActionSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
-                var IntegrationActionQuery = $@"select * from VWPRD_InventoryActionSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
                 var TitanDeviceActivatedQuery = $@"select * from VWPRD_TitanDeviceActivatedSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
                 var ProductProgressPaymentDealarQuery = $@"select * from VWPRD_ProductProgressPaymentImportDealarSummary where DistributorId = '" + DistrubitorId + "' and date >= '" + startDateSql + "' and date <= '" + endDateSql + "'";
                 var queryExecute = db.ExecuteReader<SellOutReportNewModel>(EntegrationActionQuery.ToString()).ToArray();
                 var query3Execute = db.ExecuteReader<SellOutReportNewModel>(TitanDeviceActivatedQuery.ToString()).ToArray();
                 var query4Execute = db.ExecuteReader<SellOutReportNewModel>(ProductProgressPaymentDealarQuery.ToString()).ToArray();
-                foreach (var dist in query4Execute.GroupBy(n => n.DealarId))
+                foreach (var dist in queryExecute.GroupBy(n => n.DealarId))
                 {
-                    var distrubitorList = query4Execute.Where(a => a.DealarId == dist.Key);
-                    foreach (var product in distrubitorList.GroupBy(v => v.ProductId))
+                    var distrubitorList = queryExecute.Where(a => a.DealarId == dist.Key);
+                    var distrubitorGroup = distrubitorList.GroupBy(a => a.ProductId).ToArray();
+                    foreach (var product in distrubitorGroup)
                     {
                         list.Add(new SellOutReportNewModel
                         {
-                            SalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount),
-                            DistributorName = queryExecute.Where(a => a.DistributorId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
-                            DistributorId = query4Execute.Where(a => a.DealarId == dist.Key).Select(c => c.DistributorId).FirstOrDefault(),
+                            DistributorName = queryExecute.Where(a => a.DistributorId == DistrubitorId).Select(c => c.DistributorName).FirstOrDefault(),
+                            DistributorId = query4Execute.Where(a => a.DistributorId == DistrubitorId).Select(c => c.DistributorId).FirstOrDefault(),
                             DealarId = dist.Key,
                             DealarName = GetCMP_CompanyById(dist.Key).name,
-                            ActivatedData = query3Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.ActivatedData),
-                            AssignmentCount = query4Execute.Where(a => a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.AssignmentCount),
+                            SalesCount = queryExecute.Where(a => a.DealarId == dist.Key && a.DistributorId == DistrubitorId && a.ProductId == product.Key).Sum(c => c.SalesCount),
+                            ActivatedData = query3Execute.Where(a => a.DealarId == dist.Key && a.DistributorId == DistrubitorId && a.ProductId == product.Key).Sum(c => c.ActivatedData),
+                            AssignmentCount = query4Execute.Where(a => a.DealarId == dist.Key && a.DistributorId == DistrubitorId && a.ProductId == product.Key).Sum(c => c.AssignmentCount),
                             ProductName = GetPRD_ProductById(product.Key).name,
                             ProductId = product.Key,
                         });
@@ -211,9 +211,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
                     DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
-                    DealarSalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount),
+                    SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
                     DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
-                    TotalStock = (query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount)),
+                    TotalStock = (query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount)),
                 }));
             }
             return data.ToArray();
@@ -232,17 +232,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 foreach (var dist in queryExecute.GroupBy(n => n.DistributorId))
                 {
                     var distrubitorList = queryExecute.Where(a => a.DistributorId == dist.Key);
-                    foreach (var product in distrubitorList)
+                    var distrubitorGroup = distrubitorList.GroupBy(a => a.ProductId).ToArray();
+                    foreach (var product in distrubitorGroup)
                     {
                         list.Add(new DistStockReportModel
                         {
                             DistributorName = queryExecute.Where(a => a.DistributorId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
                             DistributorId = dist.Key,
-                            DealarSalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DealarSalesCount),
-                            DistSalesCount = query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DistSalesCount),
-                            ProductName = GetPRD_ProductById(product.ProductId).name,
-                            ProductId = product.ProductId,
-                            TotalStock = (query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DistSalesCount)- queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.ProductId).Sum(c => c.DealarSalesCount))
+                            SalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount),
+                            DistSalesCount = query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount),
+                            ProductName = GetPRD_ProductById(product.Key).name,
+                            ProductId = product.Key,
+                            TotalStock = (query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount)- queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount))
                         });
                     }
                 }
@@ -265,9 +266,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
                     DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
-                    DealarSalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount),
+                    SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
                     DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
-                    TotalStock = (query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount)),
+                    TotalStock = (query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount)),
                 }));
             }
             return data.ToArray();
@@ -288,9 +289,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
                     DealarId = a.Key,
                     DealarName = GetCMP_CompanyById(a.Key).name,
-                    DealarSalesCount = queryExecute.Where(b => b.DealarId == a.Key).Sum(c => c.DealarSalesCount),
-                    DistSalesCount = query2Execute.Where(b => b.DealarId == a.Key).Sum(c => c.DistSalesCount),
-                    TotalStock = (queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.DealarSalesCount) - query2Execute.Where(b => b.DealarId == a.Key).Sum(c => c.DistSalesCount) )
+                    SalesCount = queryExecute.Where(b => b.DistributorId == DistrubitorId && b.DealarId == a.Key).Sum(c => c.SalesCount),
+                    AssignmentCount = query2Execute.Where(b => b.DistributorId == DistrubitorId && b.DealarId == a.Key).Sum(c => c.AssignmentCount),
+                    TotalStock = (queryExecute.Where(b => b.DistributorId == DistrubitorId && b.DealarId == a.Key).Sum(c => c.SalesCount) - query2Execute.Where(b => b.DistributorId == DistrubitorId && b.DealarId == a.Key).Sum(c => c.AssignmentCount))
                 }));
             }
             return data.ToArray();
@@ -309,18 +310,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 foreach (var dist in queryExecute.GroupBy(n => n.DealarId))
                 {
                     var distrubitorList = queryExecute.Where(a => a.DealarId == dist.Key);
-                    foreach (var product in distrubitorList.GroupBy(v => v.ProductId))
+                    var distrubitorGroup = distrubitorList.GroupBy(a => a.ProductId).ToArray();
+                    foreach (var product in distrubitorGroup)
                     {
                         list.Add(new DistStockReportModel
                         {
-                            DealarSalesCount = queryExecute.Where(a => a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.DealarSalesCount),
-                            DistSalesCount = query2Execute.Where(a => a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount),
+                            SalesCount = queryExecute.Where(a => a.DistributorId == DistrubitorId && a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount),
+                            AssignmentCount = query2Execute.Where(a => a.DistributorId == DistrubitorId && a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.AssignmentCount),
                             DistributorName = queryExecute.Where(a => a.DealarId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
                             DealarId = dist.Key,
                             DealarName = GetCMP_CompanyById(dist.Key).name,
                             ProductName = GetPRD_ProductById(product.Key).name,
                             ProductId = product.Key,
-                            TotalStock = (queryExecute.Where(b => b.DistributorId == dist.Key).Sum(c => c.DealarSalesCount) - query2Execute.Where(b => b.DealarId == dist.Key).Sum(c => c.DistSalesCount) )
+                            TotalStock = (queryExecute.Where(a => a.DistributorId == DistrubitorId && a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount) - query2Execute.Where(a => a.DistributorId == DistrubitorId && a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.AssignmentCount))
                         });
                     }
                 }

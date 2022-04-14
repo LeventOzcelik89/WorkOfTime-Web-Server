@@ -32,10 +32,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
         [PageInfo("Sell Out Raporu Detayı", SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli, SHRoles.SistemYonetici)]
-        public ActionResult SellOutReportDetail(VMPRD_EntegrationActionModel item, DateTime startDate, DateTime endDate)
+        public ActionResult SellOutReportDetail(VMPRD_EntegrationActionModel item, string startDate, string endDate)
         {
-            item.startDate = startDate;
-            item.endDate = endDate;
+            var start = Date.Parse(startDate);
+            var end = Date.Parse(endDate);
+            item.startDate = start;
+            item.endDate = end;
             var data = item.Load();
             return View(data);
         }
@@ -91,20 +93,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
         [AllowEveryone]
         [PageInfo("Dashboard Sayfası Verileri")]
-        public JsonResult GetPageReportDetail(DateTime startDate, DateTime endDate, Guid DistrubitorId)
+        public JsonResult GetPageReportDetail(DateTime? startDate, DateTime? endDate, Guid DistrubitorId)
         {
             VMPRD_EntegrationActionModel pageReport = new VMPRD_EntegrationActionModel();
             var t1 = Task.Run(() =>
             {
-                pageReport.DistData = new VMPRD_EntegrationActionModel().SellOutProductDetailDistData(startDate, endDate, DistrubitorId);
+                pageReport.DistData = new VMPRD_EntegrationActionModel().SellOutProductDetailDistData(startDate.Value, endDate.Value, DistrubitorId);
             });
             var t2 = Task.Run(() =>
             {
-                pageReport.DealarDetailData = new VMPRD_EntegrationActionModel().SellOutProductDealarData(startDate, endDate, DistrubitorId);
+                pageReport.DealarDetailData = new VMPRD_EntegrationActionModel().SellOutProductDealarData(startDate.Value, endDate.Value, DistrubitorId);
             });
             var t3 = Task.Run(() =>
             {
-                pageReport.DealarAndProductData = new VMPRD_EntegrationActionModel().SellOutProductDealarProductData(startDate, endDate, DistrubitorId);
+                pageReport.DealarAndProductData = new VMPRD_EntegrationActionModel().SellOutProductDealarProductData(startDate.Value, endDate.Value, DistrubitorId);
             });
 
             t1.Wait();

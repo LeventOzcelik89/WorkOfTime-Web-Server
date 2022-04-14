@@ -155,7 +155,7 @@
             $("#sellOutProduct .k-grid-excel").text("");
             $("#sellOutProduct .k-grid-excel").append(icon);
         },
-        
+
         setDataSourceForProductSellOutDist: function (data) {
              $("#sellOutProducts").kendoGrid({
                 toolbar: ["excel"],
@@ -177,7 +177,8 @@
                 columnMenu: true,
                 reorderable: true,
                 resizable: true,
-                columns: [
+                 columns: [
+                     { field: "DistributorName", title: "Distribütör Adı", hidden: true },
                     { field: "ProductName", title: "Ürün Adı", width: 200 },
                     { field: "DistSalesCount", title: "Distribütöre Satış", width: 110 },
                     { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
@@ -189,7 +190,7 @@
              var icon = $("#sellOutProducts .k-i-excel");
              $("#sellOutProducts .k-grid-excel").text("");
              $("#sellOutProducts .k-grid-excel").append(icon);
-            
+
         },
 
 
@@ -197,12 +198,18 @@
                 GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageReport", { startDate: startDate, endDate: endDate }, function (data) {
                     page.setDataSourceForProductSellOut(data.DistDataSourceReport);
                     page.setDataSourceForProductSellOutDist(data.DistAndProductDataSourceReport);
+                    $('body').loadingModal('destroy');
                 });
             }
 
     }
-    $(document).ready(page.getPageRecords('@startOfMonth','@endOfMonth'));
-
+    $(document)
+     .on('ready', function () {
+         setTimeout(function () {
+             $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
+         }, 1500)
+         page.getPageRecords('@startOfMonth','@endOfMonth')
+     });
     $('[data-query]').on("click", function (e) {
         if ($(this).attr("data-selector") == "created") {
             var _this = $(this);

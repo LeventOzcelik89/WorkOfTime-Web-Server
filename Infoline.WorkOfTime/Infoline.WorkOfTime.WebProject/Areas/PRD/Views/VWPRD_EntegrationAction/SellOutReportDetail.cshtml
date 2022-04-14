@@ -151,9 +151,9 @@
                 columnMenu: true,
                 reorderable: true,
                 resizable: true,
-                columns: [
+                 columns: [
+                     { field: "DealarName", title: "Bayi Adı", hidden: true },
                     { field: "ProductName", title: "Ürün Adı", width: 200, attributes: { style: "text-align:center" } },
-                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110, attributes: { style: "text-align:center" } },
                     { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125, attributes: { style: "text-align:center" } },
                     { field: "AssignmentCount", title: "Temlik", width: 125, attributes: { style: "text-align:center" } },
                     { field: "ActivatedData", title: "Aktivasyon", width: 125, attributes: { style: "text-align:center" } },
@@ -168,12 +168,19 @@
 
         getPageRecords: function (startDate, endDate, dist) {
             GetJsonDataFromUrl("/PRD/VWPRD_EntegrationAction/GetPageReportDetail", { startDate: startDate, endDate: endDate, DistrubitorId: dist }, function (data) {
-                    page.setDataSourceForProductSellOut(data.DistData);
-                    page.setDataSourceForProductSellOutDealar(data.DealarDetailData);
-                    page.setDataSourceForProductSellOutDealarAndProduct(data.DealarAndProductData);
+                page.setDataSourceForProductSellOut(data.DistData);
+                page.setDataSourceForProductSellOutDealar(data.DealarDetailData);
+                page.setDataSourceForProductSellOutDealarAndProduct(data.DealarAndProductData);
+                $('body').loadingModal('destroy');
                 });
             }
     }
     var dist = $('#DistributorId').val();
-    $(document).ready(page.getPageRecords('@start', '@end', dist));
+    $(document)
+        .on('ready', function () {
+            setTimeout(function () {
+                $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
+            }, 1500)
+            page.getPageRecords('@start', '@end', dist)
+        });
 </script>
