@@ -7,6 +7,7 @@ using Kendo.Mvc.Extensions;
 using Kendo.Mvc.Infrastructure.Implementation;
 using Kendo.Mvc.UI;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
@@ -680,6 +681,87 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
+        [PageInfo("Aktivite Raporu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
+        public ActionResult ContactReport()
+        {
+            var model = new VMCRM_ContactModel();
+            return View(model);
+
+        }
+        [PageInfo("Aktivite Raporu Verileri", SHRoles.Personel)]
+        public ContentResult DataSourceContactReport(DateTime? ContactStartDate, DateTime? ContactEndDate)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var contacts = db.GetVWCRM_ContactForStartDateAndEndDate(ContactStartDate.Value, ContactEndDate.Value);
+
+            List<Guid> createdByList = new List<Guid>();
+            foreach (var item in contacts)
+            {
+                if (!createdByList.Contains(item.createdby.Value))
+                {
+                    createdByList.Add(item.createdby.Value);
+                }
+                
+            }
+      
+            var res = db.GetVWCRM_ContactByCreatedByIds(createdByList.ToArray(), ContactStartDate.Value, ContactEndDate.Value);
+
+            ArrayList contactStatusReports = new ArrayList();
+            ArrayList contactTypeReports = new ArrayList();
+
+            foreach (var line in res.GroupBy(info => info.createdby))
+            {
+                var planned =  line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiPlanlandi).Count();
+                var happening = line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed != null).Count();
+                var canceled = line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiIptal).Count();
+                var unplannedHappening = line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed == null).Count();
+
+                var contactReport = new CRM_ContactReports
+                {
+                    planned = planned,
+                    happening = happening,
+                    canceled = canceled,
+                    unplannedHappening = unplannedHappening,
+                    Total = planned + happening + canceled + unplannedHappening,
+                    createdByTitle = line.FirstOrDefault().createdby_Title
+                };
+                contactStatusReports.Add(contactReport);
+
+                var faceToFace = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.Yuzyuze).Count();
+                var phone = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.Telefon).Count();
+                var videoConferencing = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.VideoKonferans).Count();
+                var written = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.Yazili).Count();
+                var food = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.Yemek).Count();
+                var other = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.Diger).Count();
+
+                var contactTypeReport = new CRM_ContactContactTypeReports
+                {
+                    faceToFace = faceToFace,
+                    phone = phone,
+                    videoConferencing = videoConferencing,
+                    written = written,
+                    food = food,
+                    other = other,
+                    Totals = faceToFace + phone + videoConferencing + written+ food+ other,
+                    createdByTitleForContactType = line.FirstOrDefault().createdby_Title
+                };
+                contactTypeReports.Add(contactTypeReport);
+            }
+
+
+ 
+
+
+                    
+            var resultData = new
+            {
+                contactStatusReports = contactStatusReports,
+                contactTypeReports = contactTypeReports
+            };
+
+            return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI { Result = true, Object = resultData }), "application/json");
+        }
 
         [PageInfo("Toplantı takvimi", SHRoles.SatisPersoneli, SHRoles.IdariPersonelYonetici)]
         public ActionResult ContactCalendar()

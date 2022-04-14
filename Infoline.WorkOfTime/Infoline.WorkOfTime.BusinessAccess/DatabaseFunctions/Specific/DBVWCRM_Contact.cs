@@ -38,6 +38,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+
+
         public VWCRM_Contact[] GetVWCRM_ContactTodayCanceldMeeting(int day, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
@@ -54,6 +56,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWCRM_Contact>().Where(x => x.CustomerCompanyId.In(ids)).Execute().ToArray();
             }
         }
+
+        public VWCRM_Contact[] GetVWCRM_ContactForStartDateAndEndDate(DateTime ContactStartDate, DateTime ContactEndDate,  DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCRM_Contact>().Where(x => x.ContactStartDate >= ContactStartDate && x.ContactEndDate < ContactEndDate).Execute().ToArray();
+            }
+        }
+
+        public VWCRM_Contact[] GetVWCRM_ContactByCreatedByIds(Guid[] ids, DateTime ContactStartDate, DateTime ContactEndDate, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWCRM_Contact>().Where(a => a.createdby.In(ids) && a.ContactStartDate >= ContactStartDate && a.ContactEndDate < ContactEndDate).Execute().ToArray();
+            }
+        }
+
+
+
 
     }
 }

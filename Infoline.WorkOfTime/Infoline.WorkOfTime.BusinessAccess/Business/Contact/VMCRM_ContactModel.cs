@@ -40,6 +40,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWCRM_ContactAction> contactActions { get; set; }
         public IGeometry location { get; set; }
 
+
         public VMCRM_ContactModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -715,4 +716,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         }
     }
+
+
+    public  class CRM_ContactReports
+    {
+        public int planned { get; set; }
+        public int happening { get; set; }
+        public int canceled { get; set; }
+        public int unplannedHappening { get; set; }
+        public int Total { get; set; }
+        public string createdByTitle { get; set; }
+    }
+
+    public class CRM_ContactContactTypeReports
+    {
+        public int faceToFace { get; set; }
+        public int phone { get; set; }
+        public int videoConferencing { get; set; }
+        public int written { get; set; }
+        public int food { get; set; }
+        public int other { get; set; }
+        public int Totals { get; set; }
+        public string createdByTitleForContactType { get; set; }
+    }
+
 }

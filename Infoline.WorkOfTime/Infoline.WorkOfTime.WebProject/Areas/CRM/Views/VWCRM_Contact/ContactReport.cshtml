@@ -1,0 +1,181 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCRM_ContactModel
+@{
+    ViewBag.Title = "Aktivite Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+
+<script type="text/javascript">
+    $(document)
+        .on("click", '#DashBoardFilters', function (e) {
+            var start = $("#ContactStartDate").val();
+            var end = $("#ContactEndDate").val();
+            GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceContactReport', { ContactStartDate: start, ContactEndDate: end }, function (res) {
+
+                var html = '<div class="table-responsive">' +
+                    '<table class="table table-striped">' +
+                    '<thead>' +
+                    '<tr>' +
+                    '' +
+                    '<th>Oluşturan </th>' +
+                    '<th>Planlanan</th>' +
+                    '<th>Gerçekleşen</th>' +
+                    '<th>İptal Edilen</th>' +
+                    '<th>Plan Dışı Gerçekleşen</th>' +
+                    '<th>Total</th>' +
+                    '</tr>' +
+                    '</thead>' +
+                    '<tbody>';
+                for (var i = 0; i < res.Object.contactStatusReports.length; i++) {
+
+                    html += '<tr style="cursor:pointer;">' +
+                        '<td>' + res.Object.contactStatusReports[i].createdByTitle + '</td>' +
+                        '<td>' + res.Object.contactStatusReports[i].planned + '</td>' +
+                        '<td>' + res.Object.contactStatusReports[i].happening + '</td>' +
+                        '<td>' + res.Object.contactStatusReports[i].canceled + '</td>' +
+                        '<td>' + res.Object.contactStatusReports[i].unplannedHappening + '</td>' +
+                        '<td>' + res.Object.contactStatusReports[i].Total + '</td>'
+                    '</tr>';
+                };
+                html += '<tr style="cursor:pointer;">' +
+                       '<td>Toplam </td>' +
+                       '<td>' + res.Object.contactStatusReports.map(a => a.planned).reduce((d, b) => d + b, 0)+ '</td>' +
+                       '<td>' + res.Object.contactStatusReports.map(a => a.happening).reduce((f, g) => f + g, 0) + '</td>' +
+                       '<td>' + res.Object.contactStatusReports.map(a => a.canceled).reduce((t, y) => t + y, 0) + '</td>' +
+                       '<td>' + res.Object.contactStatusReports.map(a => a.unplannedHappening).reduce((p, l) => p + l, 0) + '</td>' +
+                       '<td>' + res.Object.contactStatusReports.map(a => a.Total).reduce((r, v) => r + v, 0) + '</td>'
+                '</tr>';
+
+                html += '</tbody>' +
+                    '</table>' +
+                    '</div>';
+                $("#customerStatistics").html(null);
+                $('#customerStatistics').append(html);
+
+                var html = '<div class="table-responsive">' +
+                    '<table class="table table-striped">' +
+                    '<thead>' +
+                    '<tr>' +
+                    '' +
+                    '<th>Oluşturan </th>' +
+                    '<th>Yüz - Yüze </th>' +
+                    '<th>Telefon</th>' +
+                    '<th>Video - Konferans</th>' +
+                    '<th>Yazılı</th>' +
+                    '<th>Yemek Toplantı</th>' +
+                    '<th>Diğer</th>' +
+                    '<th>Total</th>' +
+                    '</tr>' +
+                    '</thead>' +
+                    '<tbody>';
+
+                for (var i = 0; i < res.Object.contactTypeReports.length; i++) {
+
+                    html += '<tr style="cursor:pointer;">' +
+                        '<td>' + res.Object.contactTypeReports[i].createdByTitleForContactType + '</td>' +
+                        '<td>' + res.Object.contactTypeReports[i].faceToFace + '</td>' +
+                        '<td>' + res.Object.contactTypeReports[i].phone + '</td>' +
+                        '<td>' + res.Object.contactTypeReports[i].videoConferencing + '</td>' +
+                        '<td>' + res.Object.contactTypeReports[i].written + '</td>' +
+                        '<td>' + res.Object.contactTypeReports[i].food + '</td>' +
+                        '<td>' + res.Object.contactTypeReports[i].other + '</td>'+
+                        '<td>' + res.Object.contactTypeReports[i].Totals + '</td>'
+                    '</tr>';
+                };
+
+                html += '<tr style="cursor:pointer;">' +
+                    '<td>Toplam </td>' +
+                    '<td>' + res.Object.contactTypeReports.map(a => a.faceToFace).reduce((d, b) => d + b, 0) + '</td>' +
+                    '<td>' + res.Object.contactTypeReports.map(a => a.phone).reduce((f, g) => f + g, 0) + '</td>' +
+                    '<td>' + res.Object.contactTypeReports.map(a => a.videoConferencing).reduce((t, y) => t + y, 0) + '</td>' +
+                    '<td>' + res.Object.contactTypeReports.map(a => a.written).reduce((p, l) => p + l, 0) + '</td>' +
+                    '<td>' + res.Object.contactTypeReports.map(a => a.food).reduce((r, v) => r + v, 0) + '</td>' +
+                    '<td>' + res.Object.contactTypeReports.map(a => a.other).reduce((r, v) => r + v, 0) + '</td>' +
+                    '<td>' + res.Object.contactTypeReports.map(a => a.Totals).reduce((r, v) => r + v, 0) + '</td>' 
+                '</tr>';
+
+                html += '</tbody>' +
+                    '</table>' +
+                    '</div>';
+                $("#contactTypes").html(null);
+                $('#contactTypes').append(html);
+
+            });
+        });
+</script>
+
+<div class="row clearfix">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="ibox ">
+            <div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @(
+                                        Html.Akilli().
+                                        DatePicker("ContactStartDate").
+                                        Placeholder("Başlangıç Tarihi").
+                                        Format(Extensions.DateFormatShort()).
+                                        Value(DateTime.Now).
+                                        //Min(DateTime.Now).
+                                         //MaxDateElement("dueDate").
+                                        Validate(Validations.Required)
+                                    )
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    @(
+                                      Html.Akilli().
+                                      DatePicker("ContactEndDate").
+                                      Placeholder("Bitiş Tarihi").
+                                      Format(Extensions.DateFormatShort()).
+                                      Value(DateTime.Now).
+                                      Validate(Validations.Required)
+                                  )
+                                </div>
+                            </div>
+                            <div class="col-md-3 pull-right">
+                                <button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilters" style="line-height: 27px">Sorgula</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5><i class="fa fa-users"></i> Aktivite Durumu</h5>
+                                <div class="ibox-tools">
+                                </div>
+                            </div>
+                            <div class="ibox-content ibox-content_image clearfix " style="height:240px; overflow-y:scroll;">
+                                <div id="customerStatistics"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5><i class="fa fa-users"></i> Aktivite Tipi</h5>
+                                <div class="ibox-tools">
+                                </div>
+                            </div>
+                            <div class="ibox-content ibox-content_image clearfix " style="height:240px; overflow-y:scroll;">
+                                <div id="contactTypes"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
