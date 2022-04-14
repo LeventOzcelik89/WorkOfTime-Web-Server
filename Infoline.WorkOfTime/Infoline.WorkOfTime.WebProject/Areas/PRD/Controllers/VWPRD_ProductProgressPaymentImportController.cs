@@ -89,29 +89,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli)]
-        public ActionResult Update(VMPRD_ProductProgressPaymentImportModel item)
-        {
-            var data = item.Load();
-            return View(data);
-        }
-
-        [PageInfo("Bayi Satış Güncelle", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli)]
-        [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Update(VMPRD_ProductProgressPaymentImportModel item, bool? isPost)
-        {
-            var userStatus = (PageSecurity)Session["userStatus"];
-            var feedback = new FeedBack();
-            var dbresult = item.Save(userStatus.user.id, Request);
-            var result = new ResultStatusUI
-            {
-                Result = dbresult.result,
-                Object = item.id,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message, false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
-            };
-            return Json(result, JsonRequestBehavior.AllowGet);
-        }
-
         [PageInfo("Bayi Satış Sil", SHRoles.SistemYonetici, SHRoles.HakEdisBayiPersoneli, SHRoles.PrimHakedisPersoneli)]
         [HttpPost]
         public JsonResult Delete(Guid id)
