@@ -5,101 +5,234 @@
     var userStatus = (PageSecurity)Session["userStatus"];
 }
 
+<script type="text/x-kendo-template" id="templates">
+    <a  data-href="" data-button="ApprovedBut" id="ApprovedButton" data-method="GET" data-target="_blank" data-modal="false" class="k-button hidden"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
+    <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
+    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span></a>
+</script>
 
 <script type="text/javascript">
+    var page = {
+        randomColorNumber: -1,
+        colorArray: ["badge-primary", "badge-danger", "badge-warning", "badge-info"],
+        getRandomColor: function () {
+            if (page.randomColorNumber >= page.colorArray.length - 1) {
+                page.randomColorNumber = 0;
+                return page.colorArray[page.randomColorNumber];
+            }
+            page.randomColorNumber++;
+            return page.colorArray[page.randomColorNumber];
+        },
+        setDataSourceForContactStatusReport: function (data) {
+            $("#contactStatusDetail").kendoGrid({
+                toolbar: kendo.template($("#templates").html()),
+                excel: {
+                    fileName: "Aktivite Durum Raporu.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.Object.contactStatusReports,
+                    pageSize: 10
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                filterable: true,
+                columnMenu: true,
+                selectable: 'Single, Row',
+                reorderable: true,
+                resizable: true,
+                change: function (e, resp) {
+                    debugger;
+                    $('#ApprovedButton').removeClass('hidden')
+                    var grid = $("#contactStatusDetail").data("kendoGrid");
+                    var selectedItem = grid.dataItem(grid.select());
+                    $('[data-button="ApprovedBut"]').show();
+                    $('[data-button="ApprovedBut"]').attr('data-href', '/CRM/VWCRM_Contact/ContactReportDetail?createdby=' + selectedItem.createdBy + '&ContactStartDate=' + selectedItem.startDate + '&ContactEndDate=' + selectedItem.endDate + '');
+                },
+                columns: [
+                    { field: "createdByTitle", title: "Oluşturan", width: 200 },
+                    { field: "planned", title: "Planlanan", width: 110 },
+                    { field: "happening", title: "Gerçekleşen", width: 125 },
+                    { field: "canceled", title: "İptal Edilen", width: 125 },
+                    { field: "unplannedHappening", title: "Plan Dışı Gerçekleşen", width: 125 },
+                    { field: "Total", title: "Toplam", width: 125 },
+                ],
+            });
+
+            var icon = $("#contactStatusDetail .k-i-excel");
+            $("#contactStatusDetail .k-grid-excel").text("");
+            $("#contactStatusDetail .k-grid-excel").append(icon);
+        },
+
+        setDataSourceForContactTypeReport: function (data) {
+            $("#contactTypeDetail").kendoGrid({
+                toolbar: kendo.template($("#templates").html()),
+                excel: {
+                    fileName: "Aktivite Tipi Raporu.xlsx",
+                    allPages: true,
+                    filterable: true
+                },
+                dataSource: {
+                    data: data.Object.contactTypeReports,
+                    pageSize: 10
+                },
+                height: 550,
+                sortable: true,
+                pageable: true,
+                filterable: true,
+                columnMenu: true,
+                selectable: 'Single, Row',
+                reorderable: true,
+                resizable: true,
+                change: function (e, resp) {
+                    debugger;
+                    $('#ApprovedButton').removeClass('hidden')
+                    var grid = $("#contactTypeDetail").data("kendoGrid");
+                    var startDate = $('#ContactStartDate').val();
+                    var endDate = $('#ContactEndDate').val();
+                    var selectedItem = grid.dataItem(grid.select());
+                    if (selectedItem.hasThePayment == 1) {
+                        $('[data-button="ApprovedBut"]').hide();
+                    }
+                    else {
+                        $('[data-button="ApprovedBut"]').show();
+                    }
+                    $('[data-button="ApprovedBut"]').attr('data-href', '/PRD/VWPRD_EntegrationAction/SellOutReportDetail?DistributorId=' + selectedItem.DistributorId + '&startDate=' + startDate + '&endDate=' + endDate + '');
+                },
+                columns: [
+                    { field: "createdByTitleForContactType", title: "Oluşturan", width: 200 },
+                    { field: "faceToFace", title: "Yüz - Yüze", width: 110 },
+                    { field: "phone", title: "Telefon", width: 125 },
+                    { field: "videoConferencing", title: "Video - Konferans", width: 125 },
+                    { field: "written", title: "Yazılı", width: 125 },
+                    { field: "food", title: "Yemek Toplantı", width: 125 },
+                    { field: "other", title: "Diğer", width: 125 },
+                    { field: "Totals", title: "Toplam", width: 125 },
+                ],
+            });
+
+            var icon = $("#contactTypeDetail .k-i-excel");
+            $("#contactTypeDetail .k-grid-excel").text("");
+            $("#contactTypeDetail .k-grid-excel").append(icon);
+        },
+        getPageContactReportRecord: function () {
+            var start = $("#ContactStartDate").val();
+            var end = $("#ContactEndDate").val();
+            GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceContactReport', { ContactStartDate: start, ContactEndDate: end }, function (res) {
+                page.setDataSourceForContactStatusReport(res);
+                page.setDataSourceForContactTypeReport(res);
+                $('body').loadingModal('destroy');
+
+            });
+        }
+    }
+
+  
     $(document)
+     .on('ready', function () {
+         setTimeout(function () {
+             $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
+         }, 1500)
+         page.getPageContactReportRecord();
+         })
         .on("click", '#DashBoardFilters', function (e) {
             var start = $("#ContactStartDate").val();
             var end = $("#ContactEndDate").val();
             GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceContactReport', { ContactStartDate: start, ContactEndDate: end }, function (res) {
 
-                var html = '<div class="table-responsive">' +
-                    '<table class="table table-striped">' +
-                    '<thead>' +
-                    '<tr>' +
-                    '' +
-                    '<th>Oluşturan </th>' +
-                    '<th>Planlanan</th>' +
-                    '<th>Gerçekleşen</th>' +
-                    '<th>İptal Edilen</th>' +
-                    '<th>Plan Dışı Gerçekleşen</th>' +
-                    '<th>Total</th>' +
-                    '</tr>' +
-                    '</thead>' +
-                    '<tbody>';
-                for (var i = 0; i < res.Object.contactStatusReports.length; i++) {
+                page.setDataSourceForContactStatusReport(res);
+                page.setDataSourceForContactTypeReport(res);
 
-                    html += '<tr style="cursor:pointer;">' +
-                        '<td>' + res.Object.contactStatusReports[i].createdByTitle + '</td>' +
-                        '<td>' + res.Object.contactStatusReports[i].planned + '</td>' +
-                        '<td>' + res.Object.contactStatusReports[i].happening + '</td>' +
-                        '<td>' + res.Object.contactStatusReports[i].canceled + '</td>' +
-                        '<td>' + res.Object.contactStatusReports[i].unplannedHappening + '</td>' +
-                        '<td>' + res.Object.contactStatusReports[i].Total + '</td>'
-                    '</tr>';
-                };
-                html += '<tr style="cursor:pointer;">' +
-                       '<td>Toplam </td>' +
-                       '<td>' + res.Object.contactStatusReports.map(a => a.planned).reduce((d, b) => d + b, 0)+ '</td>' +
-                       '<td>' + res.Object.contactStatusReports.map(a => a.happening).reduce((f, g) => f + g, 0) + '</td>' +
-                       '<td>' + res.Object.contactStatusReports.map(a => a.canceled).reduce((t, y) => t + y, 0) + '</td>' +
-                       '<td>' + res.Object.contactStatusReports.map(a => a.unplannedHappening).reduce((p, l) => p + l, 0) + '</td>' +
-                       '<td>' + res.Object.contactStatusReports.map(a => a.Total).reduce((r, v) => r + v, 0) + '</td>'
-                '</tr>';
 
-                html += '</tbody>' +
-                    '</table>' +
-                    '</div>';
-                $("#customerStatistics").html(null);
-                $('#customerStatistics').append(html);
+                //var html = '<div class="table-responsive">' +
+                //    '<table class="table table-striped">' +
+                //    '<thead>' +
+                //    '<tr>' +
+                //    '' +
+                //    '<th>Oluşturan </th>' +
+                //    '<th>Planlanan</th>' +
+                //    '<th>Gerçekleşen</th>' +
+                //    '<th>İptal Edilen</th>' +
+                //    '<th>Plan Dışı Gerçekleşen</th>' +
+                //    '<th>Toplam</th>' +
+                //    '</tr>' +
+                //    '</thead>' +
+                //    '<tbody>';
+                //for (var i = 0; i < res.Object.contactStatusReports.length; i++) {
 
-                var html = '<div class="table-responsive">' +
-                    '<table class="table table-striped">' +
-                    '<thead>' +
-                    '<tr>' +
-                    '' +
-                    '<th>Oluşturan </th>' +
-                    '<th>Yüz - Yüze </th>' +
-                    '<th>Telefon</th>' +
-                    '<th>Video - Konferans</th>' +
-                    '<th>Yazılı</th>' +
-                    '<th>Yemek Toplantı</th>' +
-                    '<th>Diğer</th>' +
-                    '<th>Total</th>' +
-                    '</tr>' +
-                    '</thead>' +
-                    '<tbody>';
+                //    html += '<tr style="cursor:pointer;">' +
+                //        '<td>' + res.Object.contactStatusReports[i].createdByTitle + '</td>' +
+                //        '<td>' + res.Object.contactStatusReports[i].planned + '</td>' +
+                //        '<td>' + res.Object.contactStatusReports[i].happening + '</td>' +
+                //        '<td>' + res.Object.contactStatusReports[i].canceled + '</td>' +
+                //        '<td>' + res.Object.contactStatusReports[i].unplannedHappening + '</td>' +
+                //        '<td>' + res.Object.contactStatusReports[i].Total + '</td>'
+                //    '</tr>';
+                //};
+                //html += '<tr style="cursor:pointer;">' +
+                //       '<td>Toplam </td>' +
+                //       '<td>' + res.Object.contactStatusReports.map(a => a.planned).reduce((d, b) => d + b, 0)+ '</td>' +
+                //       '<td>' + res.Object.contactStatusReports.map(a => a.happening).reduce((f, g) => f + g, 0) + '</td>' +
+                //       '<td>' + res.Object.contactStatusReports.map(a => a.canceled).reduce((t, y) => t + y, 0) + '</td>' +
+                //       '<td>' + res.Object.contactStatusReports.map(a => a.unplannedHappening).reduce((p, l) => p + l, 0) + '</td>' +
+                //       '<td>' + res.Object.contactStatusReports.map(a => a.Total).reduce((r, v) => r + v, 0) + '</td>'
+                //'</tr>';
 
-                for (var i = 0; i < res.Object.contactTypeReports.length; i++) {
+                //html += '</tbody>' +
+                //    '</table>' +
+                //    '</div>';
+                //$("#customerStatistics").html(null);
+                //$('#customerStatistics').append(html);
 
-                    html += '<tr style="cursor:pointer;">' +
-                        '<td>' + res.Object.contactTypeReports[i].createdByTitleForContactType + '</td>' +
-                        '<td>' + res.Object.contactTypeReports[i].faceToFace + '</td>' +
-                        '<td>' + res.Object.contactTypeReports[i].phone + '</td>' +
-                        '<td>' + res.Object.contactTypeReports[i].videoConferencing + '</td>' +
-                        '<td>' + res.Object.contactTypeReports[i].written + '</td>' +
-                        '<td>' + res.Object.contactTypeReports[i].food + '</td>' +
-                        '<td>' + res.Object.contactTypeReports[i].other + '</td>'+
-                        '<td>' + res.Object.contactTypeReports[i].Totals + '</td>'
-                    '</tr>';
-                };
+                //var html = '<div class="table-responsive">' +
+                //    '<table class="table table-striped">' +
+                //    '<thead>' +
+                //    '<tr>' +
+                //    '' +
+                //    '<th>Oluşturan </th>' +
+                //    '<th>Yüz - Yüze </th>' +
+                //    '<th>Telefon</th>' +
+                //    '<th>Video - Konferans</th>' +
+                //    '<th>Yazılı</th>' +
+                //    '<th>Yemek Toplantı</th>' +
+                //    '<th>Diğer</th>' +
+                //    '<th>Total</th>' +
+                //    '</tr>' +
+                //    '</thead>' +
+                //    '<tbody>';
 
-                html += '<tr style="cursor:pointer;">' +
-                    '<td>Toplam </td>' +
-                    '<td>' + res.Object.contactTypeReports.map(a => a.faceToFace).reduce((d, b) => d + b, 0) + '</td>' +
-                    '<td>' + res.Object.contactTypeReports.map(a => a.phone).reduce((f, g) => f + g, 0) + '</td>' +
-                    '<td>' + res.Object.contactTypeReports.map(a => a.videoConferencing).reduce((t, y) => t + y, 0) + '</td>' +
-                    '<td>' + res.Object.contactTypeReports.map(a => a.written).reduce((p, l) => p + l, 0) + '</td>' +
-                    '<td>' + res.Object.contactTypeReports.map(a => a.food).reduce((r, v) => r + v, 0) + '</td>' +
-                    '<td>' + res.Object.contactTypeReports.map(a => a.other).reduce((r, v) => r + v, 0) + '</td>' +
-                    '<td>' + res.Object.contactTypeReports.map(a => a.Totals).reduce((r, v) => r + v, 0) + '</td>' 
-                '</tr>';
+                //for (var i = 0; i < res.Object.contactTypeReports.length; i++) {
 
-                html += '</tbody>' +
-                    '</table>' +
-                    '</div>';
-                $("#contactTypes").html(null);
-                $('#contactTypes').append(html);
+                //    html += '<tr style="cursor:pointer;">' +
+                //        '<td>' + res.Object.contactTypeReports[i].createdByTitleForContactType + '</td>' +
+                //        '<td>' + res.Object.contactTypeReports[i].faceToFace + '</td>' +
+                //        '<td>' + res.Object.contactTypeReports[i].phone + '</td>' +
+                //        '<td>' + res.Object.contactTypeReports[i].videoConferencing + '</td>' +
+                //        '<td>' + res.Object.contactTypeReports[i].written + '</td>' +
+                //        '<td>' + res.Object.contactTypeReports[i].food + '</td>' +
+                //        '<td>' + res.Object.contactTypeReports[i].other + '</td>'+
+                //        '<td>' + res.Object.contactTypeReports[i].Totals + '</td>'
+                //    '</tr>';
+                //};
+
+                //html += '<tr style="cursor:pointer;">' +
+                //    '<td>Toplam </td>' +
+                //    '<td>' + res.Object.contactTypeReports.map(a => a.faceToFace).reduce((d, b) => d + b, 0) + '</td>' +
+                //    '<td>' + res.Object.contactTypeReports.map(a => a.phone).reduce((f, g) => f + g, 0) + '</td>' +
+                //    '<td>' + res.Object.contactTypeReports.map(a => a.videoConferencing).reduce((t, y) => t + y, 0) + '</td>' +
+                //    '<td>' + res.Object.contactTypeReports.map(a => a.written).reduce((p, l) => p + l, 0) + '</td>' +
+                //    '<td>' + res.Object.contactTypeReports.map(a => a.food).reduce((r, v) => r + v, 0) + '</td>' +
+                //    '<td>' + res.Object.contactTypeReports.map(a => a.other).reduce((r, v) => r + v, 0) + '</td>' +
+                //    '<td>' + res.Object.contactTypeReports.map(a => a.Totals).reduce((r, v) => r + v, 0) + '</td>'
+                //'</tr>';
+
+                //html += '</tbody>' +
+                //    '</table>' +
+                //    '</div>';
+                //$("#contactTypes").html(null);
+                //$('#contactTypes').append(html);
 
             });
         });
@@ -145,7 +278,31 @@
                     </div>
                 </div>
                 <br />
-                <div class="row">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                @*<div class="row">
                     <div class="col-lg-12">
                         <div class="ibox ">
                             <div class="ibox-title">
@@ -173,9 +330,32 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>*@
 
             </div>
         </div>
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Aktivite Durumu</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="contactStatusDetail">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12" style="margin-top: 15px;">
+            <div class="ibox-title">
+                <h4>Aktivite Tipi</h4>
+            </div>
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 610px; overflow: auto; height: 610px; ">
+                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="contactTypeDetail">
+
+                </div>
+            </div>
+        </div>
+
+
     </div>
 </div>

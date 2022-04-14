@@ -688,6 +688,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return View(model);
 
         }
+        [PageInfo("Aktivite Rapor Detayı", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
+        public ActionResult ContactReportDetail(VMCRM_ContactModel item)
+        {
+            var model = item;
+            return View(model);
+
+        }
+
+
         [PageInfo("Aktivite Raporu Verileri", SHRoles.Personel)]
         public ContentResult DataSourceContactReport(DateTime? ContactStartDate, DateTime? ContactEndDate)
         {
@@ -698,11 +707,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             List<Guid> createdByList = new List<Guid>();
             foreach (var item in contacts)
             {
-                if (!createdByList.Contains(item.createdby.Value))
+                if(item.createdby != null)
                 {
-                    createdByList.Add(item.createdby.Value);
+                    if (!createdByList.Contains(item.createdby.Value))
+                    {
+                        createdByList.Add(item.createdby.Value);
+                    }
                 }
-                
             }
       
             var res = db.GetVWCRM_ContactByCreatedByIds(createdByList.ToArray(), ContactStartDate.Value, ContactEndDate.Value);
@@ -724,7 +735,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     canceled = canceled,
                     unplannedHappening = unplannedHappening,
                     Total = planned + happening + canceled + unplannedHappening,
-                    createdByTitle = line.FirstOrDefault().createdby_Title
+                    createdByTitle = line.FirstOrDefault().createdby_Title,
+                    createdBy = line.FirstOrDefault().createdby,
+                    endDate = ContactEndDate,
+                    startDate = ContactStartDate
                 };
                 contactStatusReports.Add(contactReport);
 
@@ -748,11 +762,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 };
                 contactTypeReports.Add(contactTypeReport);
             }
-
-
- 
-
-
                     
             var resultData = new
             {

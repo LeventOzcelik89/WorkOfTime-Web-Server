@@ -726,6 +726,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public int unplannedHappening { get; set; }
         public int Total { get; set; }
         public string createdByTitle { get; set; }
+        public Guid? createdBy { get; set; }
+        public DateTime? startDate { get; set; }
+        public DateTime? endDate { get; set; }
     }
 
     public class CRM_ContactContactTypeReports

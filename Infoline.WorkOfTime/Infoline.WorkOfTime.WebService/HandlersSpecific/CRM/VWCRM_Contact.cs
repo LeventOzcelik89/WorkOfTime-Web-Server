@@ -111,12 +111,12 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     UserType = GetUserByType(a.UserId)
                 }), trans);
 
-
+                var statusDescription = Helper.EnumsProperties.GetDescriptionFromEnumValue((EnumCRM_ContactContactStatus)model.ContactStatus);
                 dbresult &= db.InsertCRM_ContactAction(new CRM_ContactAction
                 {
                     created = DateTime.Now,
                     createdby = CallContext.Current.UserId,
-                    description = "Yeni aktivite/randevu eklendi.",
+                    description = data == null ? "Yeni aktivite/randevu eklendi." : "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
                     ContactId = model.id,
                     location = model.location,
                 }, trans);
