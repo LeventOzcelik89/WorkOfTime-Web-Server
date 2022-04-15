@@ -18,34 +18,17 @@
 
 <script type="text/javascript">
     var page = {
-        randomColorNumber: -1,
-        colorArray: ["badge-primary", "badge-danger", "badge-warning", "badge-info"],
-        getRandomColor: function () {
-            if (page.randomColorNumber >= page.colorArray.length - 1) {
-                page.randomColorNumber = 0;
-                return page.colorArray[page.randomColorNumber];
-            }
-            page.randomColorNumber++;
-            return page.colorArray[page.randomColorNumber];
-        },
         setDataSourceForContactStatusReport: function (data) {
             $("#contactStatusDetail").kendoGrid({
+                dataSource: data.Object.contactStatusReports,
+                pageSize: 10,
+                height: 475,
+                sortable: true,
                 toolbar: kendo.template($("#templates").html()),
                 excel: {
+                    title: "Aktivite Durum Raporu",
                     fileName: "Aktivite Durum Raporu.xlsx",
-                    allPages: true,
                     filterable: true
-                },
-                dataSource: {
-                    data: data.Object.contactStatusReports,
-                    pageSize: 10
-                },
-                height: 550,
-                sortable: true,
-                pageable: {
-                    refresh: true,
-                    pageSizes: true,
-                    buttonCount: 5
                 },
                 filterable: {
                     operators: {
@@ -56,10 +39,11 @@
                         }
                     }
                 },
-                columnMenu: true,
-                selectable: 'Single, Row',
-                reorderable: true,
-                resizable: true,
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
                 change: function (e, resp) {
                     debugger;
                     $('#ApprovedButtons').removeClass('hidden')
@@ -81,30 +65,90 @@
             var icon = $("#contactStatusDetail .k-i-excel");
             $("#contactStatusDetail .k-grid-excel").text("");
             $("#contactStatusDetail .k-grid-excel").append(icon);
+
+
+
+
+            //$("#contactStatusDetail").kendoGrid({
+            //    toolbar: kendo.template($("#templates").html()),
+            //    excel: {
+            //        fileName: "Aktivite Durum Raporu.xlsx",
+            //        allPages: true,
+            //        filterable: true
+            //    },
+            //    dataSource: {
+            //        data: data.Object.contactStatusReports,
+            //        pageSize: 10
+            //    },
+            //    height: 550,
+            //    sortable: true,
+            //    pageable: {
+            //        refresh: true,
+            //        pageSizes: true,
+            //        buttonCount: 5
+            //    },
+            //    filterable: {
+            //        operators: {
+            //            string: {
+            //                contains: "İçeriyor",
+            //                eq: "Eşittir",
+            //                neq: "Eşit Değil",
+            //            }
+            //        }
+            //    },
+            //    columnMenu: true,
+            //    selectable: 'Single, Row',
+            //    reorderable: true,
+            //    resizable: true,
+            //    change: function (e, resp) {
+            //        debugger;
+            //        $('#ApprovedButtons').removeClass('hidden')
+            //        var grid = $("#contactStatusDetail").data("kendoGrid");
+            //        var selectedItem = grid.dataItem(grid.select());
+            //        $('[data-button="ApprovedButs"]').show();
+            //        $('[data-button="ApprovedButs"]').attr('data-href', '/CRM/VWCRM_Contact/ContactReportDetail?createdby=' + selectedItem.createdBy + '&ContactStartDate=' + selectedItem.startDate + '&ContactEndDate=' + selectedItem.endDate + '');
+            //    },
+            //    columns: [
+            //        { field: "createdByTitle", title: "Oluşturan", width: 200 },
+            //        { field: "planned", title: "Planlanan", width: 110 },
+            //        { field: "happening", title: "Gerçekleşen", width: 125 },
+            //        { field: "canceled", title: "İptal Edilen", width: 125 },
+            //        { field: "unplannedHappening", title: "Plan Dışı Gerçekleşen", width: 125 },
+            //        { field: "Total", title: "Toplam", width: 125 },
+            //    ],
+            //});
+
+            //var icon = $("#contactStatusDetail .k-i-excel");
+            //$("#contactStatusDetail .k-grid-excel").text("");
+            //$("#contactStatusDetail .k-grid-excel").append(icon);
         },
 
         setDataSourceForContactTypeReport: function (data) {
+
             $("#contactTypeDetail").kendoGrid({
+                dataSource: data.Object.contactTypeReports,
+                pageSize: 10,
+                height: 475,
+                sortable: true,
                 toolbar: kendo.template($("#templateContactType").html()),
                 excel: {
+                    title: "Aktivite Tipi Raporu",
                     fileName: "Aktivite Tipi Raporu.xlsx",
-                    allPages: true,
                     filterable: true
                 },
-                dataSource: {
-                    data: data.Object.contactTypeReports,
-                    pageSize: 10
+                filterable: {
+                    operators: {
+                        string: {
+                            contains: "İçeriyor",
+                            eq: "Eşittir",
+                            neq: "Eşit Değil",
+                        }
+                    }
                 },
-                height: 550,
-                sortable: true,
-                pageable: true,
-                filterable: true,
-                columnMenu: true,
-                selectable: 'Single, Row',
-                reorderable: true,
-                resizable: true,
-                change: function (e, resp) {
-           
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
                 },
                 columns: [
                     { field: "createdByTitleForContactType", title: "Oluşturan", width: 200 },
@@ -121,6 +165,45 @@
             var icon = $("#contactTypeDetail .k-i-excel");
             $("#contactTypeDetail .k-grid-excel").text("");
             $("#contactTypeDetail .k-grid-excel").append(icon);
+
+
+            //$("#contactTypeDetail").kendoGrid({
+            //    toolbar: kendo.template($("#templateContactType").html()),
+            //    excel: {
+            //        fileName: "Aktivite Tipi Raporu.xlsx",
+            //        allPages: true,
+            //        filterable: true
+            //    },
+            //    dataSource: {
+            //        data: data.Object.contactTypeReports,
+            //        pageSize: 10
+            //    },
+            //    height: 550,
+            //    sortable: true,
+            //    pageable: true,
+            //    filterable: true,
+            //    columnMenu: true,
+            //    selectable: 'Single, Row',
+            //    reorderable: true,
+            //    resizable: true,
+            //    change: function (e, resp) {
+           
+            //    },
+            //    columns: [
+            //        { field: "createdByTitleForContactType", title: "Oluşturan", width: 200 },
+            //        { field: "faceToFace", title: "Yüz - Yüze", width: 110 },
+            //        { field: "phone", title: "Telefon", width: 110 },
+            //        { field: "videoConferencing", title: "Video - Konferans", width: 135 },
+            //        { field: "written", title: "Yazılı", width: 125 },
+            //        { field: "food", title: "Yemek - Toplantı", width: 125 },
+            //        { field: "other", title: "Diğer", width: 125 },
+            //        { field: "Totals", title: "Toplam", width: 125 },
+            //    ],
+            //});
+
+            //var icon = $("#contactTypeDetail .k-i-excel");
+            //$("#contactTypeDetail .k-grid-excel").text("");
+            //$("#contactTypeDetail .k-grid-excel").append(icon);
         },
         getPageContactReportRecord: function () {
             var start = $("#ContactStartDate").val();
