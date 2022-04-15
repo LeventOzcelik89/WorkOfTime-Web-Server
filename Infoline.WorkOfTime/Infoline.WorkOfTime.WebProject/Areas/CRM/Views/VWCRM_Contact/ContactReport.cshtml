@@ -6,7 +6,12 @@
 }
 
 <script type="text/x-kendo-template" id="templates">
-    <a  data-href="" data-button="ApprovedBut" id="ApprovedButton" data-method="GET" data-target="_blank" data-modal="false" class="k-button hidden"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
+    <a  data-href="" data-button="ApprovedButs" id="ApprovedButtons" data-method="GET" data-target="_blank" data-modal="false" class="k-button hidden"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
+    <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
+    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span></a>
+</script>
+<script type="text/x-kendo-template" id="templateContactType">
+    <a  data-href="" data-button="ApprovedButContactType" id="ApprovedButtonContactType" data-method="GET" data-target="_blank" data-modal="false" class="k-button hidden"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
     <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
     <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span></a>
 </script>
@@ -37,19 +42,31 @@
                 },
                 height: 550,
                 sortable: true,
-                pageable: true,
-                filterable: true,
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                filterable: {
+                    operators: {
+                        string: {
+                            contains: "İçeriyor",
+                            eq: "Eşittir",
+                            neq: "Eşit Değil",
+                        }
+                    }
+                },
                 columnMenu: true,
                 selectable: 'Single, Row',
                 reorderable: true,
                 resizable: true,
                 change: function (e, resp) {
                     debugger;
-                    $('#ApprovedButton').removeClass('hidden')
+                    $('#ApprovedButtons').removeClass('hidden')
                     var grid = $("#contactStatusDetail").data("kendoGrid");
                     var selectedItem = grid.dataItem(grid.select());
-                    $('[data-button="ApprovedBut"]').show();
-                    $('[data-button="ApprovedBut"]').attr('data-href', '/CRM/VWCRM_Contact/ContactReportDetail?createdby=' + selectedItem.createdBy + '&ContactStartDate=' + selectedItem.startDate + '&ContactEndDate=' + selectedItem.endDate + '');
+                    $('[data-button="ApprovedButs"]').show();
+                    $('[data-button="ApprovedButs"]').attr('data-href', '/CRM/VWCRM_Contact/ContactReportDetail?createdby=' + selectedItem.createdBy + '&ContactStartDate=' + selectedItem.startDate + '&ContactEndDate=' + selectedItem.endDate + '');
                 },
                 columns: [
                     { field: "createdByTitle", title: "Oluşturan", width: 200 },
@@ -68,7 +85,7 @@
 
         setDataSourceForContactTypeReport: function (data) {
             $("#contactTypeDetail").kendoGrid({
-                toolbar: kendo.template($("#templates").html()),
+                toolbar: kendo.template($("#templateContactType").html()),
                 excel: {
                     fileName: "Aktivite Tipi Raporu.xlsx",
                     allPages: true,
@@ -87,27 +104,15 @@
                 reorderable: true,
                 resizable: true,
                 change: function (e, resp) {
-                    debugger;
-                    $('#ApprovedButton').removeClass('hidden')
-                    var grid = $("#contactTypeDetail").data("kendoGrid");
-                    var startDate = $('#ContactStartDate').val();
-                    var endDate = $('#ContactEndDate').val();
-                    var selectedItem = grid.dataItem(grid.select());
-                    if (selectedItem.hasThePayment == 1) {
-                        $('[data-button="ApprovedBut"]').hide();
-                    }
-                    else {
-                        $('[data-button="ApprovedBut"]').show();
-                    }
-                    $('[data-button="ApprovedBut"]').attr('data-href', '/PRD/VWPRD_EntegrationAction/SellOutReportDetail?DistributorId=' + selectedItem.DistributorId + '&startDate=' + startDate + '&endDate=' + endDate + '');
+           
                 },
                 columns: [
                     { field: "createdByTitleForContactType", title: "Oluşturan", width: 200 },
                     { field: "faceToFace", title: "Yüz - Yüze", width: 110 },
-                    { field: "phone", title: "Telefon", width: 125 },
-                    { field: "videoConferencing", title: "Video - Konferans", width: 125 },
+                    { field: "phone", title: "Telefon", width: 110 },
+                    { field: "videoConferencing", title: "Video - Konferans", width: 135 },
                     { field: "written", title: "Yazılı", width: 125 },
-                    { field: "food", title: "Yemek Toplantı", width: 125 },
+                    { field: "food", title: "Yemek - Toplantı", width: 125 },
                     { field: "other", title: "Diğer", width: 125 },
                     { field: "Totals", title: "Toplam", width: 125 },
                 ],
@@ -129,7 +134,6 @@
         }
     }
 
-  
     $(document)
      .on('ready', function () {
          setTimeout(function () {
@@ -144,95 +148,6 @@
 
                 page.setDataSourceForContactStatusReport(res);
                 page.setDataSourceForContactTypeReport(res);
-
-
-                //var html = '<div class="table-responsive">' +
-                //    '<table class="table table-striped">' +
-                //    '<thead>' +
-                //    '<tr>' +
-                //    '' +
-                //    '<th>Oluşturan </th>' +
-                //    '<th>Planlanan</th>' +
-                //    '<th>Gerçekleşen</th>' +
-                //    '<th>İptal Edilen</th>' +
-                //    '<th>Plan Dışı Gerçekleşen</th>' +
-                //    '<th>Toplam</th>' +
-                //    '</tr>' +
-                //    '</thead>' +
-                //    '<tbody>';
-                //for (var i = 0; i < res.Object.contactStatusReports.length; i++) {
-
-                //    html += '<tr style="cursor:pointer;">' +
-                //        '<td>' + res.Object.contactStatusReports[i].createdByTitle + '</td>' +
-                //        '<td>' + res.Object.contactStatusReports[i].planned + '</td>' +
-                //        '<td>' + res.Object.contactStatusReports[i].happening + '</td>' +
-                //        '<td>' + res.Object.contactStatusReports[i].canceled + '</td>' +
-                //        '<td>' + res.Object.contactStatusReports[i].unplannedHappening + '</td>' +
-                //        '<td>' + res.Object.contactStatusReports[i].Total + '</td>'
-                //    '</tr>';
-                //};
-                //html += '<tr style="cursor:pointer;">' +
-                //       '<td>Toplam </td>' +
-                //       '<td>' + res.Object.contactStatusReports.map(a => a.planned).reduce((d, b) => d + b, 0)+ '</td>' +
-                //       '<td>' + res.Object.contactStatusReports.map(a => a.happening).reduce((f, g) => f + g, 0) + '</td>' +
-                //       '<td>' + res.Object.contactStatusReports.map(a => a.canceled).reduce((t, y) => t + y, 0) + '</td>' +
-                //       '<td>' + res.Object.contactStatusReports.map(a => a.unplannedHappening).reduce((p, l) => p + l, 0) + '</td>' +
-                //       '<td>' + res.Object.contactStatusReports.map(a => a.Total).reduce((r, v) => r + v, 0) + '</td>'
-                //'</tr>';
-
-                //html += '</tbody>' +
-                //    '</table>' +
-                //    '</div>';
-                //$("#customerStatistics").html(null);
-                //$('#customerStatistics').append(html);
-
-                //var html = '<div class="table-responsive">' +
-                //    '<table class="table table-striped">' +
-                //    '<thead>' +
-                //    '<tr>' +
-                //    '' +
-                //    '<th>Oluşturan </th>' +
-                //    '<th>Yüz - Yüze </th>' +
-                //    '<th>Telefon</th>' +
-                //    '<th>Video - Konferans</th>' +
-                //    '<th>Yazılı</th>' +
-                //    '<th>Yemek Toplantı</th>' +
-                //    '<th>Diğer</th>' +
-                //    '<th>Total</th>' +
-                //    '</tr>' +
-                //    '</thead>' +
-                //    '<tbody>';
-
-                //for (var i = 0; i < res.Object.contactTypeReports.length; i++) {
-
-                //    html += '<tr style="cursor:pointer;">' +
-                //        '<td>' + res.Object.contactTypeReports[i].createdByTitleForContactType + '</td>' +
-                //        '<td>' + res.Object.contactTypeReports[i].faceToFace + '</td>' +
-                //        '<td>' + res.Object.contactTypeReports[i].phone + '</td>' +
-                //        '<td>' + res.Object.contactTypeReports[i].videoConferencing + '</td>' +
-                //        '<td>' + res.Object.contactTypeReports[i].written + '</td>' +
-                //        '<td>' + res.Object.contactTypeReports[i].food + '</td>' +
-                //        '<td>' + res.Object.contactTypeReports[i].other + '</td>'+
-                //        '<td>' + res.Object.contactTypeReports[i].Totals + '</td>'
-                //    '</tr>';
-                //};
-
-                //html += '<tr style="cursor:pointer;">' +
-                //    '<td>Toplam </td>' +
-                //    '<td>' + res.Object.contactTypeReports.map(a => a.faceToFace).reduce((d, b) => d + b, 0) + '</td>' +
-                //    '<td>' + res.Object.contactTypeReports.map(a => a.phone).reduce((f, g) => f + g, 0) + '</td>' +
-                //    '<td>' + res.Object.contactTypeReports.map(a => a.videoConferencing).reduce((t, y) => t + y, 0) + '</td>' +
-                //    '<td>' + res.Object.contactTypeReports.map(a => a.written).reduce((p, l) => p + l, 0) + '</td>' +
-                //    '<td>' + res.Object.contactTypeReports.map(a => a.food).reduce((r, v) => r + v, 0) + '</td>' +
-                //    '<td>' + res.Object.contactTypeReports.map(a => a.other).reduce((r, v) => r + v, 0) + '</td>' +
-                //    '<td>' + res.Object.contactTypeReports.map(a => a.Totals).reduce((r, v) => r + v, 0) + '</td>'
-                //'</tr>';
-
-                //html += '</tbody>' +
-                //    '</table>' +
-                //    '</div>';
-                //$("#contactTypes").html(null);
-                //$('#contactTypes').append(html);
 
             });
         });
@@ -355,7 +270,6 @@
                 </div>
             </div>
         </div>
-
 
     </div>
 </div>
