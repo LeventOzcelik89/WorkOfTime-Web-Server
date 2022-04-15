@@ -20,18 +20,51 @@
     }
 </style>
 <div class="row" style="padding-bottom:15px;">
-    <div class="ibox">
-        <div class="col-sm-12" style="margin-top: 15px;">
-            <div class="ibox-title">
-                <h4>@Model.DistName Toplam Stok</h4>
-            </div>
-            <div class="ibox-content clearfix" style="min-height: 215px; max-height: 610px; overflow: auto; height: 215px; ">
-                <div class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="DistTotalStock">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="row">
+            <div class="col-md-4">
 
+                <div class="widget style1 red-bg">
+                    <div class="row">
+                        <div class="col-xs-4" style="margin-top:6px;">
+                            <i class="icon-building-filled fa-3x "></i>
+                        </div>
+                        <div class="col-xs-8 text-right">
+                            <h2>Toplam Distribütöre Satış</h2>
+                            <h2 id="distSalesCounts" class="font-bold">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="widget style1 navy-bg">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <i class="icon-home-4 fa-3x" style="margin-top:6px;"></i>
+                        </div>
+                        <div class="col-xs-8 text-right">
+                            <h2>Toplam Bayiye Satış</h2>
+                            <h2 id="salesCounts" class="font-bold">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="widget style1 lazur-bg">
+                    <div class="row">
+                        <div class="col-xs-4" style="margin-top:6px;">
+                            <i class="icon-mobile fa-4x"></i>
+                        </div>
+                        <div class="col-xs-8 text-right">
+                            <h2>Distribütör Stok</h2>
+                            <h2 id="totalStocks" class="font-bold">0</h2>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
+    </div>
+    <div class="ibox">
         <div class="col-sm-12" style="margin-top: 15px;">
             <div class="ibox-title">
                 <h4>Bayi Toplam Stok</h4>
@@ -69,29 +102,12 @@
         },
         setDataSourceForDistTotalStock: function (data) {
             debugger;
-            $("#DistTotalStock").kendoGrid({
-                dataSource: {
-                    data: data.objects,
-                    pageSize: 25
-                },
-                height: 155,
-                sortable: true,
-                pageable: false,
-                filterable: true,
-                columnMenu: true,
-                reorderable: true,
-                resizable: true,
-                columns: [
-                    { field: "DistributorName", title: "Distribütör Adı", width: 200, attributes: { style: "text-align:center" }},
-                    { field: "DistSalesCount", title: "Toplam Distribütöre Satış", width: 110, attributes: { style: "text-align:center" }},
-                    { field: "SalesCount", title: "Toplam Bayiye Satış", width: 125, attributes: { style: "text-align:center" } },
-                    { field: "TotalStock", title: "Distribütör Stok", width: 125, attributes: { style: "text-align:center" }},
-                ],
-            });
-
-            var icon = $("#DistTotalStock .k-i-excel");
-            $("#DistTotalStock .k-grid-excel").text("");
-            $("#DistTotalStock .k-grid-excel").append(icon);
+            $("#distSalesCounts").text(data.objects[0].DistSalesCount);
+            $("#distSalesCounts").text(kendo.format('{0:N0}', parseInt($("#distSalesCounts").text())) + " Adet");
+            $("#salesCounts").text(data.objects[0].SalesCount);
+            $("#salesCounts").text(kendo.format('{0:N0}', parseInt($("#salesCounts").text())) + " Adet");
+            $("#totalStocks").text(data.objects[0].TotalStock);
+            $("#totalStocks").text(kendo.format('{0:N0}', parseInt($("#totalStocks").text())) + " Adet");
         },
         setDataSourceForDealarTotalStock: function (data) {
             $("#DealarTotalStock").kendoGrid({
@@ -114,9 +130,9 @@
                 resizable: true,
                 columns: [
                     { field: "DealarName", title: "Bayi Adı", width: 125 },
-                    { field: "SalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
-                    { field: "AssignmentCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
-                    { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "SalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" }, template: '#= kendo.format("{0:N0}", SalesCount) #' },
+                    { field: "AssignmentCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" }, template: '#= kendo.format("{0:N0}", AssignmentCount) #' },
+                    { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" }, template: '#= kendo.format("{0:N0}", TotalStock) #' },
 
                 ],
             });
@@ -150,9 +166,9 @@
                 columns: [
                     { field: "DealarName", title: "Bayi Adı", hidden: true, attributes: { style: "display:none" } },
                     { field: "ProductName", title: "Ürün Adı", width: 200, attributes: { style: "text-align:center" } },
-                    { field: "SalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" } },
-                    { field: "AssignmentCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" } },
-                    { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" } },
+                    { field: "SalesCount", title: "Toplam Bayi Satış", width: 125, attributes: { style: "text-align:center" }, template: '#= kendo.format("{0:N0}", SalesCount) #' },
+                    { field: "AssignmentCount", title: "Toplam Temlik", width: 110, attributes: { style: "text-align:center" }, template: '#= kendo.format("{0:N0}", AssignmentCount) #' },
+                    { field: "TotalStock", title: "Bayi Stok", width: 125, attributes: { style: "text-align:center" }, template: '#= kendo.format("{0:N0}", TotalStock) #' },
                 ],
             });
 
@@ -168,15 +184,15 @@
                 page.setDataSourceForDealarTotalStock(data.DealarStockDetailData);
                 page.setDataSourceForDealarAndProductStock(data.DealarProductStockDetailData);
                 $('body').loadingModal('destroy');
-                });
-            }
+            });
+        }
     }
     var dist = $('#DistributorId').val();
     $(document)
         .on('ready', function () {
             setTimeout(function () {
                 $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
-            },2000)
+            }, 2000)
             page.getPageRecords(dist)
         });
 </script>
