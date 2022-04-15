@@ -19,38 +19,31 @@ namespace Infoline.OmixEntegrationApp
 
         public AgentStart()
         {
-
+           
         }
 
         public void Run()
         {
-            //new ProcessLogoEntegration().Run();
-            new ProcessTitanEntegration().Run();
-            new ProcessFtpEntegration().Run();
+            var taskProcessTitanEntegration = new Task(() =>
+            {
+                new ProcessTitanEntegration().Run();
+            });
+            Tasks.Add(taskProcessTitanEntegration);
+
+            var taskProcessFtpDistEntegration = new Task(() =>
+            {
+                new ProcessFtpEntegration().Run();
+            });
+            Tasks.Add(taskProcessFtpDistEntegration);
+
+            //taskProcessLogoEntegration.Start();
+            taskProcessTitanEntegration.Start();
+            taskProcessFtpDistEntegration.Start();
         }
 
         protected override void OnStart(string[] args)
         {
-
-            //var startingDate= ConfigurationManager.AppSettings["WorkerStart"].ToString();
-            //if (string.IsNullOrEmpty(startingDate))
-            //{
-            //    Log.Error("Ajan çalışma saati bulunamadı");
-            //    throw new Exception("Ajan çalışma saati bulunamadı");
-            //}
-            //var parseDate = TimeSpan.ParseExact(startingDate,"HH:mm",CultureInfo.InvariantCulture);
-
-
-            //while (true)
-            //{
-            //    var getDate = DateTime.Now;
-
-            //    if (getDate==new DateTime(getDate.Year,getDate.Month,getDate.Day,0,30,getDate.Second))
-            //    {
-            //        Run();
-            //    }
-            //    Thread.Sleep(new TimeSpan(0,1,0));
-            //}
+            Run();
         }
 
         protected override void OnStop()
