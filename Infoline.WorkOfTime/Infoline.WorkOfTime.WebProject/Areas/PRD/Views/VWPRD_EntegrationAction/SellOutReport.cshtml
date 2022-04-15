@@ -1,6 +1,8 @@
 ﻿@{
     ViewBag.Title = "SellOut Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var startOfDay = DateTime.Now.AddDays(-30).Date;
+    var endOfDay = DateTime.Now.Date;
     var now = DateTime.Now;
     var startOfWeek = now.AddDays(DayOfWeek.Monday - now.DayOfWeek).Date;
     var endOfWeek = startOfWeek.AddDays(7).Date;
@@ -143,11 +145,11 @@
                     $('[data-button="ApprovedBut"]').attr('data-href', '/PRD/VWPRD_EntegrationAction/SellOutReportDetail?DistributorId=' + selectedItem.DistributorId + '&startDate=' + startDate + '&endDate=' + endDate + '');
                 },
                 columns: [
-                    { field: "DistributorName", title: "Distribütör Adı", width: 200 },
-                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110 },
-                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
-                    { field: "AssignmentCount", title: "Temlik", width: 125 },
-                    { field: "ActivatedData", title: "Aktivasyon", width: 125 },
+                    { field: "DistributorName", title: "Distribütör Adı", width: 200},
+                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110, template: '#= kendo.format("{0:N0}", DistSalesCount) #' },
+                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125, template: '#= kendo.format("{0:N0}", SalesCount) #'  },
+                    { field: "AssignmentCount", title: "Temlik", width: 125, template: '#= kendo.format("{0:N0}", AssignmentCount) #' },
+                    { field: "ActivatedData", title: "Aktivasyon", width: 125, template: '#= kendo.format("{0:N0}", ActivatedData) #' },
                 ],
             });
 
@@ -180,10 +182,10 @@
                  columns: [
                      { field: "DistributorName", title: "Distribütör Adı", hidden: true },
                     { field: "ProductName", title: "Ürün Adı", width: 200 },
-                    { field: "DistSalesCount", title: "Distribütöre Satış", width: 110 },
-                    { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125 },
-                    { field: "AssignmentCount", title: "Temlik", width: 125 },
-                    { field: "ActivatedData", title: "Aktivasyon", width: 125 },
+                     { field: "DistSalesCount", title: "Distribütöre Satış", width: 110, template: '#= kendo.format("{0:N0}", DistSalesCount) #' },
+                     { field: "SalesCount", title: "Distribütörün Bayi Satışı", width: 125, template: '#= kendo.format("{0:N0}", SalesCount) #'},
+                     { field: "AssignmentCount", title: "Temlik", width: 125, template: '#= kendo.format("{0:N0}", AssignmentCount) #' },
+                     { field: "ActivatedData", title: "Aktivasyon", width: 125, template: '#= kendo.format("{0:N0}", ActivatedData) #' },
                 ],
             });
 
@@ -204,7 +206,7 @@
     }
     $(document)
      .on('ready', function () {
-         page.getPageRecords('@startOfMonth','@endOfMonth')
+         page.getPageRecords('@startOfDay','@endOfDay')
      });
     $('[data-query]').on("click", function (e) {
         if ($(this).attr("data-selector") == "created") {
