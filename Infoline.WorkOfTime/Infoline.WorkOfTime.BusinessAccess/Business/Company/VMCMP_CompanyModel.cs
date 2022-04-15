@@ -445,7 +445,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return new ResultStatus { result = false, message = "Girmiş olduğunuz email adresi sistemde kullanılıyor.Lütfen başka bir email ile işleminize devam edin." };
             }
-            this.CMP_TypeIds = new Guid[] { Guid.Parse("03826FA5-1477-F537-F093-57A8C3BEDA5F") };
+            this.CMP_TypeIds = new Guid[] { Guid.Parse("FCB3FA74-0C52-B122-065D-EB929108CBCC") };
             this.isActive = (int)EnumCMP_CompanyIsActive.Pasif;
             this.type = (short)EnumCMP_CompanyType.Diger;
 

@@ -986,18 +986,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Json(new ResultStatusUI { FeedBack = new FeedBack().Success("Bayi Kodu Gönderildi"), Result = true }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Bayi Personelleri Listesi", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personelleri Listesi", SHRoles.BayiOnaylayici)]
         public ActionResult CompanyPersonIndex()
         {
             return View();
         }
-        [PageInfo("Bayi Personeli Onaylama Metodu", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personeli Onaylama Metodu", SHRoles.BayiOnaylayici)]
         public ActionResult Confirm(Guid id)
         {
             var model = new VMSH_UserModel { id = id }.Load();
             return View(model);
         }
-        [PageInfo("Bayi Personeli Onaylama Metodu", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personeli Onaylama Metodu", SHRoles.BayiOnaylayici)]
         [HttpPost]
         public JsonResult Confirm(Guid id, bool? isPost)
         {
@@ -1028,7 +1028,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 Result = result.result
             }, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Bayi Personelleri Güncellemeye Yarayan Sayfa", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personelleri Güncellemeye Yarayan Sayfa", SHRoles.BayiOnaylayici)]
         public ActionResult UpdateCompanyCustomer(VMSH_UserModel item)
         {
             var db = new WorkOfTimeDatabase();
@@ -1036,7 +1036,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             model.VWPA_Accounts = db.GetVWPA_AccountsByDataIdDataTable(model.id, "SH_User");
             return View(model);
         }
-        [PageInfo("Bayi Personeli Reddetme Metodu", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Personeli Reddetme Metodu", SHRoles.BayiOnaylayici)]
         public JsonResult Reject(Guid id)
         {
             var db = new WorkOfTimeDatabase();

@@ -794,7 +794,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
 
                 SendFirstCustomerMail();
-                var Iks = db.GetVWSH_UserByRoleId(SHRoles.IKYonetici);
+                var Iks = db.GetVWSH_UserByRoleId(SHRoles.BayiOnaylayici);
                 if (Iks != null && Iks.Count() > 0)
                 {
                     foreach (var item in Iks)

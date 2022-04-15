@@ -48,7 +48,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         {
             return View();
         }
-        [PageInfo("Bayi Onay Listesi", SHRoles.IKYonetici)]
+        [PageInfo("Bayi Onay Listesi", SHRoles.BayiOnaylayici)]
         public ActionResult CompanyApproveIndex()
         {
             return View();
@@ -768,15 +768,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return query;
         }
 
-        [AllowEveryone]
-        [PageInfo("Şirket Onaylama")]
+        [PageInfo("Şirket Onaylama", SHRoles.BayiOnaylayici)]
         public ActionResult Confirm(Guid id)
         {
             var model = new VMCMP_CompanyModel { id = id }.Load();
             return View(model);
         }
         [AllowEveryone]
-        [PageInfo("Şirket Onaylama")]
+        [PageInfo("Şirket Onaylama", SHRoles.BayiOnaylayici)]
         [HttpPost]
         public JsonResult Confirm(Guid id, bool? isPost)
         {
