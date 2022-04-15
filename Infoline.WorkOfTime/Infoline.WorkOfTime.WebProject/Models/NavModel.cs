@@ -380,7 +380,9 @@ namespace System.Web.Mvc
             if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1000)
             {
                 menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
-                menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_TitanDeviceActivated/SellOutDashboard"));
+                //menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_TitanDeviceActivated/SellOutDashboard"));
+                menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_EntegrationAction/SellOutReport"));
+                menu.AddChild(new Menu("Distribütör Stok Raporu", "/PRD/VWPRD_EntegrationAction/DistStockReport"));
                 menu.AddChild(new Menu("Prim Kural Tanımları", "/PRD/VWPRD_ProductBonus/Index"));
                 menu.AddChild(new Menu("Temlik Tanımlama", "/PRD/VWPRD_ProductProgressPaymentImport/Index"));
                 menu.AddChild(new Menu("Temlik Onaylama", "/PRD/VWPRD_ProductProgressPayment/Index"));
