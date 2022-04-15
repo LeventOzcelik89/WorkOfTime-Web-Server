@@ -58,7 +58,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWCMP_Request Request { get; set; }
         public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
         public VMFTM_TaskUserInfo[] taskFollowUpUsers { get; set; }
-		public VWFTM_Task[] subTasks { get; set; }
+        public VWFTM_Task[] subTasks { get; set; }
         public VWFTM_Task mainTask { get; set; }
 
     }
@@ -169,7 +169,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             model.subTasks = _db.GetVWFTM_TaskByPid(data.id);
 
-            if(data.pid != null)
+            if (data.pid != null)
             {
                 model.mainTask = _db.GetVWFTM_TaskById(data.pid.Value);
             }
@@ -349,7 +349,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 code = BusinessExtensions.B_GetIdCode(),
                 createdby = userId,
                 created = DateTime.Now,
-                hasVerifyCode = false, 
+                hasVerifyCode = false,
                 companyId = user?.CompanyId,
                 company_Title = user?.Company_Title
             };
@@ -419,6 +419,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 task.adress = company.openAddress;
                                 task.phone = company.phone;
                                 task.email = company.email;
+                            }
+                            var customerStorage = _db.GetVWCMP_StorageById(inventory.lastActionDataId.Value);
+                            if (customerStorage != null)
+                            {
+                                task.customerId = customerStorage.companyId;
+                                task.customerStorageId = customerStorage.id;
+                                task.customerStorage_Title = customerStorage.fullName;
+                                task.customer_Title = customerStorage.companyId_Title;
                             }
                             break;
                         case EnumPRD_InventoryActionType.CikisYapildi:
