@@ -349,7 +349,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 code = BusinessExtensions.B_GetIdCode(),
                 createdby = userId,
                 created = DateTime.Now,
-                hasVerifyCode = false,
+                hasVerifyCode = false, 
                 companyId = user?.CompanyId,
                 company_Title = user?.Company_Title
             };
@@ -411,6 +411,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             }
                             break;
                         case EnumPRD_InventoryActionType.KirayaVerildi:
+                            var company = _db.GetVWCMP_CompanyById(inventory.lastActionDataCompanyId.Value);
+                            if (company != null)
+                            {
+                                task.customerId = company.id;
+                                task.customer_Title = company.fullName;
+                                task.adress = company.openAddress;
+                                task.phone = company.phone;
+                                task.email = company.email;
+                            }
+                            break;
                         case EnumPRD_InventoryActionType.CikisYapildi:
                             var ss = _db.GetVWCMP_CompanyById(inventory.lastActionDataId.Value);
                             if (ss != null)
