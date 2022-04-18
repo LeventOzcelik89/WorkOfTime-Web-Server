@@ -116,7 +116,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 {
                     created = DateTime.Now,
                     createdby = CallContext.Current.UserId,
-                    description = data == null ? "Yeni aktivite/randevu eklendi." : "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
+                    description = data == null ? "Yeni aktivite/randevu eklendi. (" + statusDescription + ") (" + DateTime.Now + ")" : "Aktivite/Randevu düzenlendi. (" + statusDescription + ") (" + DateTime.Now + ")",
                     ContactId = model.id,
                     location = model.location,
                 }, trans);

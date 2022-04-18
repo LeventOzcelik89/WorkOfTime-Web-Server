@@ -40,6 +40,76 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
         [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
+        public ContentResult DataSourceForCharts(DateTime ContactStartDate, DateTime ContactEndDate)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWCRM_ContactForStartDateAndEndDate(ContactStartDate, ContactEndDate);
+            List<string> DateBetween = new List<string>();
+            var happeningTotal = new List<ValueWithDates>();
+            var planTotal = new List<ValueWithDates>();
+            var cancelCount = new List<ValueWithDates>();
+            var unplannedTotal = new List<ValueWithDates>();
+            for (DateTime i = ContactStartDate.Date; i <= ContactEndDate.Date; i = i.AddDays(1))
+            {
+                happeningTotal.Add(new ValueWithDates { Value = 0, Date = i });
+                planTotal.Add(new ValueWithDates { Value = 0, Date = i });
+                cancelCount.Add(new ValueWithDates { Value = 0, Date = i });
+                unplannedTotal.Add(new ValueWithDates { Value = 0, Date = i });
+                DateBetween.Add(i.ToShortDateString());
+            }
+            foreach (var item in data.Where(x => x.created.HasValue).GroupBy(x => x.created))
+            {
+                
+                var happeningTotalCount = happeningTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
+                var planTotalCount = planTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
+                var cancelledTotal = cancelCount.FirstOrDefault(x => x.Date == item.Key.Value.Date);
+                var unplannedTotalCount = unplannedTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
+                if (happeningTotalCount != null)
+                {
+                    happeningTotalCount.Value +=item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiPlanlandi).Count();
+                }
+                if (planTotalCount != null)
+                {
+                    planTotalCount.Value += item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed != null).Count();
+                } 
+                if (cancelledTotal != null)
+                {
+                    cancelledTotal.Value += item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiIptal).Count();
+                }
+                if (unplannedTotalCount != null)
+                {
+                    unplannedTotalCount.Value += item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed == null).Count();
+                }
+
+            }
+
+            var MultiAxisChart = new ExpensDayModels
+            {
+
+                Categories = DateBetween,
+                Series = new List<double[]> {
+                    happeningTotal.Select(x => x.Value).ToArray(),
+                    planTotal.Select(x => x.Value).ToArray(),
+                    cancelCount.Select(x => x.Value).ToArray(),
+                    unplannedTotal.Select(x => x.Value).ToArray(), 
+                }
+            };
+
+            var resultData = new
+            {
+                chartForMultiAxis = MultiAxisChart,
+                Data = data
+            };
+
+            return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI
+            {
+                Result = true,
+                Object = resultData
+            }), "application/json");
+        }
+
+
+        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult DataSourceForContactAction([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -217,7 +287,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
                 created = DateTime.Now,
                 createdby = userStatus.user.id,
-                description = "Aktivite/Randevu eklendi. (" + statusDescription + ")",
+                description = "Aktivite/Randevu eklendi. (" + statusDescription + ") (" + DateTime.Now + ")",
                 ContactId = item.id,
                 location = location
             }, trans);
@@ -493,6 +563,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var dbRes = db.UpdateCRM_Contact(new CRM_Contact().EntityDataCopyForMaterial(item, true), false, trans);
 
             var statusDescription = Helper.EnumsProperties.GetDescriptionFromEnumValue((EnumCRM_ContactContactStatus)item.ContactStatus);
+
             var lastChanges = "";
             if (item.PresentationId.HasValue)
             {
@@ -500,7 +571,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 {
                     created = DateTime.Now,
                     createdby = userStatus.user.id,
-                    description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
+                    description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")" ,
                     presentationId = item.PresentationId.Value,
                     contactId = item.id,
                     type = (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
@@ -561,7 +632,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
                 created = DateTime.Now,
                 createdby = userStatus.user.id,
-                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
+                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ") ("+DateTime.Now+")" ,
                 ContactId = item.id,
                 location = location
             }, trans);

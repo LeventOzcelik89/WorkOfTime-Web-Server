@@ -5,6 +5,62 @@
     var userStatus = (PageSecurity)Session["userStatus"];
 }
 
+@section css{
+    <link href="~/Content/Custom/css/PersonsDetail.css" rel="stylesheet" />
+}
+
+<style>
+    .ovflow-height478 {
+        overflow: auto;
+        height: 430px !important;
+    }
+
+    h5 {
+        text-align: center;
+    }
+
+    .ibox-title h5 {
+        display: block;
+        font-size: 14px;
+        margin: 0 0 7px;
+        padding: 0;
+        text-overflow: ellipsis;
+        float: inherit;
+    }
+
+    small {
+        display: block;
+        float: inherit;
+        text-align: center;
+        margin-top: -12px;
+    }
+
+    div#alan {
+        color: red;
+        border: 1px solid;
+        text-align: center;
+        padding: 5px 5px 5px 5px;
+        width: 157px;
+        font-weight: bold;
+        margin-bottom: -10px;
+    }
+
+    .chart-total {
+        color: red;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+
+    .nodata {
+        color: #21B9BB;
+        text-align: center;
+        font-weight: bold;
+        padding-top: 25%;
+        font-size: 16px;
+    }
+</style>
+
 <script type="text/x-kendo-template" id="templates">
     <a  data-href="" data-button="ApprovedButs" id="ApprovedButtons" data-method="GET" data-target="_blank" data-modal="false" class="k-button hidden"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
     <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span></a>
@@ -74,7 +130,6 @@
             $("#contactStatusDetail .k-grid-excel").append(icon);
             $('.k-i-pdf').hide();
         },
-
         setDataSourceForContactTypeReport: function (data) {
 
             $("#contactTypeDetail").html(null);
@@ -110,7 +165,7 @@
                 reorderable: true,
                 resizable: true,
                 change: function (e, resp) {
-           
+
                 },
                 columns: [
                     { field: "createdByTitleForContactType", title: "Oluşturan", width: 200 },
@@ -132,34 +187,205 @@
         getPageContactReportRecord: function () {
             var start = $("#ContactStartDate").val();
             var end = $("#ContactEndDate").val();
+
             GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceContactReport', { ContactStartDate: start, ContactEndDate: end }, function (res) {
                 page.setDataSourceForContactStatusReport(res);
                 page.setDataSourceForContactTypeReport(res);
                 $('body').loadingModal('destroy');
-
             });
+
+
+            GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceForCharts', { ContactStartDate: start, ContactEndDate: end }, function (res) {
+                CreatePieChart($('#contactTypeGraph'), res.Object.Data, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Toplam ");
+                createcontactStatusGraphChart(res.Object.chartForMultiAxis);
+            });
+
         }
     }
+    function CreatePieChart(element, data, MyString, position) {
 
+        debugger;
 
+        $("#contactTypeGraph").html(null);
+
+        if (data.length == 0) {
+
+            element.parents('div').eq(0).append('<div class="nodata"><div>Sonuç Bulunamadı</div></div>');
+            return;
+        }
+
+        var datas = data.map(x => x.ContactType_Title);
+        var mapped = $.Enumerable.From(datas).GroupBy(x => x).Select(function (i, item) { return { category: i.Key(), value: i.source.length } }).ToArray();
+   
+        element.kendoChart({
+            title: {},
+            legend: {
+                position: position
+            },
+            series: [
+                {
+                    type: "pie",
+                    data: mapped
+                }
+            ],
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            dataSource: {
+                data: data
+            },
+            seriesDefaults: {
+                labels: {
+                    visible: true,
+                   //template: MyString,
+                     template: "#= kendo.format('{0:p2}', percentage)#"
+                },
+                overlay: {
+                    gradient: "none"
+                },
+            },
+            chartArea: {
+                background: "transparent"
+            },
+            tooltip: {
+                visible: true,
+                template: MyString,
+                format: "{0:N0}",
+            },
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+
+    function createcontactStatusGraphChart(data) {
+ 
+        $("#contactStatusGraph").kendoChart({
+            title: {
+                /*text: "Aktivite Durumu"*/
+            },
+            legend: {
+                position: "top"
+            },
+            series: [
+                {
+                    type: "line",
+                    data: data.Series[0],
+                    name: "Planlanan",
+                    color: "#2d1fc6",
+                    axis: "budget",
+                    tooltip: {
+                        visible: true,
+                        format: "{0}%",
+                        template: "#= series.name #: #= value #"
+                    }
+                },
+                {
+                    type: "line",
+                    data: data.Series[1],
+                    name: "Gerçekleşen",
+                    color: "#09670f",
+                    axis: "mission"
+                },
+                {
+                    type: "line",
+                    data: data.Series[2],
+                    name: "İptal Edilen",
+                    color: "#d60001",
+                    axis: "cancel"
+                },
+                {
+                    type: "line",
+                    data: data.Series[3],
+                    name: "Plan Dışı Gerçekleşen",
+                    color: "#e4a100",
+                    axis: "unplanned"
+                },
+
+            ],
+            valueAxes: [
+                {
+                    name: "budget",
+                    title: { text: "Planlanan" },
+                    color: "#2d1fc6",
+                    labels: {
+                        format: "{0}"
+                    },
+                    axisCrossingValue: -10
+                },
+                {
+                    name: "mission",
+                    title: { text: "Gerçekleşen" },
+                    color: "#09670f",
+                    labels: {
+                        format: "{0}"
+                    },
+                    axisCrossingValue: -10
+                },
+                {
+                    name: "cancel",
+                    title: { text: "İptal Edilen" },
+                    color: "#d60001",
+                    labels: {
+                        format: "{0}"
+                    },
+                    axisCrossingValue: -10
+                },
+                {
+                    name: "unplanned",
+                    title: { text: "Plan Dışı Gerçekleşen" },
+                    color: "#e4a100",
+                    labels: {
+                        format: "{0}"
+                    },
+                    axisCrossingValue: -10
+                }
+            ],
+            tooltip: {
+                visible: true,
+                format: "{0}%",
+                template: "#= series.name #: #= value #"
+            },
+            pannable: {
+                lock: "y"
+            },
+            zoomable: {
+                mousewheel: {
+                    lock: "y"
+                },
+                selection: {
+                    lock: "y"
+                }
+            },
+            categoryAxis: {
+                categories: data.Categories,
+                majorGridLines: {
+                    visible: true
+                },
+                labels: {
+                    rotation: "auto"
+                }
+            }
+        });
+    };
 
     $(document)
-     .on('ready', function () {
-         setTimeout(function () {
-             $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
-         }, 1500)
-         page.getPageContactReportRecord();
-      
-     })
+        .on('ready', function () {
+            setTimeout(function () {
+                $('body').loadingModal({ text: 'Veriler Yükleniyor.Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
+            }, 1500)
+            page.getPageContactReportRecord();
+        })
 
         .on("click", '#DashBoardFilters', function (e) {
             var start = $("#ContactStartDate").val();
             var end = $("#ContactEndDate").val();
             GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceContactReport', { ContactStartDate: start, ContactEndDate: end }, function (res) {
-
                 page.setDataSourceForContactStatusReport(res);
                 page.setDataSourceForContactTypeReport(res);
-
+            });
+            GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceForCharts', { ContactStartDate: start, ContactEndDate: end }, function (res) {
+                CreatePieChart($('#contactTypeGraph'), res.Object.Data, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Toplam ");
+                createcontactStatusGraphChart(res.Object.chartForMultiAxis);
             });
         });
 </script>
@@ -178,9 +404,7 @@
                                         DatePicker("ContactStartDate").
                                         Placeholder("Başlangıç Tarihi").
                                         Format(Extensions.DateFormatShort()).
-                                        Value(DateTime.Now).
-                                        //Min(DateTime.Now).
-                                         //MaxDateElement("dueDate").
+                                        Value(DateTime.Now.AddDays(-15)).
                                         Validate(Validations.Required)
                                     )
                                 </div>
@@ -204,62 +428,37 @@
                     </div>
                 </div>
                 <br />
+            </div>
+        </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                @*<div class="row">
-                    <div class="col-lg-12">
-                        <div class="ibox ">
-                            <div class="ibox-title">
-                                <h5><i class="fa fa-users"></i> Aktivite Durumu</h5>
-                                <div class="ibox-tools">
-                                </div>
-                            </div>
-                            <div class="ibox-content ibox-content_image clearfix " style="height:240px; overflow-y:scroll;">
-                                <div id="customerStatistics"></div>
-                            </div>
+        <div class="col-md-6">
+            <div class="ibox " id="iboxboyu">
+                <div class="ibox-title">
+                    <h5>Aktivite Tipi Raporu</h5>
+                    <div class="ibox-content clearfix ">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="contactTypeGraph" style="height:414px"></div>
+                            <div class="chart-loading"></div>
                         </div>
                     </div>
                 </div>
-                <br />
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="ibox ">
-                            <div class="ibox-title">
-                                <h5><i class="fa fa-users"></i> Aktivite Tipi</h5>
-                                <div class="ibox-tools">
-                                </div>
-                            </div>
-                            <div class="ibox-content ibox-content_image clearfix " style="height:240px; overflow-y:scroll;">
-                                <div id="contactTypes"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>*@
-
             </div>
         </div>
+
+        <div class="col-md-6">
+            <div class="ibox " id="iboxboyu">
+                <div class="ibox-title">
+                    <h5>Aktivite Durumu Raporu</h5>
+                    <div class="ibox-content clearfix ">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="contactStatusGraph" style="height:414px"></div>
+                            <div class="chart-loading"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="col-sm-12" style="margin-top: 15px;">
             <div class="ibox-title">
                 <h4>Aktivite Durumu</h4>
@@ -281,6 +480,5 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>

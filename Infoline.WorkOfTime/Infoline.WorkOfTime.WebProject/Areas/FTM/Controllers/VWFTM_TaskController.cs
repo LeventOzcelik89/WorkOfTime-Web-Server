@@ -1229,9 +1229,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				{
 					existBeforeOnExpensTotal.Value += findExpens.Sum(x => x.amount).Value;
 				}
-
-
-
 			}
 
 			var MultiAxisChart = new ExpensDayModel

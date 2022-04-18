@@ -717,6 +717,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
     }
 
+    public class ValueWithDates
+    {
+        public double Value { get; set; }
+        public DateTime Date { get; set; }
+    }
+
+    public class ExpensDayModels
+    {
+        public List<string> Categories { get; set; }
+        public List<double[]> Series { get; set; }
+    }
 
     public  class CRM_ContactReports
     {
