@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     if (this.Task.customerStorageId.HasValue)
                     {
                         var form = db.GetVWFTM_TaskFormRelationByStorageId(this.Task.customerStorageId.Value);
-                        if (form != null)
+                        if (form.Any())
                         {
                             this.formId = form.Select(x => x.formId).FirstOrDefault();
                         }
@@ -69,7 +69,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             if (this.Task.companyId.HasValue)
                             {
                                 form = db.GetVWFTM_TaskFormRelationByCompanyId(this.Task.companyId.Value);
-                                if (form != null)
+                                if (form.Any())
                                 {
                                     this.formId = form.Select(x => x.formId).FirstOrDefault();
                                 }
