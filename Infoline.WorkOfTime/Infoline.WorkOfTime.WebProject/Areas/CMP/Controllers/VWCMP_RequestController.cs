@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_RequestController : Controller
 	{
-		[PageInfo("Satın Alma Talepleri", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi,SHRoles.SatinAlmaOnaylayiciGorev)]
+		[PageInfo("Satın Alma Talepleri", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult Index()
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(data);
 		}
 
-		[PageInfo("Satın Alma Talepleri Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel,SHRoles.SatinAlmaOnaylayiciGorev)]
+		[PageInfo("Satın Alma Talepleri Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -137,10 +137,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 
 
 		[PageInfo("Satın Alma Talebi Not Ekleme Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel, SHRoles.SatinAlmaOnaylayiciGorev)]
-		public ContentResult InsertNote(Guid requestId, string note)
+		public ContentResult InsertNote(Guid requestId, string note, Guid? invoiceId)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
-			var dbres = new VMCMP_RequestModels { id = requestId }.Load(false).InsertNote(userStatus.user.id, note);
+			var dbres = new VMCMP_RequestModels { id = requestId }.Load(false).InsertNote(userStatus.user.id, note, invoiceId);
 			return Content(Infoline.Helper.Json.Serialize(dbres), "application/json");
 		}
 

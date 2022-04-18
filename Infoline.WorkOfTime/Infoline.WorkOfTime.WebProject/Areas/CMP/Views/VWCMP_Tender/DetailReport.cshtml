@@ -1,0 +1,197 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_TenderModels
+@{
+	ViewBag.Title = "Ürün Kalemleri Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var tenderDetail = {
+        dfn: {
+            model: @(Html.Raw(Infoline.Helper.Json.Serialize(Model))),
+        },
+        events: {
+            addNote: function (_this) {
+                var note = $('#note').val();
+                if (!note || note == null || note == "") {
+                    MesajWarning("Lütfen önce not giriniz.");
+                    return;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: '/CMP/VWCMP_Tender/InsertNote',
+                    data: { tenderId: tenderDetail.dfn.model.id, note: note },
+                    success: function (response) {
+                        if (response.result) {
+                            var html = tenderDetail.fnc.getNoteHtml(response.objects);
+                            $('#vertical-timeline').prepend(html);
+                            $('#note').val("");
+                        }
+                    }
+                });
+            },
+            updateStatus: function (_this) {
+                _this.type = "button";
+				var type = $(_this).attr("data-type");
+				var isTaskRule = $(_this).attr("data-isTaskRule");
+
+                $.ajax({
+                    type: "POST",
+                    url: '/CMP/VWCMP_Tender/UpdateStatus',
+					data: { tenderId: tenderDetail.dfn.model.id, type: type, isTaskRule: isTaskRule },
+                    success: function (response) {
+                        if (response.Result) {
+                            location.reload();
+                        }
+                    },
+                    beforeSend: function () {
+                        $('body').loadingModal({ text: "İşlem gerçekleştiriliyor, lütfen bekleyiniz.", animation: 'rotatingPlane', backgroundColor: "black" });
+                    },
+                    complete: function () {
+                        $('body').loadingModal('destroy');
+                    },
+                });
+            }
+        },
+        fnc: {
+            getNoteHtml: function (note) {
+                return `<div class="vertical-timeline-block">
+                            <div class="vertical-timeline-icon gray-bg">
+                                <i class="fa fa-bolt"></i>
+                            </div>
+                            <div class="vertical-timeline-content">
+                                <p style="margin:0 !important;"> ${ note.description} </p>
+                                <span class="vertical-date small text-muted"> ${ new Date(note.created).toLocaleString() } </span>
+                                <span class="vertical-date small text-muted"> İşlemi Yapan : ${ note.createdby_Title} </span>
+                            </div>
+                        </div>`;
+            },
+            showCurrency: function () {
+                var curEx = tenderDetail.dfn.exchangeRates[tenderDetail.dfn.model.Currency_Code].BanknoteSelling;
+                var title = '<p>Teklif Oluşturulduğundaki Kur : ' + kendo.toString(tenderDetail.dfn.model.rateExchange, "N2") + ' ₺</p>'+
+                    '<p>Şu Anki Kur : ' + kendo.toString(curEx, "N2") + ' ₺</p>';
+
+                $('#contentTooltip').append('<span class="fa fa-info-circle" rel="tooltip" data-original-title="' + title + '"></span>');
+
+                $("[rel=tooltip]").tooltip({
+                    html:true
+                });
+            }
+        },
+        templates: {
+            quantityTemp: function (item) {
+                var unit = !item.Unit_Title ? "" : item.Unit_Title;
+                if(unit == "ADET"){
+                    return kendo.toString(item.quantity, "N0") + " " + unit;
+                }
+
+                return kendo.toString(item.quantity, "N2") + " " + unit;
+            },
+            currencyTemp: function (item, data, isTotal) {
+                if (data != null) {
+                    return isTotal ? '<span style="color:#ff6a00">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>' :
+                            kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+                }
+
+                return "-";
+            },
+            discountTemp: function(data) {
+                if (data.discountType == '@((int)EnumCMP_InvoiceItemDiscountType.Tutar)') {
+                    return kendo.toString(data.discount, "N2") + ' ' + data.Currency_Symbol;
+                }
+
+                var price = data.quantity * data.price;
+                var subTotal = ((price * data.discount) / 100);
+                return kendo.toString(subTotal, "N2") + " " + data.Currency_Symbol;
+            },
+            stockTemp: function (data) {
+                if (data.stockType!=0) {
+                    if (data.stockCount && data.stockCount != null) {
+                        return data.stockCount + " Adet";
+                    }
+                    else {
+                        return "Stokta Yok"
+                    }
+                }
+
+                return "Stoksuz Ürün/Hizmet";
+            },
+            descriptionTemp: function (data) {
+                if (data.description != null) {
+                    return '<i class="fa fa-info-circle" data-original-title="' + data.description + '" data-placement="bottom"></i>';
+                }
+
+                return "";
+            }
+        }
+    }
+
+    $(document)
+        .on("ready", function () {
+            //if (tenderDetail.dfn.model.Currency_Code != "TL") {
+            //    tenderDetail.fnc.showCurrency();
+            //}
+        })
+        .on("success", "#VWCMP_InvoiceInsertForm", function (e, res) {
+            if (res && res != null && res.Result) {
+                location.reload();
+            }
+        })
+        .on("load:grid", '#VWCMP_InvoiceItem', function (e) {
+            $(this).find('table').toggleClass("k-selectable");
+
+            var productIds = tenderDetail.dfn.model.InvoiceItems.map(a => a.productId).join(",");
+            $('[data-button="stock"]').attr("data-href", "/PRD/VWPRD_StockSummary/StockDetailProducts?productIds=" + productIds);
+            $('[data-button="stock"]').removeClass("hide");
+        })
+
+
+</script>
+
+<div data-selector="modalContainer">
+	@(Html.Akilli()
+                           .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItemReport>("VWCMP_InvoiceItemReportss")
+                           .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceReport", "VWCMP_InvoiceItem", new { area = "CMP" }))
+                           .Filter(a => a.invoiceId == Model.id).PageSize(999))
+                           .Columns(x =>
+                           {
+                               x.Bound(y => y.quantity).Title("Miktar").Width(60).Filterable(false).ClientTemplate("#=tenderDetail.templates.quantityTemp(data)#")
+                                   .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+
+                               x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
+
+                               x.Bound(y => y.Product_Title).Title("Ürün/Hizmet").Width(150).Filterable(false);
+
+                               x.Bound(y => y.price).Title("Birim Fiyatı").Width(70).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.price)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.discountTotal).Title("İndirim").Width(70).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.discountTotal)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.totalSubAmount).Title("Ara Toplam").Width(80).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalSubAmount)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+
+                               x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(80).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalTax)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.totalAmount).Title("Toplam Satış Fiyatı").Width(90).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalAmount, true)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.Currency_Symbol).Title("Para Birimi").Hidden(true);
+
+                               x.Bound(y => y.stockCount).Title("Stok Miktarı").Width(70).Filterable(false).ClientTemplate("#=tenderDetail.templates.stockTemp(data)#");
+
+                               x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
+                           })
+                           .Selectable(x => x.Mode(GridSelectionMode.Single))
+                           .Scrollable(s => s.Height(500))
+                        )
+</div>

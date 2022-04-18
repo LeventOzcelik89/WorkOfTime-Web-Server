@@ -347,7 +347,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return dbresult;
 		}
 
-		public ResultStatus InsertNote(Guid userId, string note)
+		public ResultStatus InsertNote(Guid userId, string note, Guid? invoiceId)
 		{
 			var action = new CMP_InvoiceAction
 			{
@@ -361,6 +361,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			var res = db.InsertCMP_InvoiceAction(action);
 			res.objects = db.GetVWCMP_InvoiceActionById(action.id);
+
+			if (res.result && invoiceId.HasValue)
+			{
+				var invoice = db.GetCMP_InvoiceById(invoiceId.Value);
+				if (invoice != null)
+				{
+					var managerPersonIds = db.GetSH_UserByRoleId(new Guid(SHRoles.SatinAlmaOnaylayici)).ToList();
+					invoice.createdby = invoice.createdby.HasValue ? invoice.createdby : Guid.NewGuid();
+					managerPersonIds.Add(invoice.createdby.Value);
+					if (managerPersonIds.Count() > 0)
+					{
+						var managers = db.GetVWSH_UserByIds(managerPersonIds.ToArray()).ToList();
+						foreach (var user in managers)
+						{
+							var text2 = "<h3>Sayın " + user.FullName + "</h3>";
+							text2 += "<p>" + this.rowNumber + " kodlu satın alma talebine not eklenmiştir. </p>";
+							text2 += "<p>Not : " + note + "</p>";
+							text2 += "<p>Talep detayını görüntülemek ve işlem yapmak için <a href='" + _siteURL + "/CMP/VWCMP_Request/Detail?id=" + this.id + "'>tıklayınız.</a> </p>";
+							text2 += "<p>Bilgilerinize.</p>";
+							new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satın Alma Talep Yönetimi", text2).Send((Int16)EmailSendTypes.SatinAlmaTeklif, user.email, "Satın Alma Talebine Not Eklendi ", true);
+						}
+					}
+				}
+			}
 			return res;
 		}
 
@@ -616,7 +640,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						created = DateTime.Now,
 						status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
 						createdby = this.createdby,
-						description =  this.description,
+						description = this.description,
 						battery = this.battery,
 						location = this.location,
 						dataId = this.id

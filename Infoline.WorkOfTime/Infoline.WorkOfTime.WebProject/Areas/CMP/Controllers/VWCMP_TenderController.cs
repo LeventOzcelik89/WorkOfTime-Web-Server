@@ -75,6 +75,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(data);
 		}
 
+		[AllowEveryone]
+		[PageInfo("Alış Teklifi Detayı", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.MuhasebeAlis)]
+		public ActionResult DetailReport(Guid id)
+		{
+			var data = new VMCMP_TenderModels { id = id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis);
+			ViewBag.EnumProperties = EnumsProperties.EnumToArrayGeneric<EnumCMP_InvoiceActionType>().ToArray();
+			return View(data);
+		}
+
 		[PageInfo("Satış Teklifi Detayı", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.MuhasebeSatis, SHRoles.CRMBayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult DetailSelling(Guid id)
 		{

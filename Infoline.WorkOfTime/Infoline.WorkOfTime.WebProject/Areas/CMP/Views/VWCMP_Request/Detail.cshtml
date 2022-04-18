@@ -407,7 +407,15 @@
 
 
 								x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
-								x.Custom().Text("<i data-original-title='Teklif Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" }, { "data-transform", "detailTender" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
+								if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)) && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaPersonel)) && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeAlis)))
+								{
+									x.Custom().Text("<i data-original-title='Teklif Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-blank", "true" }, { "data-default", "" }, { "data-transform", "detailTender" } }).Url(Url.Action("DetailReport", "VWCMP_Tender", new { area = "CMP" }));
+								}
+								else
+								{
+									x.Custom().Text("<i data-original-title='Teklif Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" }, { "data-transform", "detailTender" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
+								}
+
 
 								if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici))) && (Model.status != (int)EnumCMP_RequestStatus.FaturasiAlindi))
 								{
@@ -641,8 +649,8 @@
             addNote: function (note) {
                 $.ajax({
                 type: "POST",
-                url: '/CMP/VWCMP_Request/InsertNote',
-                data: { requestId: requestDetail.dfn.model.id, note: note },
+                    url: '/CMP/VWCMP_Request/InsertNote',
+                    data: { requestId: requestDetail.dfn.model.id, note: note, invoiceId: '@Model.id' },
                 success: function (response) {
                     if (response.result) {
                         var temp = '<div class="vertical-timeline-block">' +
