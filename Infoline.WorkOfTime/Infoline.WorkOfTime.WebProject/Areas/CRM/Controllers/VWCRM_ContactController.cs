@@ -43,13 +43,29 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         public ContentResult DataSourceForCharts(DateTime ContactStartDate, DateTime ContactEndDate)
         {
             var db = new WorkOfTimeDatabase();
-            var data = db.GetVWCRM_ContactForStartDateAndEndDate(ContactStartDate, ContactEndDate);
+            var data = db.GetVWCRM_ContactForStartDateAndEndDate(ContactStartDate, ContactEndDate.AddDays(1).AddTicks(-1));
+            List<Guid> contactStatus = new List<Guid>();
+
+            foreach (var item in data)
+            {
+                if (item.id != null)
+                {
+                    if (!contactStatus.Contains(item.id))
+                    {
+                        contactStatus.Add(item.id);
+                    }
+                }
+            }
+            var contactActionsRes = db.GetVWCRM_ContactActionByContactIds(contactStatus.ToArray());
+
+
+
             List<string> DateBetween = new List<string>();
             var happeningTotal = new List<ValueWithDates>();
             var planTotal = new List<ValueWithDates>();
             var cancelCount = new List<ValueWithDates>();
             var unplannedTotal = new List<ValueWithDates>();
-            for (DateTime i = ContactStartDate.Date; i <= ContactEndDate.Date; i = i.AddDays(1))
+            for (DateTime i = ContactStartDate.Date; i <= ContactEndDate.AddDays(1).AddTicks(-1).Date; i = i.AddDays(1))
             {
                 happeningTotal.Add(new ValueWithDates { Value = 0, Date = i });
                 planTotal.Add(new ValueWithDates { Value = 0, Date = i });
@@ -57,7 +73,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 unplannedTotal.Add(new ValueWithDates { Value = 0, Date = i });
                 DateBetween.Add(i.ToShortDateString());
             }
-            foreach (var item in data.Where(x => x.created.HasValue).GroupBy(x => x.created))
+
+            foreach (var item in contactActionsRes.Where(x => x.created.HasValue).GroupBy(x => x.created))
             {
                 
                 var happeningTotalCount = happeningTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
@@ -66,19 +83,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 var unplannedTotalCount = unplannedTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
                 if (happeningTotalCount != null)
                 {
-                    happeningTotalCount.Value +=item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiPlanlandi).Count();
+                    happeningTotalCount.Value +=item.Where(a => a.description.Contains("düzenlendi. (Gerçekleşti)")).Count();
                 }
                 if (planTotalCount != null)
                 {
-                    planTotalCount.Value += item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed != null).Count();
+                    planTotalCount.Value += item.Where(a => a.description.Contains("Planlandı")).Count();
                 } 
                 if (cancelledTotal != null)
                 {
-                    cancelledTotal.Value += item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiIptal).Count();
+                    cancelledTotal.Value += item.Where(a => a.description.Contains("İptal")).Count();
                 }
                 if (unplannedTotalCount != null)
                 {
-                    unplannedTotalCount.Value += item.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed == null).Count();
+                    unplannedTotalCount.Value += item.Where(a => a.description.Contains("eklendi. (Gerçekleşti)")).Count();
                 }
 
             }
@@ -87,9 +104,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
 
                 Categories = DateBetween,
-                Series = new List<double[]> {
-                    happeningTotal.Select(x => x.Value).ToArray(),
+                Series = new List<double[]> 
+                {
                     planTotal.Select(x => x.Value).ToArray(),
+                    happeningTotal.Select(x => x.Value).ToArray(),
                     cancelCount.Select(x => x.Value).ToArray(),
                     unplannedTotal.Select(x => x.Value).ToArray(), 
                 }
