@@ -170,6 +170,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public int AssignmentCount { get; set; }
         public Guid ProductId { get; set; }
         public string ProductName { get; set; }
+        public bool isVisible { get; set; }
     }
 
     public class SellOutProductReportModel
@@ -182,6 +183,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public int AssignmentCount { get; set; }
         public Guid ProductId { get; set; }
         public string ProductName { get; set; }
+        public bool isVisible { get; set; }
     }
 
     public class DistStockReportModel
@@ -196,6 +198,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string ProductName { get; set; }
         public int TotalStock { get; set; }
         public int AssignmentCount { get; set; }
+        public bool isVisible { get; set; }
     }
     public class DistStockProductReportModel
     {
@@ -206,5 +209,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public Guid ProductId { get; set; }
         public string ProductName { get; set; }
         public int TotalStock { get; set; }
+        public bool isVisible { get; set; }
     }
 }

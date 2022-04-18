@@ -55,7 +55,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 list.AddRange(query2Execute);
                 list.AddRange(query3Execute);
                 list.AddRange(query4Execute);
-                var groupList = list.Where(b => b.DistributorName != null).GroupBy(n => n.DistributorId);
+                var groupList = list.GroupBy(n => n.DistributorId);
                 foreach (var dist in groupList)
                 {
                     var distrubitorList = list.Where(a => a.DistributorId == dist.Key);
@@ -65,18 +65,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         newList.Add(new SellOutReportNewModel
                         {
                             SalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount),
-                            DistributorName = queryExecute.Where(a => a.DistributorId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
+                            DistributorName = GetCMP_CompanyById(dist.Key)?.name,
                             DistributorId = dist.Key,
                             ActivatedData = query3Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.ActivatedData),
                             AssignmentCount = query4Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.AssignmentCount),
                             DistSalesCount = query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount),
-                            ProductName = GetPRD_ProductById(product.Key).name,
+                            ProductName = GetPRD_ProductById(product.Key)?.name,
                             ProductId = product.Key,
+                            isVisible = GetVWCMP_CompanyById(dist.Key)?.CMPTypes_Title == "Distribütör" ? true : false,
                         });
                     }
                 }
             }
-            return newList.ToArray();
+            return newList.Where(a => a.DistributorName != null && a.isVisible == true).ToArray();
         }
 
         public SellOutReportNewModel[] GetPRD_SellOutReportByDistrubitor(DateTime startDate, DateTime endDate)
@@ -99,17 +100,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 list.AddRange(query2Execute);
                 list.AddRange(query3Execute);
                 list.AddRange(query4Execute);
-                data.AddRange(list.Where(b => b.DistributorName != null).GroupBy(v => v.DistributorId).Select(a => new SellOutReportNewModel
+                data.AddRange(list.GroupBy(v => v.DistributorId).Select(a => new SellOutReportNewModel
                 {
                     DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
-                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    DistributorName = GetCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.name,
                     SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
                     ActivatedData = query3Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.ActivatedData),
                     AssignmentCount = query4Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.AssignmentCount),
                     DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
+                    isVisible = GetVWCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.CMPTypes_Title == "Distribütör" ? true : false,
                 }));
             }
-            return data.ToArray();
+            return data.Where(a => a.DistributorName != null && a.isVisible == true).ToArray();
         }
 
 
@@ -132,14 +134,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 data.AddRange(queryExecute.GroupBy(v => v.DistributorId).Select(a => new SellOutReportNewModel
                 {
                     DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
-                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    DistributorName = GetCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.name,
                     SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
                     ActivatedData = query3Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.ActivatedData),
                     AssignmentCount = query4Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.AssignmentCount),
                     DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
+                    isVisible = GetVWCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.CMPTypes_Title == "Distribütör" ? true : false,
                 }));
             }
-            return data.ToArray();
+            return data.Where(a => a.DistributorName != null && a.isVisible == true).ToArray();
         }
 
         public SellOutReportNewModel[] GetPRD_SellOutReportByDealar(DateTime startDate, DateTime endDate, Guid DistrubitorId)
@@ -208,7 +211,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             SalesCount = queryExecute.Where(a => a.DealarId == dist.Key && a.DistributorId == DistrubitorId && a.ProductId == product.Key).Sum(c => c.SalesCount),
                             ActivatedData = query3Execute.Where(a => a.DealarId == dist.Key && a.DistributorId == DistrubitorId && a.ProductId == product.Key).Sum(c => c.ActivatedData),
                             AssignmentCount = query4Execute.Where(a => a.DealarId == dist.Key && a.DistributorId == DistrubitorId && a.ProductId == product.Key).Sum(c => c.AssignmentCount),
-                            ProductName = GetPRD_ProductById(product.Key).name,
+                            ProductName = GetPRD_ProductById(product.Key)?.name,
                             ProductId = product.Key,
                         });
                     }
@@ -237,13 +240,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 data.AddRange(groupList.Select(a => new DistStockReportModel
                 {
                     DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
-                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    DistributorName = GetCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.name,
                     SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
                     DistSalesCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount),
                     TotalStock = (query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount)),
+                    isVisible = GetVWCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.CMPTypes_Title == "Distribütör" ? true : false,
                 }));
             }
-            return data.ToArray();
+            return data.Where(a => a.DistributorName != null && a.isVisible == true).ToArray();
         }
 
         public DistStockReportModel[] GetPRD_StockProductReportDistrubitorQuery()
@@ -268,18 +272,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     {
                         newList.Add(new DistStockReportModel
                         {
-                            DistributorName = queryExecute.Where(a => a.DistributorId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
+                            DistributorName = GetCMP_CompanyById(dist.Key)?.name,
                             DistributorId = dist.Key,
                             SalesCount = queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount),
                             DistSalesCount = query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount),
-                            ProductName = GetPRD_ProductById(product.Key).name,
+                            ProductName = GetPRD_ProductById(product.Key)?.name,
                             ProductId = product.Key,
-                            TotalStock = (query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount))
+                            TotalStock = (query2Execute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.DistSalesCount) - queryExecute.Where(a => a.DistributorId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount)),
+                            isVisible = GetVWCMP_CompanyById(dist.Key)?.CMPTypes_Title == "Distribütör" ? true : false,
                         });
                     }
                 }
             }
-            return newList.ToArray();
+            return newList.Where(a => a.DistributorName != null && a.isVisible == true).ToArray();
         }
 
 
@@ -299,13 +304,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 data.AddRange(list.Where(b => b.DistributorId != null).GroupBy(v => v.DistributorId).Select(a => new DistStockReportModel
                 {
                     DistributorId = a.Select(b => b.DistributorId).FirstOrDefault(),
-                    DistributorName = a.Select(b => b.DistributorName).FirstOrDefault(),
+                    DistributorName = GetCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.name,
                     SalesCount = queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount),
                     AssignmentCount = query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.AssignmentCount),
                     TotalStock = (queryExecute.Where(b => b.DistributorId == a.Key).Sum(c => c.SalesCount) - query2Execute.Where(b => b.DistributorId == a.Key).Sum(c => c.AssignmentCount)),
+                    isVisible = GetVWCMP_CompanyById(a.Select(b => b.DistributorId).FirstOrDefault())?.CMPTypes_Title == "Distribütör" ? true : false,
                 }));
             }
-            return data.ToArray();
+            return data.Where(a => a.DistributorName != null && a.isVisible == true).ToArray();
         }
 
         public DistStockReportModel[] GetPRD_StockReportByDealar(Guid DistrubitorId)
@@ -361,7 +367,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             DistributorName = queryExecute.Where(a => a.DealarId == dist.Key).Select(c => c.DistributorName).FirstOrDefault(),
                             DealarId = dist.Key,
                             DealarName = dist.Key != System.Guid.Empty ? GetCMP_CompanyById(dist.Key)?.name : GetCMP_CompanyById(DistrubitorId)?.name,
-                            ProductName = GetPRD_ProductById(product.Key).name,
+                            ProductName = GetPRD_ProductById(product.Key)?.name,
                             ProductId = product.Key,
                             TotalStock = (queryExecute.Where(a => a.DistributorId == DistrubitorId && a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.SalesCount) - query2Execute.Where(a => a.DistributorId == DistrubitorId && a.DealarId == dist.Key && a.ProductId == product.Key).Sum(c => c.AssignmentCount))
                         });

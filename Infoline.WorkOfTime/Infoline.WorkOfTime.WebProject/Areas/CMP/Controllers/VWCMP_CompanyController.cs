@@ -116,7 +116,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var data = db.GetVWCMP_Company(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Firma&Cari Detay Sayfası", SHRoles.Personel, SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Firma&Cari Detay Sayfası", SHRoles.Personel)]
         public ActionResult Detail(Guid id)
         {
             var db = new WorkOfTimeDatabase();

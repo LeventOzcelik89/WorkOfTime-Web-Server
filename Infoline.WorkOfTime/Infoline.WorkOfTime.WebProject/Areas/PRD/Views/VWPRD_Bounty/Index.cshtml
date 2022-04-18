@@ -12,7 +12,7 @@
     <div class="ibox">
         <div class="col-sm-12">
             <div class="ibox-content clearfix">
-                <div class="col-sm-6">
+                <div class="col-sm-4">
                     <label>Bayi Seçiniz</label>
                     @(
                        Html.Akilli()
@@ -24,11 +24,10 @@
                        .Action(b => b.Action("DataSourceDropDownPaymentBayi", "VWPRD_ProductPayment", new { area = "PRD" }))
                        .Sort(x => x.Add("fullName").Ascending())
                        .Value(userStatus.user.CompanyId.ToString())
-                       .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
                        .Execute()
                      )
                 </div>
-                <div class="col-sm-6">
+                <div class="col-sm-4">
                     <label>Kural Seçiniz</label>
                     @(
                        Html.Akilli()
@@ -42,7 +41,7 @@
                      )
                 </div>
                 <div class="col-sm-2">
-                    <label class="req">Yıl Seçiniz</label>
+                    <label class="req">Ödeme Durumu</label>
                     @(
                  Html.Akilli().
                  DropDownList("statusId").
@@ -86,7 +85,7 @@
             var bonusId = null;
             var bonus = null;
             bonusId = $("#bonusId").data("kendoDropDownList").dataItem();
-            bonus = bonusId;
+            bonus = bonusId.id;
             var status = $("#statusId").data("kendoDropDownList").dataItem();
 
             GetJsonDataFromUrl("/PRD/VWPRD_Bounty/ReportDataSource", { companyId: company, bonusId: bonus, status: status }, function (data) {
@@ -118,7 +117,7 @@
                     height: 580,
                     sortable: true,
                     resizable: true,
-                    selectable: 'multiple',
+                    selectable: 'single',
                     pageable: {
                         refresh: true,
                         pageSizes: true,
