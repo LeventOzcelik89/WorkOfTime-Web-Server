@@ -19,5 +19,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
 
+        public VWCRM_ContactAction[] GetVWCRM_ContactActionByContactIds(Guid[] ids, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWCRM_ContactAction>().Where(a => a.ContactId.In(ids)).Execute().ToArray();
+            }
+        }
+
     }
 }

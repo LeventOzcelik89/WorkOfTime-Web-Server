@@ -773,7 +773,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
-            var contacts = db.GetVWCRM_ContactForStartDateAndEndDate(ContactStartDate.Value, ContactEndDate.Value);
+            var contacts = db.GetVWCRM_ContactForStartDateAndEndDate(ContactStartDate.Value, ContactEndDate.Value.AddDays(1).AddTicks(-1));
 
             List<Guid> createdByList = new List<Guid>();
             foreach (var item in contacts)
@@ -787,17 +787,32 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 }
             }
       
-            var res = db.GetVWCRM_ContactByCreatedByIds(createdByList.ToArray(), ContactStartDate.Value, ContactEndDate.Value);
+            var res = db.GetVWCRM_ContactByCreatedByIds(createdByList.ToArray(), ContactStartDate.Value, ContactEndDate.Value.AddDays(1).AddTicks(-1));
+
+            List<Guid> resList = new List<Guid>();
+
+            foreach (var item in res)
+            {
+                if (item.id != null)
+                {
+                    if (!resList.Contains(item.id))
+                    {
+                        resList.Add(item.id);
+                    }
+                }
+            }
+            var contactActionsRes = db.GetVWCRM_ContactActionByContactIds(resList.ToArray());
 
             ArrayList contactStatusReports = new ArrayList();
             ArrayList contactTypeReports = new ArrayList();
 
-            foreach (var line in res.GroupBy(info => info.createdby))
+
+            foreach (var lines in contactActionsRes.GroupBy(info => info.createdby))
             {
-                var planned =  line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiPlanlandi).Count();
-                var happening = line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed != null).Count();
-                var canceled = line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiIptal).Count();
-                var unplannedHappening = line.Where(a => a.ContactStatus == (int)EnumCRM_ContactContactStatus.ToplantiGerceklesti && a.changed == null).Count();
+                var planned = lines.Where(a => a.description.Contains("Planlandı")).Count();
+                var happening = lines.Where(a => a.description.Contains("düzenlendi. (Gerçekleşti)")).Count();
+                var canceled = lines.Where(a => a.description.Contains("İptal")).Count();
+                var unplannedHappening = lines.Where(a => a.description.Contains("eklendi. (Gerçekleşti)")).Count();
 
                 var contactReport = new CRM_ContactReports
                 {
@@ -806,13 +821,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     canceled = canceled,
                     unplannedHappening = unplannedHappening,
                     Total = planned + happening + canceled + unplannedHappening,
-                    createdByTitle = line.FirstOrDefault().createdby_Title,
-                    createdBy = line.FirstOrDefault().createdby,
-                    endDate = ContactEndDate,
+                    createdByTitle = lines.FirstOrDefault().createdby_Title,
+                    createdBy = lines.FirstOrDefault().createdby,
+                    endDate = ContactEndDate.Value.AddDays(1).AddTicks(-1),
                     startDate = ContactStartDate
                 };
                 contactStatusReports.Add(contactReport);
+            }
 
+
+
+            foreach (var line in res.GroupBy(info => info.createdby))
+            {
                 var faceToFace = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.Yuzyuze).Count();
                 var phone = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.Telefon).Count();
                 var videoConferencing = line.Where(a => a.ContactType == (int)EnumCRM_ContactContactType.VideoKonferans).Count();
