@@ -365,81 +365,84 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     task.fixture_Title = inventory.fullName;
                     task.location = inventory.location;
                     ///TODO:Şahin Burada işletme setleme İlerleyen safalarda düzeltilecek
-                    switch ((EnumPRD_InventoryActionType)inventory.lastActionType)
+                    if (inventory.lastActionType.HasValue)
                     {
-                        case EnumPRD_InventoryActionType.Depoda:
+                        switch ((EnumPRD_InventoryActionType)inventory.lastActionType)
+                        {
+                            case EnumPRD_InventoryActionType.Depoda:
 
-                            if (inventory.firstActionDataId.HasValue && TenantConfig.Tenant.TenantCode == 1169)
-                            {
-
-                                var cmpany = _db.GetVWCMP_CompanyById(inventory.firstActionDataId.Value);
-                                if (cmpany != null)
+                                if (inventory.firstActionDataId.HasValue && TenantConfig.Tenant.TenantCode == 1169)
                                 {
-                                    var cc = GetCMP_CompanyInformation(cmpany.id);
-                                    if (cc != null)
+
+                                    var cmpany = _db.GetVWCMP_CompanyById(inventory.firstActionDataId.Value);
+                                    if (cmpany != null)
                                     {
-                                        task.customerId = cc.id;
-                                        task.customer_Title = cc.fullName;
-                                        task.adress = cc.openAddress;
-                                        task.phone = cc.phone;
-                                        task.email = cc.email;
+                                        var cc = GetCMP_CompanyInformation(cmpany.id);
+                                        if (cc != null)
+                                        {
+                                            task.customerId = cc.id;
+                                            task.customer_Title = cc.fullName;
+                                            task.adress = cc.openAddress;
+                                            task.phone = cc.phone;
+                                            task.email = cc.email;
+                                        }
                                     }
                                 }
-                            }
-                            else if (inventory.lastActionDataId.HasValue)
-                            {
-                                var storage = _db.GetVWCMP_StorageById(inventory.lastActionDataId.Value);
-                                if (storage != null)
+                                else if (inventory.lastActionDataId.HasValue)
                                 {
-                                    task.customerId = storage.companyId;
-                                    task.customerStorageId = storage.id;
-                                    task.customerStorage_Title = storage.fullName;
-                                    task.customer_Title = storage.companyId_Title;
+                                    var storage = _db.GetVWCMP_StorageById(inventory.lastActionDataId.Value);
+                                    if (storage != null)
+                                    {
+                                        task.customerId = storage.companyId;
+                                        task.customerStorageId = storage.id;
+                                        task.customerStorage_Title = storage.fullName;
+                                        task.customer_Title = storage.companyId_Title;
+                                    }
                                 }
-                            }
-                            break;
-                        case EnumPRD_InventoryActionType.Personelde:
-                            var person = _db.GetVWSH_UserById(inventory.lastActionDataId.Value);
-                            var pp = _db.GetVWCMP_CompanyById(person.CompanyId.Value);
-                            if (pp != null)
-                            {
-                                task.customerId = pp.id;
-                                task.customer_Title = pp.fullName;
-                                task.adress = pp.openAddress;
-                                task.phone = pp.phone;
-                                task.email = pp.email;
-                            }
-                            break;
-                        case EnumPRD_InventoryActionType.KirayaVerildi:
-                            var company = _db.GetVWCMP_CompanyById(inventory.lastActionDataCompanyId.Value);
-                            if (company != null)
-                            {
-                                task.customerId = company.id;
-                                task.customer_Title = company.fullName;
-                                task.adress = company.openAddress;
-                                task.phone = company.phone;
-                                task.email = company.email;
-                            }
-                            var customerStorage = _db.GetVWCMP_StorageById(inventory.lastActionDataId.Value);
-                            if (customerStorage != null)
-                            {
-                                task.customerId = customerStorage.companyId;
-                                task.customerStorageId = customerStorage.id;
-                                task.customerStorage_Title = customerStorage.fullName;
-                                task.customer_Title = customerStorage.companyId_Title;
-                            }
-                            break;
-                        case EnumPRD_InventoryActionType.CikisYapildi:
-                            var ss = _db.GetVWCMP_CompanyById(inventory.lastActionDataId.Value);
-                            if (ss != null)
-                            {
-                                task.customerId = ss.id;
-                                task.customer_Title = ss.fullName;
-                                task.adress = ss.openAddress;
-                                task.phone = ss.phone;
-                                task.email = ss.email;
-                            }
-                            break;
+                                break;
+                            case EnumPRD_InventoryActionType.Personelde:
+                                var person = _db.GetVWSH_UserById(inventory.lastActionDataId.Value);
+                                var pp = _db.GetVWCMP_CompanyById(person.CompanyId.Value);
+                                if (pp != null)
+                                {
+                                    task.customerId = pp.id;
+                                    task.customer_Title = pp.fullName;
+                                    task.adress = pp.openAddress;
+                                    task.phone = pp.phone;
+                                    task.email = pp.email;
+                                }
+                                break;
+                            case EnumPRD_InventoryActionType.KirayaVerildi:
+                                var company = _db.GetVWCMP_CompanyById(inventory.lastActionDataCompanyId.Value);
+                                if (company != null)
+                                {
+                                    task.customerId = company.id;
+                                    task.customer_Title = company.fullName;
+                                    task.adress = company.openAddress;
+                                    task.phone = company.phone;
+                                    task.email = company.email;
+                                }
+                                var customerStorage = _db.GetVWCMP_StorageById(inventory.lastActionDataId.Value);
+                                if (customerStorage != null)
+                                {
+                                    task.customerId = customerStorage.companyId;
+                                    task.customerStorageId = customerStorage.id;
+                                    task.customerStorage_Title = customerStorage.fullName;
+                                    task.customer_Title = customerStorage.companyId_Title;
+                                }
+                                break;
+                            case EnumPRD_InventoryActionType.CikisYapildi:
+                                var ss = _db.GetVWCMP_CompanyById(inventory.lastActionDataId.Value);
+                                if (ss != null)
+                                {
+                                    task.customerId = ss.id;
+                                    task.customer_Title = ss.fullName;
+                                    task.adress = ss.openAddress;
+                                    task.phone = ss.phone;
+                                    task.email = ss.email;
+                                }
+                                break;
+                        }
                     }
                     otherTasks = _db.GetVWFTM_TaskByFixtureId(inventory.id, userId).ToList();
                 }
