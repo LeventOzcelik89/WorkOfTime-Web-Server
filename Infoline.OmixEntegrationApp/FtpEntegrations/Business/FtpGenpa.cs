@@ -66,6 +66,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 var checkImei = db.GetPRD_EntegrationAction().Where(a => a.Imei == item.Imei && a.Quantity == 1).OrderByDescending(b => b.created).FirstOrDefault();
                                 if (checkImei == null)
                                 {
+                                    item.EntegrationFileId = entegrationFile.id;
                                     insertGenpaList.Add(item);
                                 }
                                 else

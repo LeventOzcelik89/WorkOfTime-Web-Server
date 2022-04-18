@@ -29,37 +29,37 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
                             try
                             {
                                 var now = DateTime.Now;
-                                if (now.Hour == 1 && now.Minute == 00)
-                                {
-                                    var taskMobitel = new Task(() =>
-                                    {
-                                        new FtpMobitel().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskMobitel);
+                                //if (now.Hour == 1 && now.Minute == 00)
+                                //{
+                                //    var taskMobitel = new Task(() =>
+                                //    {
+                                //new FtpMobitel().ExportFilesToDatabase(); ;
+                                //});
+                                //Tasks.Add(taskMobitel);
 
-                                    var taskGenpa = new Task(() =>
-                                    {
-                                        new FtpGenpa().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskGenpa);
+                                //var taskGenpa = new Task(() =>
+                                //{
+                                    new FtpGenpa().ExportFilesToDatabase(); ;
+                                //});
+                                //Tasks.Add(taskGenpa);
 
-                                    var taskKvk = new Task(() =>
-                                    {
-                                        new FtpKvk().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskKvk);
+                                //var taskKvk = new Task(() =>
+                                //{
+                                //    new FtpKvk().ExportFilesToDatabase(); ;
+                                //});
+                                //Tasks.Add(taskKvk);
 
-                                    var taskPort = new Task(() =>
-                                    {
-                                        new FtpPort().ExportFilesToDatabase(); ;
-                                    });
-                                    Tasks.Add(taskPort);
+                                //var taskPort = new Task(() =>
+                                //{
+                                //    new FtpPort().ExportFilesToDatabase(); ;
+                                //});
+                                //Tasks.Add(taskPort);
 
-                                    foreach (var task in Tasks)
-                                    {
-                                        task.Start();
-                                    }
-                                }
+                                //foreach (var task in Tasks)
+                                //{
+                                //    task.Start();
+                                //}
+                                //}
                             }
                             catch (Exception ex)
                             {
