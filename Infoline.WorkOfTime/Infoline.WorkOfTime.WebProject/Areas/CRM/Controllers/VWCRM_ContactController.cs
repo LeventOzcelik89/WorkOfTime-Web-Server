@@ -797,14 +797,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Aktivite Raporu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
+        [PageInfo("Aktivite Raporu", SHRoles.CRMYonetici)]
         public ActionResult ContactReport()
         {
             var model = new VMCRM_ContactModel();
             return View(model);
 
         }
-        [PageInfo("Aktivite Rapor Detayı", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
+        [PageInfo("Aktivite Rapor Detayı",  SHRoles.CRMYonetici)]
         public ActionResult ContactReportDetail(VMCRM_ContactModel item)
         {
             var model = item;
