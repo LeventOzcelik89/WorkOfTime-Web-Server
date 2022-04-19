@@ -875,7 +875,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				mo = new MonthlyRecurrenceSettings(this.frequencyStartDate.Value, this.frequencyEndDate.Value);
 				mo.AdjustmentValue = int.Parse("0");
 				values = mo.GetValues((MonthlySpecificDatePartOne)this.monthFrequency, (MonthlySpecificDatePartTwo)this.dayFrequency, this.frequencyInterval.Value);
-				taskTimes.AddRange(values.Values);
+
+				var times = this.times.Split(',')
+								.Select(a => DateTime.ParseExact(start.ToString("yyyy-MM-dd") + " " + a.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
+								.ToArray();
+
+
+				foreach (var value in values.Values)
+				{
+					var random = new Random();
+					var index = random.Next(times.Count());
+					taskTimes.Add(new DateTime(value.Year, value.Month, value.Day, times[index].Hour, times[index].Minute, 0));
+				}
 			}
 
 			var tasks = taskTimes
