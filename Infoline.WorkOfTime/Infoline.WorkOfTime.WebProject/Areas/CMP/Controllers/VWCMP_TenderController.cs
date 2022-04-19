@@ -24,7 +24,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View();
 		}
 
-		[PageInfo("Teklifler Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.MuhasebeAlis, SHRoles.MuhasebeSatis, SHRoles.SatisOnaylayici, SHRoles.SatisFatura, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev)]
+		[PageInfo("Teklifler Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.MuhasebeAlis, SHRoles.MuhasebeSatis, SHRoles.SatisOnaylayici, SHRoles.SatisFatura, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev,SHRoles.SatinAlmaTalebi)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -75,8 +75,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(data);
 		}
 
-		[AllowEveryone]
-		[PageInfo("Alış Teklifi Detayı", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.MuhasebeAlis)]
+		[PageInfo("Alış Teklifi Detayı (Grid Report)", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.MuhasebeAlis, SHRoles.MuhasebeSatis, SHRoles.SatisOnaylayici, SHRoles.SatisFatura, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev, SHRoles.SatinAlmaTalebi)]
 		public ActionResult DetailReport(Guid id)
 		{
 			var data = new VMCMP_TenderModels { id = id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis);
