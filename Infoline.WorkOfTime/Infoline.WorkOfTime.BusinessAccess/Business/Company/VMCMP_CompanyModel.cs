@@ -61,6 +61,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string CmpTypeSearch { get; set; }
         public string applicant { get; set; }
         public VWSH_User companyUser { get; set; } = new VWSH_User();
+        public Guid[] userIds { get; set; }
 
 
         public VMCMP_CompanyModel Load()
@@ -113,7 +114,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
 
             }
-
+            this.userIds = db.GetCMP_CompanyManagingByCompanyIdUserIds(this.id);
             this.code = this.code ?? BusinessExtensions.B_GetIdCode();
             this.type = this.type ?? (Int32)EnumCMP_CompanyType.Diger;
 
@@ -222,6 +223,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 dbresult &= db.BulkInsertCMP_CompanyType(companyKeyList, trans);
             }
+            if (this.userIds != null && this.userIds.Count() > 0)
+            {
+                var companyManaging = this.userIds.Select(x => new CMP_CompanyManaging
+                {
+                    created = DateTime.Now,
+                    createdby = this.createdby,
+                    userId = x,
+                    companyId = this.id
+                }).ToList();
+                dbresult &= db.BulkInsertCMP_CompanyManaging(companyManaging, trans);
+            }
 
             var currencies = db.GetUT_Currency();
             var TL = currencies.Where(a => a.code == "TL").FirstOrDefault();
@@ -324,6 +336,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 dbresult &= db.BulkInsertCMP_CompanyType(companyKeyList, trans);
             }
 
+            var managingUsers = db.GetCMP_CompanyManagingByCompanyId(this.id).ToList();
+            dbresult &= db.BulkDeleteCMP_CompanyManaging(managingUsers);
+
+            if (this.userIds != null && this.userIds.Count() > 0)
+            {
+                var companyManaging = this.userIds.Select(x => new CMP_CompanyManaging
+                {
+                    created = DateTime.Now,
+                    createdby = this.createdby,
+                    userId = x,
+                    companyId = this.id
+                }).ToList();
+
+                dbresult &= db.BulkInsertCMP_CompanyManaging(companyManaging, trans);
+            }
 
             if (!dbresult.result)
             {
@@ -566,12 +593,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var users = db.GetSH_UserByIds(companyPersons.Where(a => a.IdUser.HasValue).Select(a => a.IdUser.Value).ToArray());
             var roles = db.GetSH_UserRoleByUserIds(users.Select(a => a.id).ToArray());
             var companyTypes = db.GetCMP_CompanyTypeByCompanyId(this.id);
-
-
+            var companyManaging = db.GetCMP_CompanyManagingByCompanyId(this.id);
 
 
             var dbresult = db.BulkDeletePA_Transaction(transactions, _trans);
             dbresult &= db.BulkDeleteCMP_CompanyType(companyTypes, trans);
+            dbresult &= db.BulkDeleteCMP_CompanyManaging(companyManaging, trans);
             dbresult &= db.BulkDeletePA_Account(accounts, _trans);
             dbresult &= db.BulkDeleteSH_UserRole(roles, _trans);
             dbresult &= db.BulkDeleteINV_CompanyPerson(companyPersons, _trans);
@@ -598,7 +625,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (userStatus.user.CompanyId.HasValue)
                 {
                     var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
-                    if (company!=null)
+                    if (company != null)
                     {
                         var model = new VMCMP_CompanyModel { id = company.id }.Load();
                         return model;

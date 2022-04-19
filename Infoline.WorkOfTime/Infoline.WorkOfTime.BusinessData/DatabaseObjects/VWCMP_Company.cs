@@ -38,6 +38,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string openAddressLocationId_Title { get; set;}
         public string fullName { get; set;}
         public string CMPTypeIds { get; set;}
+        public string ManagingUserIds { get; set;}
+        public string ManagingUserIds_Title { get; set;}
         public string logo { get; set;}
         public string Sectors { get; set;}
         public string CMPTypes_Title { get; set;}

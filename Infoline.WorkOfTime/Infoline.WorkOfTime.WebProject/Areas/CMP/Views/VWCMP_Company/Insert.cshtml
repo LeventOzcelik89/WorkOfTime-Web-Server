@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Firma&Cari Ekle";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 
 
@@ -308,8 +309,6 @@
                 </div>
             </div>
         </div>
-
-
         <div class="panel panel-default">
             <div class="panel-heading" role="tab">
                 <h4 class="panel-title">
@@ -397,7 +396,6 @@
                 </div>
             </div>
         </div>
-
         @if (Model.type == (Int32)EnumCMP_CompanyType.Diger)
         {
             <div class="panel panel-default">
@@ -500,7 +498,6 @@
                 </div>
             </div>
         }
-
         @if (TenantConfig.Tenant.Config.CustomProperty.ContainsKey("CMP_Company") && TenantConfig.Tenant.Config.CustomProperty["CMP_Company"].Length > 0)
         {
             <div class="panel panel-default">
@@ -519,6 +516,53 @@
             </div>
         }
 
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionCompany" href="#managingUser" aria-expanded="false">
+                        <i class="text-success icon-users"></i>  Sorumlu Satış Personeli Bilgileri
+                    </a>
+                </h4>
+            </div>
+            <div id="managingUser" class="panel-collapse collapse" role="tabpanel">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="userManaging">Sorumlu Satış Personeli</label>
+                        </div>
+                        <div class="col-md-8">
+                            @if (userStatus.user.RoleIds.Contains(SHRoles.SatisPersoneli))
+                            {
+                                @(Html.Akilli()
+                              .MultiSelect("userIds")
+                              .Placeholder("Lütfen sorumlu satış personelleri seçiniz..")
+                              .DataValueField("id")
+                              .DataTextField("FullName")
+                              .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                              .Filter<VWSH_User>(a => a.id == userStatus.user.id)
+                              .Value(userStatus.user.id)
+                              .Sort(x => x.Add("FullName").Ascending())
+                              .Execute())
+                            }
+                            else
+                            {
+                                @(Html.Akilli()
+                              .MultiSelect("userIds")
+                              .Placeholder("Lütfen sorumlu satış personelleri seçiniz..")
+                              .DataValueField("id")
+                              .DataTextField("FullName")
+                              .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                              .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SatisPersoneli))
+                              .Sort(x => x.Add("FullName").Ascending())
+                              .Execute())
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </div>
 
