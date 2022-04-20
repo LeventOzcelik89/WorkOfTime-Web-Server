@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             request.Page = 1;
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
             {
                 var cc = KendoToExpression.Convert(request);
                 request.Page = 1;
@@ -155,7 +155,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var condition = KendoToExpression.Convert(request);
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManaging(cc, userStatus);
@@ -173,7 +173,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var condition = KendoToExpression.Convert(request);
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManaging(cc, userStatus);
