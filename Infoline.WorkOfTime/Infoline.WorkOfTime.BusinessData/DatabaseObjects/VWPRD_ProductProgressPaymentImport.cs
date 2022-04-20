@@ -5,6 +5,7 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWPRD_ProductProgressPaymentImport : InfolineTable
     {
+        public string companyType { get; set;}
         public Guid? companyId { get; set;}
         public Guid? productId { get; set;}
         public DateTime? date { get; set;}
