@@ -188,18 +188,22 @@
             var start = $("#ContactStartDate").val();
             var end = $("#ContactEndDate").val();
 
+
+
             GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceContactReport', { ContactStartDate: start, ContactEndDate: end }, function (res) {
                 page.setDataSourceForContactStatusReport(res);
                 page.setDataSourceForContactTypeReport(res);
-                $('body').loadingModal('destroy');
+
+				GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceForCharts', { ContactStartDate: start, ContactEndDate: end }, function (res) {
+					CreatePieChart($('#contactTypeGraph'), res.Object.Data, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Toplam ");
+					createcontactStatusGraphChart(res.Object.chartForMultiAxis);
+				});
+
+				$('body').loadingModal('destroy');
+
             });
 
 
-            GetJsonDataFromUrl('/CRM/VWCRM_Contact/DataSourceForCharts', { ContactStartDate: start, ContactEndDate: end }, function (res) {
-                CreatePieChart($('#contactTypeGraph'), res.Object.Data, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Toplam ");
-                createcontactStatusGraphChart(res.Object.chartForMultiAxis);
-                $('body').loadingModal('destroy');
-            });
 
         }
     }
