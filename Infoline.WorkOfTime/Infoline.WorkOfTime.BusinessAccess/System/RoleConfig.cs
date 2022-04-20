@@ -61,7 +61,7 @@ namespace System
         public const string SatisPersoneli = "00000000-0000-0000-0000-420000000000";
         [PropInfo("Satış&Sipariş Fatura Rolü", "Kendi eklediği onaylanan siparişlerin ve tekliflerin faturasını girebilir.")]
         public const string SatisFatura = "00000000-0000-0000-0000-430000000000";
-        [PropInfo("Müşsteri Satış Sorumlusu Rolü", "Müşsteri Satış Sorumlusu.")]
+        [PropInfo("Müşteri Satış Sorumlusu Rolü", "Müşteri Satış Sorumlusu.")]
         public const string MusteriSatisSorumlusu = "00000000-0000-0000-0000-440000000000";
         //Satış
 
