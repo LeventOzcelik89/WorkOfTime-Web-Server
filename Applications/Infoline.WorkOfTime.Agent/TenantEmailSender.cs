@@ -69,7 +69,7 @@ namespace Infoline.WorkOfTime.Agent
                     PersonAssesment();
                     ProjectTimeline();
                     PersonBirthday();
-                    TenderControl();
+                    //TenderControl();
                     //PerDayMailService();
                     PersonWorkingStart();
                     Log.Info("Günlük işlem kontrolü bitti. ({0} {1})", _tenant.TenantName, _tenant.TenantCode);
