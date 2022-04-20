@@ -254,7 +254,24 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         var company = Finder.FindCompany(item);
                         if (!company.HasValue)
                         {
-                            message = "\nCarinin Sistemde Karşılığı Yoktur.";
+                            var cmp = new CMP_Company
+                            {
+                                created = DateTime.Now,
+                                createdby = item.createdby,
+                                id = Guid.NewGuid(),
+                                code = item.CustomerOperatorCode,
+                                taxNumber = item.TaxNumber,
+                                isActive = (int)EnumCMP_CompanyIsActive.Aktif,
+                                pid = item.DistributorId,
+                                name = item.CustomerOperatorName,
+                                type = (int)EnumCMP_CompanyType.Diger,
+                                taxType = (int)EnumCMP_CompanyTaxType.TuzelKisi,
+                            };
+                            var result = db.InsertCMP_Company(cmp);
+                            if (!result.result)
+                            {
+                                message = "Yeni Cari Kaydı Yapılamadı";
+                            }
                         }
                         item.ProductId = inventory?.productId;
                         item.InventoryId = inventory?.id;

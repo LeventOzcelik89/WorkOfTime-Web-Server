@@ -203,6 +203,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.SatinAlmaTalebi,
             SHRoles.SatisOnaylayici,
             SHRoles.SatisPersoneli,
+            SHRoles.MusteriSatisSorumlusu,
             SHRoles.SatisFatura,
             SHRoles.StokYoneticisi,
             SHRoles.SahaGorevMusteri,
