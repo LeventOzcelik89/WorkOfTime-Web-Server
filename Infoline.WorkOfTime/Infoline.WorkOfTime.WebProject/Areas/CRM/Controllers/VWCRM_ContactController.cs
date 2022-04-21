@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 {
     public class VWCRM_ContactController : Controller
     {
-        [PageInfo("Aktivite ve Randevular", SHRoles.CRMYonetici, SHRoles.SatisPersoneli)]
+        [PageInfo("Aktivite ve Randevular", SHRoles.CRMYonetici, SHRoles.SatisPersoneli,SHRoles.MusteriSatisSorumlusu)]
         public ActionResult Index(string ids)
         {
             var _ids = new List<Guid>();
@@ -28,14 +28,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi,SHRoles.MusteriSatisSorumlusu)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
             request.Page = 1;
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
             {
                 var cc = KendoToExpression.Convert(request);
                 request.Page = 1;
@@ -155,7 +155,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var condition = KendoToExpression.Convert(request);
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManagingRelation(cc, userStatus);
@@ -173,7 +173,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var condition = KendoToExpression.Convert(request);
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManaging(cc, userStatus);

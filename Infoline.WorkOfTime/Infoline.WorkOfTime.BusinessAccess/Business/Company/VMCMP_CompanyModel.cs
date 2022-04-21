@@ -229,7 +229,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     created = DateTime.Now,
                     createdby = this.createdby,
                     userid = x,
-                    roleid = Guid.Parse("00000000-0000-0000-0000-420000000000"),
+                    roleid = Guid.Parse("00000000-0000-0000-0000-440000000000"),
                 });
                 dbresult &= db.BulkInsertSH_UserRole(userRoles,trans);
                 var companyManaging = this.userIds.Select(x => new CMP_CompanyManaging
@@ -350,7 +350,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 foreach (var item in userIds)
                 {
-                    var findUserRoles = db.GetSH_UserRoleByUserIdRoleId(item, Guid.Parse("00000000-0000-0000-0000-420000000000"));
+                    var findUserRoles = db.GetSH_UserRoleByUserIdRoleId(item, Guid.Parse("00000000-0000-0000-0000-440000000000"));
                     dbresult &= db.BulkDeleteSH_UserRole(findUserRoles);
                 }
                 var userRoles = this.userIds.Select(x => new SH_UserRole
@@ -358,7 +358,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     created = DateTime.Now,
                     createdby = this.createdby,
                     userid = x,
-                    roleid = Guid.Parse("00000000-0000-0000-0000-420000000000"),
+                    roleid = Guid.Parse("00000000-0000-0000-0000-440000000000"),
                 });
                 dbresult &= db.BulkInsertSH_UserRole(userRoles, trans);
                 var companyManaging = this.userIds.Select(x => new CMP_CompanyManaging
