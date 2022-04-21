@@ -85,7 +85,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 condition = UpdateQuery(condition, userStatus);
             }
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManaging(cc, userStatus);
@@ -782,6 +782,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                 Operand1 = (COL)"ManagingUserIds",
                 Operator = BinaryOperator.Like,
                 Operand2 = (VAL)("%" + userStatus.user.id + "%").ToString()
+            };
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"createdby",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)userStatus.user.id
             };
             query.Filter &= filter;
             return query;
