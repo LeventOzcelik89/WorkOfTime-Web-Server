@@ -768,7 +768,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     return new ResultStatus { message = "Bayi kodu boş geçilemez." };
                 }
-                company = db.GetCMP_CompanyByCodeBayi(this.CompanyCode);
+                company = db.GetVWCMP_CompanyByCode(this.CompanyCode);
             }
             else
             {
