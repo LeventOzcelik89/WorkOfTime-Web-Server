@@ -30,11 +30,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             var condition = KendoToExpression.Convert(request);
 
-            var page = request.Page;
             request.Filters = new FilterDescriptor[0];
             request.Sorts = new SortDescriptor[0];
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                cc = VMPRD_ProductProgressPaymentImportModel.UpdateQueryManaging(cc, userStatus);
+                var datam = db.GetVWPRD_ProductProgressPaymentImport(cc).RemoveGeographies().ToDataSourceResult(request);
+                datam.Total = db.GetVWPRD_ProductProgressPaymentImportCount(cc.Filter);
+                return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
+            }
             var data = db.GetVWPRD_ProductProgressPaymentImport(condition).RemoveGeographies().ToDataSourceResult(request);
             data.Total = db.GetVWPRD_ProductProgressPaymentImportCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");

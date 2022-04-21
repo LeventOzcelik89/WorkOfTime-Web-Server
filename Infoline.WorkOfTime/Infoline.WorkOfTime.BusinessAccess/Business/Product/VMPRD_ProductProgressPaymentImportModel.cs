@@ -34,7 +34,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.CMP_Types = db.GetCMP_Types();
             return this;
         }
-
         private ResultStatus Validator()
         {
             var result = new ResultStatus { result = true };
@@ -71,7 +70,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return result;
         }
-
         public ResultStatus Save(Guid? userId, HttpRequestBase request = null, DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -241,6 +239,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     objects = existError.Where(x => x.status == false).ToArray()
                 };
             }
+        }
+        public static SimpleQuery UpdateQueryManaging(SimpleQuery query, PageSecurity userStatus)
+        {
+            BEXP filter = null;
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"ManagingUserIds",
+                Operator = BinaryOperator.Like,
+                Operand2 = (VAL)("%" + userStatus.user.id + "%").ToString()
+            };
+            query.Filter &= filter;
+            return query;
         }
     }
 }
