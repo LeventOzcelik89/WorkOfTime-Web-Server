@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             request.Page = 1;
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 request.Page = 1;
@@ -155,10 +155,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var condition = KendoToExpression.Convert(request);
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
-                cc = UpdateQueryManaging(cc, userStatus);
+                cc = UpdateQueryManagingRelation(cc, userStatus);
                 var datam = db.GetVWCRM_ContactRelationTables(cc);
                 return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
             }
@@ -173,7 +173,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var condition = KendoToExpression.Convert(request);
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManaging(cc, userStatus);
@@ -1023,6 +1023,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return request;
         }
         public static SimpleQuery UpdateQueryManaging(SimpleQuery query, PageSecurity userStatus)
+        {
+            BEXP filter = null;
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"ManagingUserIds",
+                Operator = BinaryOperator.Like,
+                Operand2 = (VAL)("%" + userStatus.user.id + "%").ToString()
+            };
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"createdby",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)userStatus.user.id
+            };
+            query.Filter &= filter;
+            return query;
+        }
+        public static SimpleQuery UpdateQueryManagingRelation(SimpleQuery query, PageSecurity userStatus)
         {
             BEXP filter = null;
             filter |= new BEXP

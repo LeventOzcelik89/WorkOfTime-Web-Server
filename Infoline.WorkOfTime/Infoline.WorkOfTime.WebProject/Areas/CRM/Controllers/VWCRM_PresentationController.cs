@@ -38,7 +38,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 datam.Total = db.GetVWCRM_PresentationCount(cc.Filter);
                 return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
             }
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 request.Page = 1;
@@ -67,7 +67,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 var datam = db.GetVWCRM_Presentation(cc);
                 return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
             }
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManaging(cc, userStatus);
@@ -92,7 +92,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 var cnt = db.GetVWCRM_PresentationCount(cc.Filter);
                 return cnt;
             }
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQueryManaging(cc, userStatus);
@@ -677,6 +677,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 Operand1 = (COL)"ManagingUserIds",
                 Operator = BinaryOperator.Like,
                 Operand2 = (VAL)("%" + userStatus.user.id + "%").ToString()
+            };
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"createdby",
+                Operator = BinaryOperator.Equal,
+                Operand2 = (VAL)userStatus.user.id
             };
             query.Filter &= filter;
             return query;

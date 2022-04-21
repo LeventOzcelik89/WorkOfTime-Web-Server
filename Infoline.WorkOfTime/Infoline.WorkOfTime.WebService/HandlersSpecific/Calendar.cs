@@ -116,7 +116,9 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 {
                     var contactUsers = db.GetVWCRM_ContactUserByContactId(data.id);
                     var checkContactUser = contactUsers.Where(a => a.UserId == userStatus).FirstOrDefault();
-                    if (checkContactUser == null && data.createdby != userStatus)
+                    var managingUsers = db.GetCMP_CompanyManagingByCompanyId(data.CustomerCompanyId.Value);
+                    var checkManaging = managingUsers.Where(a => a.userId == userStatus).FirstOrDefault();
+                    if ((checkContactUser == null && data.createdby != userStatus)|| checkManaging == null)
                     {
                         continue;
                     }
