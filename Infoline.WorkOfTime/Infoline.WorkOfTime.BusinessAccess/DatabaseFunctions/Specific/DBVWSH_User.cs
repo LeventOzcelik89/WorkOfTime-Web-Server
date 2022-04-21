@@ -71,6 +71,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWSH_User[] GetVWSH_UserByIdsForContact(Guid?[] id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.ExecuteReader<VWSH_User>("SELECT * From VWSH_User with(nolock) where id in(" + string.Format("'{0}'", string.Join("','", id)) + ")").ToArray();
+            }
+        }
+
         public VWSH_User[] GetVWSH_UserByCompanyIdEndPersonNotNull(Guid companyId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

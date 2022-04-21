@@ -200,7 +200,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var db = new WorkOfTimeDatabase();
          
             var data = db.GetVWCRM_ContactById(model.id);
-            ViewBag.IdUsers = db.GetCRM_ContactUserByContactId(data.id).Select(c => c.UserId).ToArray();
+            var users = db.GetCRM_ContactUserByContactId(data.id).Select(c => c.UserId).ToArray();
+            ViewBag.IdUsers = users;
+            var userIds = db.GetVWSH_UserByIdsForContact(users);
+            List<string> userId_Title = new List<string>();
+
+            foreach (var item in userIds)
+            {
+                userId_Title.Add(item.FullName);
+            }
+            
+            ViewBag.participant_Title = String.Join(",", userId_Title);
+
+            ViewBag.Company = data.CustomerCompanyId.HasValue ? db.GetVWCMP_CompanyById(data.CustomerCompanyId.Value) : db.GetVWCMP_CompanyById(data.customerId.Value) ;
 
             return View(model.Load());
         }
