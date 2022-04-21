@@ -8,15 +8,26 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-
 	public class VMPRD_StocktakingModel : VWPRD_Stocktaking
 	{
+		public VWPRD_Transaction Transaction { get; set; }
+		public List<VMPRD_TransactionItems> transactionItems { get; set; } = new List<VMPRD_TransactionItems>();
+		public VMPRD_TransactionItems transactionItem { get; set; }
 		private WorkOfTimeDatabase db { get; set; }
 		private DbTransaction trans { get; set; }
 		public VWPRD_StocktakingItem[] items { get; set; }
 		public List<VWPRD_StockTakingItemModel> stockTakingSummaries { get; set; } = new List<VWPRD_StockTakingItemModel>();
 		public VWPRD_StocktakingUser[] stocktakingUsers { get; set; }
 		public List<Guid> stocktakingUserIds { get; set; }
+		public int Total { get; set; } = 0;
+		public Guid? productionSchemaId { get; set; }
+		public string inputId_Adress { get; set; }
+		public string outputId_Adress { get; set; }
+		public string tenderIds { get; set; }
+		public int amount { get; set; }
+		public double OutOfStock { get; set; }
+		public string ProductSerialCodes { get; set; }
+		public bool expensReport { get; set; }
 
 		public VMPRD_StocktakingModel Load()
 		{
@@ -36,7 +47,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					unitId = a.Select(b => b.unitId).FirstOrDefault(),
 					unitId_Title = a.Select(b => b.unitId_Title).FirstOrDefault(),
 					status = a.Select(b => b.status).FirstOrDefault(),
-					serialNumber = a.Select(b => b.serialNumber).FirstOrDefault()
+					serialNumber = a.Select(b => b.serialNumber).FirstOrDefault(),
+					storageId = a.Select(b => b.storageId).FirstOrDefault()
 				}).ToList());
 
 
@@ -65,17 +77,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						cases = "Sayım Eksiği";
 					}
 
+
 					stockTakingSummaries.Add(new VWPRD_StockTakingItemModel
 					{
 						productId = item.Key,
 						productId_Title = item.Select(a => a.productId_Title).FirstOrDefault(),
 						storageQuantity = this.items.Count(b => b.productId == item.Key),
-						quantity = item.Select(a => a.quantity).FirstOrDefault(),
+						quantity = this.items.Where(a => a.productId == item.Key).Count(),
 						unitId = item.Select(a => a.unitId).FirstOrDefault(),
 						unitId_Title = item.Select(a => a.unitId_Title).FirstOrDefault(),
 						status = item.Select(a => a.status).FirstOrDefault(),
-						serialNumber = item.Select(a => a.serialNumber).FirstOrDefault(),
-						caseDescription = cases
+						serialNumber = string.Join(",", this.items.Where(a => a.productId == item.Key).Select(a => a.serialNumber).ToArray()),
+						caseDescription = cases,
+						storageId = item.Select(b => b.storageId).FirstOrDefault()
 					});
 				}
 			}
@@ -86,6 +100,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			return this;
 		}
+		public VMPRD_StocktakingModel LoadTransaction()
+		{
+			var transaction = new VMPRD_TransactionModel();
+			transaction.B_EntityDataCopyForMaterial(this.Transaction);
+			transaction.items.Add(transactionItem);
+			this.transactionItems.Add(transactionItem);
+			this.Transaction.B_EntityDataCopyForMaterial(transaction.Load());
+			return this;
+		}
+
 		public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
 		{
 			db = db ?? new WorkOfTimeDatabase();
@@ -331,117 +355,118 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return query;
 		}
 
-		//public ResultStatus InsertForFireNotification(Guid userId)
-		//{
-		//    db = db ?? new WorkOfTimeDatabase();
-		//    trans = trans ?? db.BeginTransaction();
-		//    var transaction = trans ?? db.BeginTransaction();
-		//    var errorList = new List<string>();
-		//    var outputInfo = this.GetInfo(this.Transaction.outputId, this.Transaction.outputTable, this.Transaction.outputCompanyId);
-		//    var inputInfo = this.GetInfo(this.Transaction.inputId, this.Transaction.inputTable, this.Transaction.inputCompanyId);
-		//    this.Transaction.inputId_Title = null;
-		//    this.Transaction.inputCompanyId = null;
-		//    this.Transaction.inputCompanyId_Title = null;
-		//    this.Transaction.inputId = null;
-		//    this.Transaction.inputTable = null;
-		//    this.Transaction.outputId_Title = outputInfo.Text;
-		//    this.Transaction.outputCompanyId = outputInfo.CompanyId;
-		//    this.Transaction.outputCompanyId_Title = outputInfo.CompanyIdTitle;
-		//    this.Transaction.outputId = outputInfo.DataId;
-		//    this.Transaction.outputTable = outputInfo.DataTable;
-		//    var DBResult = new ResultStatus { result = true };
-		//    var PRDTransaction = new PRD_Transaction().B_EntityDataCopyForMaterial(this.Transaction);
-		//    var transModel = new VMPRD_TransactionModel
-		//    {
-		//        inputId = this.Transaction.inputId,
-		//        inputTable = this.Transaction.inputTable,
-		//        outputId = this.Transaction.outputId,
-		//        outputTable = this.Transaction.outputTable,
-		//        created = this.created,
-		//        createdby = this.createdby,
-		//        status = (int)EnumPRD_TransactionStatus.islendi,
-		//        items = this.productionProducts.Where(s => s.productId.HasValue).Select(a => new VMPRD_TransactionItems
-		//        {
-		//            productId = a.productId,
-		//            quantity = a.quantity,
-		//            serialCodes = a.serialCodes != null ? a.serialCodes : "",
-		//            unitPrice = a.price,
-		//        }).ToList(),
-		//        date = DateTime.Now,
-		//        code = BusinessExtensions.B_GetIdCode(),
-		//        type = (short)EnumPRD_TransactionType.FireFisi,
-		//        id = Guid.NewGuid()
-		//    };
-		//    DBResult &= transModel.Save(userId, trans);
-		//    var sendedList = new List<PRD_ProductionProduct>();
-		//    foreach (var product in productionProducts)
-		//    {
-		//        if (product.id != null)
-		//        {
-		//            var getProduct = db.GetPRD_ProductionProductByMetarialIdAndProductionId(product.productId.Value, id);
-		//            if (getProduct == null)
-		//            {
-		//                var findProduct = db.GetVWPRD_ProductById(product.productId.Value);
-		//                if (findProduct != null)
-		//                {
-		//                    var newProduct = new PRD_ProductionProduct
-		//                    {
-		//                        id = Guid.NewGuid(),
-		//                        createdby = userId,
-		//                        productId = findProduct.id,
-		//                        price = product.price,
-		//                        materialId = findProduct.id,
-		//                        quantity = product.quantity,
-		//                        productionId = this.id,
-		//                        totalQuantity = product.totalQuantity,
-		//                        type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
-		//                        transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
-		//                        currencyId = findProduct.currentSellingCurrencyId,
-		//                        unitId = findProduct.unitId,
-		//                        amountSpent = product.quantity
-		//                    };
-		//                    DBResult &= db.InsertPRD_ProductionProduct(newProduct);
-		//                }
-		//            }
-		//            else
-		//            {
-		//                if (product.quantity != null)
-		//                {
-		//                    if (getProduct.amountSpent != null)
-		//                    {
-		//                        getProduct.amountSpent += product.quantity;
-		//                    }
-		//                    else
-		//                    {
-		//                        getProduct.amountSpent = product.quantity;
-		//                    }
-		//                    sendedList.Add(getProduct);
-		//                }
-		//            }
-		//        }
-		//    }
-		//    DBResult &= db.BulkUpdatePRD_ProductionProduct(sendedList);
-		//    DBResult &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
-		//    {
-		//        createdby = userId,
-		//        created = DateTime.Now,
-		//        productionId = this.id,
-		//        dataId = transModel.id,
-		//        dataTable = "PRD_Transaction",
-		//        status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi,
-		//        description = this.description,
-		//        userId = userId,
-		//    }, trans);
-		//    if (DBResult.result)
-		//    {
-		//        trans.Commit();
-		//    }
-		//    else
-		//    {
-		//        trans.Rollback();
-		//    }
-		//    return DBResult;
-		//}
+		public ResultStatus InsertForStockTaking(Guid userId)
+		{
+			db = db ?? new WorkOfTimeDatabase();
+			trans = trans ?? db.BeginTransaction();
+			var outputInfo = this.GetInfo(this.Transaction.outputId, this.Transaction.outputTable, this.Transaction.outputCompanyId);
+			this.Transaction.inputCompanyId = null;
+			this.Transaction.inputId = null;
+			this.Transaction.inputTable = null;
+			this.Transaction.outputId_Title = outputInfo.Text;
+			this.Transaction.outputCompanyId = outputInfo.CompanyId;
+			this.Transaction.outputCompanyId_Title = outputInfo.CompanyIdTitle;
+			this.Transaction.outputId = outputInfo.DataId;
+			this.Transaction.outputTable = outputInfo.DataTable;
+			var DBResult = new ResultStatus { result = true };
+			var listOfTransItems = new List<VMPRD_TransactionItems>();
+
+
+
+			var transModel = new VMPRD_TransactionModel
+			{
+				inputId = this.Transaction.inputId,
+				inputTable = this.Transaction.inputTable,
+				outputId = this.Transaction.outputId,
+				outputTable = this.Transaction.outputTable,
+				created = this.created,
+				createdby = this.createdby,
+				status = (int)EnumPRD_TransactionStatus.islendi,
+				items = listOfTransItems,
+				date = DateTime.Now,
+				code = BusinessExtensions.B_GetIdCode(),
+				type = (short)EnumPRD_TransactionType.HarcamaBildirimi,
+				id = Guid.NewGuid()
+			};
+
+			DBResult &= transModel.Save(userId, trans);
+
+			if (DBResult.result)
+			{
+				trans.Commit();
+			}
+			else
+			{
+				trans.Rollback();
+			}
+			return DBResult;
+		}
+
+		private OwnerInfo GetInfo(Guid? dataId, string dataTable, Guid? dataCompanyId)
+		{
+			OwnerInfo result = new OwnerInfo();
+			db = new WorkOfTimeDatabase();
+			if (dataId != null && dataTable != null)
+			{
+				switch (dataTable)
+				{
+					case "CMP_Storage":
+						var storage = db.GetVWCMP_StorageById(dataId.Value);
+						result = new OwnerInfo
+						{
+							CompanyId = storage?.companyId,
+							CompanyIdTitle = storage?.companyId_Title,
+							Location = storage?.location,
+							Text = storage?.companyId_Title + " | " + storage?.name,
+							Adress = storage?.address,
+							DataId = dataId,
+							DataTable = dataTable,
+						};
+						break;
+					case "SH_User":
+						var user = db.GetVWSH_UserById(dataId.Value);
+						var company = db.GetVWCMP_CompanyById(user.CompanyId ?? Guid.NewGuid());
+						result = new OwnerInfo
+						{
+							CompanyId = company?.id,
+							CompanyIdTitle = company?.fullName,
+							Location = company?.location,
+							Text = company?.fullName + " | " + user?.FullName,
+							Adress = user?.address,
+							DataId = dataId,
+							DataTable = dataTable,
+						};
+						break;
+					case "CMP_Company":
+						var cmp = db.GetVWCMP_CompanyById(dataId.Value);
+						result = new OwnerInfo
+						{
+							CompanyId = cmp?.id,
+							CompanyIdTitle = cmp?.fullName,
+							Location = cmp.location,
+							Text = cmp?.fullName,
+							Adress = ""
+						};
+						break;
+					default:
+						break;
+				}
+			}
+			else
+			{
+				var company = db.GetVWCMP_CompanyById(dataCompanyId ?? Guid.NewGuid());
+				result.CompanyId = dataCompanyId;
+				result.CompanyIdTitle = company?.fullName;
+				result.Text = company?.fullName;
+				result.Adress = company?.openAddress;
+				result.Location = company?.location;
+				result.DataId = null;
+				result.DataTable = null;
+			}
+			return result;
+		}
+
+
 
 	}
 

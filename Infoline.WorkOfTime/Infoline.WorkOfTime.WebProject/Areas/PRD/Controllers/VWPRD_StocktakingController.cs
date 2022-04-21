@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using Infoline.Framework.Database;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
@@ -69,6 +70,42 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			{
 				Result = dbresult.result,
 				FeedBack = dbresult.result ? feedback.Success("Sayım İşlemi Oluşturma İşlemi Başarılı") : feedback.Warning(dbresult.message),
+			}, JsonRequestBehavior.AllowGet);
+		}
+
+	    [AllowEveryone]
+		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel, SHRoles.UretimYonetici)]
+		public ActionResult TransactionUpsert(VMPRD_StocktakingModel model, VWPRD_Transaction trans, VMPRD_TransactionItems transItem, int? direction)
+		{
+			model.Transaction = trans;
+			model.transactionItem = transItem;
+			var data = model.LoadTransaction();
+			ViewBag.Direction = direction;
+			return View(data);
+		}
+
+		[AllowEveryone]
+		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.UretimYonetici)]
+		[HttpPost, ValidateAntiForgeryToken]
+		public JsonResult TransactionUpsert(VMPRD_StocktakingModel item, bool? isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = new ResultStatus { result = true };
+			if (item.Transaction.type == (int)EnumPRD_TransactionType.FireFisi)
+			{
+				dbresult = item.InsertForStockTaking(userStatus.user.id);
+			}
+			if (item.Transaction.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+			{
+				dbresult = item.InsertForStockTaking(userStatus.user.id);
+			}
+
+
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success(dbresult.message, false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
 			}, JsonRequestBehavior.AllowGet);
 		}
 
