@@ -30,5 +30,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? unitId { get; set;}
         public short? status { get; set;}
         public IGeometry  location { get; set;}
+        public string caseDescription { get; set;}
     }
 }

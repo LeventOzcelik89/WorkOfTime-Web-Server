@@ -85,6 +85,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 condition = UpdateQuery(condition, userStatus);
             }
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                cc = UpdateQueryManaging(cc, userStatus);
+                var datam = db.GetVWCMP_Company(cc);
+                return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
+            }
             condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus, 2);
             var data = db.GetVWCMP_Company(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
@@ -764,6 +771,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                     Operand2 = (VAL)Guid.NewGuid()
                 };
             }
+            query.Filter &= filter;
+            return query;
+        }
+        public static SimpleQuery UpdateQueryManaging(SimpleQuery query, PageSecurity userStatus)
+        {
+            BEXP filter = null;
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"ManagingUserIds",
+                Operator = BinaryOperator.Like,
+                Operand2 = (VAL)("%" + userStatus.user.id + "%").ToString()
+            };
             query.Filter &= filter;
             return query;
         }

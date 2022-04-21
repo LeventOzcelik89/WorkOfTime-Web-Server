@@ -33,7 +33,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         {
             var condition = KendoToExpression.Convert(request);
             request.Page = 1;
+            var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                request.Page = 1;
+                cc = UpdateQueryManaging(cc, userStatus);
+                var datam = db.GetVWCRM_Contact(cc).RemoveGeographies().ToDataSourceResult(request);
+                datam.Total = db.GetVWCRM_ContactCount(cc.Filter);
+                return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
+            }
             var data = db.GetVWCRM_Contact(condition).RemoveGeographies().ToDataSourceResult(request);
             data.Total = db.GetVWCRM_ContactCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
@@ -76,19 +86,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
             foreach (var item in contactActionsRes.Where(x => x.created.HasValue).GroupBy(x => x.created))
             {
-                
+
                 var happeningTotalCount = happeningTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
                 var planTotalCount = planTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
                 var cancelledTotal = cancelCount.FirstOrDefault(x => x.Date == item.Key.Value.Date);
                 var unplannedTotalCount = unplannedTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
                 if (happeningTotalCount != null)
                 {
-                    happeningTotalCount.Value +=item.Where(a => a.description.Contains("düzenlendi. (Gerçekleşti)")).Count();
+                    happeningTotalCount.Value += item.Where(a => a.description.Contains("düzenlendi. (Gerçekleşti)")).Count();
                 }
                 if (planTotalCount != null)
                 {
                     planTotalCount.Value += item.Where(a => a.description.Contains("Planlandı")).Count();
-                } 
+                }
                 if (cancelledTotal != null)
                 {
                     cancelledTotal.Value += item.Where(a => a.description.Contains("İptal")).Count();
@@ -104,12 +114,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
 
                 Categories = DateBetween,
-                Series = new List<double[]> 
+                Series = new List<double[]>
                 {
                     planTotal.Select(x => x.Value).ToArray(),
                     happeningTotal.Select(x => x.Value).ToArray(),
                     cancelCount.Select(x => x.Value).ToArray(),
-                    unplannedTotal.Select(x => x.Value).ToArray(), 
+                    unplannedTotal.Select(x => x.Value).ToArray(),
                 }
             };
 
@@ -143,7 +153,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         public ContentResult DataSourceDropDownForRelations([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
+            var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                cc = UpdateQueryManaging(cc, userStatus);
+                var datam = db.GetVWCRM_ContactRelationTables(cc);
+                return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
+            }
             var data = db.GetVWCRM_ContactRelationTables(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
@@ -153,7 +171,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
+            var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                cc = UpdateQueryManaging(cc, userStatus);
+                var cnt = db.GetVWCRM_ContactCount(cc.Filter);
+                return cnt;
+            }
+
             var count = db.GetVWCRM_ContactCount(condition.Filter);
             return count;
         }
@@ -198,7 +225,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         public ActionResult Detail(VMCRM_ContactModel model)
         {
             var db = new WorkOfTimeDatabase();
-         
+
             var data = db.GetVWCRM_ContactById(model.id);
             var users = db.GetCRM_ContactUserByContactId(data.id).Select(c => c.UserId).ToArray();
             ViewBag.IdUsers = users;
@@ -601,7 +628,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 {
                     created = DateTime.Now,
                     createdby = userStatus.user.id,
-                    description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")" ,
+                    description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ")",
                     presentationId = item.PresentationId.Value,
                     contactId = item.id,
                     type = (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
@@ -645,7 +672,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
                 lastChanges = string.Join(", ", changes);
             }
-            
+
 
             dbRes &= db.BulkDeleteCRM_ContactUser(contactUsers, trans);
             dbRes &= db.BulkInsertCRM_ContactUser(IdUsers.Select(a => new CRM_ContactUser
@@ -662,7 +689,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
                 created = DateTime.Now,
                 createdby = userStatus.user.id,
-                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ") ("+DateTime.Now+")" ,
+                description = "Aktivite/Randevu düzenlendi. (" + statusDescription + ") (" + DateTime.Now + ")",
                 ContactId = item.id,
                 location = location
             }, trans);
@@ -782,14 +809,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Aktivite Raporu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
+        [PageInfo("Aktivite Raporu", SHRoles.CRMYonetici)]
         public ActionResult ContactReport()
         {
             var model = new VMCRM_ContactModel();
             return View(model);
 
         }
-        [PageInfo("Aktivite Rapor Detayı", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
+        [PageInfo("Aktivite Rapor Detayı",  SHRoles.CRMYonetici)]
         public ActionResult ContactReportDetail(VMCRM_ContactModel item)
         {
             var model = item;
@@ -808,7 +835,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             List<Guid> createdByList = new List<Guid>();
             foreach (var item in contacts)
             {
-                if(item.createdby != null)
+                if (item.createdby != null)
                 {
                     if (!createdByList.Contains(item.createdby.Value))
                     {
@@ -816,7 +843,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     }
                 }
             }
-      
+
             var res = db.GetVWCRM_ContactByCreatedByIds(createdByList.ToArray(), ContactStartDate.Value, ContactEndDate.Value.AddDays(1).AddTicks(-1));
 
             List<Guid> resList = new List<Guid>();
@@ -878,12 +905,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     written = written,
                     food = food,
                     other = other,
-                    Totals = faceToFace + phone + videoConferencing + written+ food+ other,
+                    Totals = faceToFace + phone + videoConferencing + written + food + other,
                     createdByTitleForContactType = line.FirstOrDefault().createdby_Title
                 };
                 contactTypeReports.Add(contactTypeReport);
             }
-                    
+
             var resultData = new
             {
                 contactStatusReports = contactStatusReports,
@@ -995,7 +1022,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }
             return request;
         }
-    }
+        public static SimpleQuery UpdateQueryManaging(SimpleQuery query, PageSecurity userStatus)
+        {
+            BEXP filter = null;
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"ManagingUserIds",
+                Operator = BinaryOperator.Like,
+                Operand2 = (VAL)("%" + userStatus.user.id + "%").ToString()
+            };
+            query.Filter &= filter;
+            return query;
+        }
 
- 
+    }
 }

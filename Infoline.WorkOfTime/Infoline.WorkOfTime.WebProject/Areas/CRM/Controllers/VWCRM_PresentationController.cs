@@ -38,6 +38,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 datam.Total = db.GetVWCRM_PresentationCount(cc.Filter);
                 return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
             }
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                request.Page = 1;
+                cc = UpdateQueryManaging(cc, userStatus);
+                var datam = db.GetVWCRM_Presentation(cc).RemoveGeographies().ToDataSourceResult(request);
+                datam.Total = db.GetVWCRM_PresentationCount(cc.Filter);
+                return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
+            }
             request = UpdateRequest(request);
             var condition = KendoToExpression.Convert(request);
             request.Page = 1;
@@ -58,6 +67,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 var datam = db.GetVWCRM_Presentation(cc);
                 return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
             }
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                cc = UpdateQueryManaging(cc, userStatus);
+                var datam = db.GetVWCRM_Presentation(cc);
+                return Content(Infoline.Helper.Json.Serialize(datam), "application/json");
+            }
             request = UpdateRequest(request);
             var condition = KendoToExpression.Convert(request);
             var data = db.GetVWCRM_Presentation(condition);
@@ -73,6 +89,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQuery(cc, userStatus);
+                var cnt = db.GetVWCRM_PresentationCount(cc.Filter);
+                return cnt;
+            }
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+            {
+                var cc = KendoToExpression.Convert(request);
+                cc = UpdateQueryManaging(cc, userStatus);
                 var cnt = db.GetVWCRM_PresentationCount(cc.Filter);
                 return cnt;
             }
@@ -453,10 +476,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
         [PageInfo("Potansiyel/Fırsat Not Ekleme Metodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult InsertNote(Guid presentationId, string note, IGeometry location)
-        
+
         {
             var userStatus = (PageSecurity)Session["userStatus"];
-            var dbresult = new VMCRM_PresentationModel { id = presentationId }.Load().InsertNote(userStatus.user.id, note,location);
+            var dbresult = new VMCRM_PresentationModel { id = presentationId }.Load().InsertNote(userStatus.user.id, note, location);
             return Content(Infoline.Helper.Json.Serialize(dbresult), "application/json");
         }
 
@@ -641,6 +664,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 Operand1 = (COL)"ChannelCompanyId",
                 Operator = BinaryOperator.Equal,
                 Operand2 = (VAL)userStatus.user.CompanyId
+            };
+            query.Filter &= filter;
+            return query;
+        }
+
+        public static SimpleQuery UpdateQueryManaging(SimpleQuery query, PageSecurity userStatus)
+        {
+            BEXP filter = null;
+            filter |= new BEXP
+            {
+                Operand1 = (COL)"ManagingUserIds",
+                Operator = BinaryOperator.Like,
+                Operand2 = (VAL)("%" + userStatus.user.id + "%").ToString()
             };
             query.Filter &= filter;
             return query;

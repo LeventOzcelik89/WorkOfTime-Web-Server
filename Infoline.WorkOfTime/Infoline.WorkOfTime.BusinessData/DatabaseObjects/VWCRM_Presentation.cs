@@ -25,6 +25,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string SalesPerson_Title { get; set;}
         public string ChannelCompany_Title { get; set;}
         public string CustomerCompany_Title { get; set;}
+        public string ManagingUserIds { get; set;}
         public string cityTitle { get; set;}
         public string townTitle { get; set;}
         public string CustomerCompany_Phone { get; set;}
