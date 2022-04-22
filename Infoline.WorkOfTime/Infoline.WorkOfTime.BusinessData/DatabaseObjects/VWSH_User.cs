@@ -6,6 +6,8 @@ namespace Infoline.WorkOfTime.BusinessData
     public partial class VWSH_User : InfolineTable
     {
         public string FullName { get; set;}
+        public int isBankInfo { get; set;}
+        public int isCompanyInfo { get; set;}
         public int PermitYearlyDeserved { get; set;}
         public int PermitYearlyUsed { get; set;}
         public double PermitExcuseDeserved { get; set;}

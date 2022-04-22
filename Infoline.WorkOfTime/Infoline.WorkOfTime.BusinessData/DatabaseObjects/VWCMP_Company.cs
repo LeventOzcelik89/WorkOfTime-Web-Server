@@ -5,6 +5,8 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWCMP_Company : InfolineTable
     {
+        public int isBankInfo { get; set;}
+        public string searchField { get; set;}
         public int? type { get; set;}
         public Guid? pid { get; set;}
         public string code { get; set;}
@@ -44,6 +46,5 @@ namespace Infoline.WorkOfTime.BusinessData
         public string Sectors { get; set;}
         public string CMPTypes_Title { get; set;}
         public string customerIds { get; set;}
-        public string searchField { get; set;}
     }
 }
