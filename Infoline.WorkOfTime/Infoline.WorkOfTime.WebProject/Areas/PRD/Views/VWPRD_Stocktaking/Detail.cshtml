@@ -16,7 +16,7 @@
 	function stockTakingTransaction(data) {
 		debugger;
 		if (data.status == '@((int)EnumPRD_StocktakingItemStatus.StoklaraIslenmedi)') {
-			return '<button class="btn btn-md btn-info pull-right" style="margin-right: 10px;" type="submit" data-href="/PRD/VWPRD_Transaction/Upsert?inputId=' + data.storageId + '" data-method="Get" data-task="Insert" data-show="single">STOKLARA İŞLE</button>'
+			return '<button class="btn btn-md btn-info pull-right" style="margin-right: 10px;" data-href="/PRD/VWPRD_Stocktaking/TransactionUpsert?type=5&direction=1&inputId=' + data.storageId + '&productId=' + data.productId + '&isStockTaking=true&quantity=' + data.quantity + '&serialCodes=' + data.serialNumber+'" data-method="Get" data-task="Insert"  data-blank="true" data-show="single">STOKLARA İŞLE</button>'
 		}
 		else {
 			return '<button class="btn btn-md btn-primary pull-right" style="margin-right: 10px;">STOKLARA İŞLENDİ</button>'
@@ -25,37 +25,6 @@
 
 </script>
 
-<style type="text/css" data-selector="modalContainer">
-
-	.form-group {
-		margin-bottom: 10px;
-	}
-
-	.modal-lg {
-		width: 95%;
-	}
-
-	table.table-custom {
-		table-layout: fixed;
-	}
-
-		table.table-custom thead {
-			background-color: #d6d5d4;
-			font-size: 11px;
-		}
-
-		table.table-custom tr {
-			border-bottom: 1px #d6d5d4 solid;
-		}
-
-		table.table-custom tbody tr:last-child {
-			border-bottom: none;
-		}
-
-		table.table-custom tbody td {
-			padding: 6px !important;
-		}
-</style>
 
 <div class="form-horizontal" data-selector="modalContainer">
 	<div class="ibox">
@@ -102,7 +71,7 @@
 				</div>
 			</div>
 
-			<div class="clearfix m-t-md" id="productTable">
+			<div class="clearfix m-t-md">
 				<div class="tabs-container">
 					<ul class="nav nav-tabs">
 						<li class="active" data-toggle="tooltip" data-placement="top" title="İşlemler">
@@ -110,6 +79,9 @@
 						</li>
 						<li data-toggle="tooltip" data-placement="top" title="Sayım Özeti">
 							<a data-toggle="tab" href="#gorevdetay2" aria-expanded="true"><i class="fa fa-file-archive-o text-success"></i></a>
+						</li>
+						<li data-toggle="tooltip" data-placement="top" title="Sayım Resimleri">
+							<a data-toggle="tab" href="#gorevdetay3" aria-expanded="true"><i class="fa fa-picture-o text-success"></i></a>
 						</li>
 					</ul>
 
@@ -180,15 +152,19 @@
 
 							</div>
 						</div>
+						<div class="tab-pane" id="gorevdetay3">
+							<div class="ibox">
+								@Html.Action("PreviewTable", "Files", new { area = "", DataTable = "PRD_Stocktaking", DataIds = Model.id, Filter = false })
+						</div>
 					</div>
 
 				</div>
 			</div>
 
-			<div class="buttons">
+			@*<div class="buttons">
 				<div class="hr-line-dashed"></div>
 				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-			</div>
+			</div>*@
 
 		</div>
 	</div>

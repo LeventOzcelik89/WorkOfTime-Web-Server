@@ -1,6 +1,6 @@
-﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_StocktakingModel
 @{
-	ViewBag.Title = !string.IsNullOrEmpty(Model.type_Title) ? Model.type_Title : "Yeni Stok İşlemi";
+	ViewBag.Title = "Yeni Stok İşlemi";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 	var userStatus = (PageSecurity)Session["userStatus"];
 	var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
@@ -18,7 +18,6 @@
 
 <link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
 <script type="text/javascript" data-selector="modalContainer">
-
 
     var page = {
         Model: @Html.Raw( Json.Encode(Model) ),
@@ -137,7 +136,7 @@
                         return false;
                     }
 
-                    
+
 
                     if (quant.value() == null || quant.value() == 0) {
                         MesajWarning("Miktar girmeden yeni satır ekleyemezsiniz.", "Bilgilendirme");
@@ -180,7 +179,7 @@
                 temp.find('[data-item="quantity"]')
                     .attr('name', 'items[' + page.Counter + '].alternativeQuantity')
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.alternativeQuantity != null ? data.alternativeQuantity : data.quantity != null ? data.quantity : null : null) });
-                
+
                 temp.find('[data-item="serialCodes"]')
                     .attr('name', 'items[' + page.Counter + '].serialCodes')
                     .attr('value', data != undefined ? data.serialCodes : '')
@@ -296,7 +295,7 @@
                     }
 
                     if (data.stockType == 2) {
-                        
+
                         var values = data.id == e.sender._initial ? (serialCodes.val() || "") : "";
                         var valuesArr = [];
                         try {
@@ -363,6 +362,7 @@
                 if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.inputId) };
             },
             openedProduct: function (value) {
+                debugger;
                 $("#productTable")[value ? "slideDown" : "slideUp"]();
                 //return;
                 $("#productTable").find('[data-item="productId"]').each(function (c) {
@@ -380,19 +380,18 @@
             }
         },
         init: function () {
-
-            $.each(page.Model.items, function (i, item) {
+            $.each(page.Model.transactionItems, function (i, item) {
                 page.events.addRow(item);
             });
 
-            if (page.Model.items.length == 0) {
+			if (page.Model.transactionItems.length == 0) {
                 page.events.addRow();
             }
-
         }
     };
 
     page.init();
+
     if (page.Model.tenderIds != null)
     {
         $('[data-item="islendi"]').addClass('hide');
@@ -449,7 +448,6 @@
 
 	<tr>
 		<td data-item="index">
-
 		</td>
 		<td data-target="">
 			<input type="hidden" data-item="id" />
@@ -470,7 +468,7 @@
 
 			</div>
 		</td>
-		
+
 		<td>
 			<input data-item="serialCodes" data-role="tagify" />
 		</td>
@@ -482,7 +480,7 @@
 </script>
 
 
-@using (Html.BeginForm("Upsert", "VWPRD_Transaction", FormMethod.Post, new Dictionary<string, object>() {
+@using (Html.BeginForm("TransactionUpsert", "VWPRD_StockTaking", FormMethod.Post, new Dictionary<string, object>() {
 	{ "class", "form-horizontal" },
 	{ "role", "form" },
 	{ "data-selector", "modalContainer" },
@@ -491,11 +489,11 @@
 {
 	@Html.AntiForgeryToken()
 	@Html.HiddenFor(model => model.id, new { @Value = Model.id })
-	@Html.HiddenFor(model => model.invoiceId)
-	@Html.HiddenFor(model => model.orderId)
-    @Html.HiddenFor(model => model.tenderIds)
+	@Html.HiddenFor(model => model.Transaction.invoiceId)
+	@Html.HiddenFor(model => model.Transaction.orderId)
+	@Html.HiddenFor(model => model.tenderIds)
 
-	<div class="row @(Model.isStockTaking ? "" : Model.type.HasValue ? "hide" :  "")">
+	<div class="row">
 		<div class="col-md-12">
 			<div class="visible-md visible-lg" style="width:100%">
 				@foreach (var type in types)
@@ -512,7 +510,7 @@
 				<div class="col-md-8">
 					@(
                         Html.Akilli().
-                        DropDownListFor(model => model.type).
+                        DropDownListFor(model => model.Transaction.type).
                         OptionLabel("Lütfen Yapacağınız İşlemi Seçiniz..").
                         DataTextField("enumDescription").
                         DataValueField("Id").
@@ -521,7 +519,7 @@
                         Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
                         Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRD_Transaction" && a.fieldName == "type").
                         Sort(x => x.Add("enumKey").Ascending()).
-                        Readonly(Model.type != null).
+                        Readonly(Model.Transaction.type != null).
                         Validate(Validations.Required).
                         Events(a => a.Change("page.events.typeChange").DataBound("page.events.typeLoad")).
                         Execute("enumKey")
@@ -542,7 +540,7 @@
 					<label class="control-label label-md req" for="code">Evrak Kodu</label>
 				</div>
 				<div class="col-md-8">
-					@Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+					@Html.TextBoxFor(model => model.Transaction.code, new Dictionary<string, object>()
 					{
 						{"class", "form-control"},
 						{"placeholder", "Lütfen İşlem Kodu Giriniz.."},
@@ -557,7 +555,7 @@
 				<div class="col-md-8">
 					@(
                         Html.Akilli().
-                        DateTimePickerFor(model => model.date).
+                        DateTimePickerFor(model => model.Transaction.date).
                         Id("date").
                         Placeholder("Lütfen Fiili İşlem Tarihini Giriniz..").
                         Format("dd.MM.yyyy HH:MM").
@@ -573,7 +571,7 @@
 					<label class="control-label label-md" for="description">İşlem Açıklaması</label>
 				</div>
 				<div class="col-md-8">
-					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					@Html.TextAreaFor(model => model.Transaction.description, new Dictionary<string, object>()
 					{
 						{"class", "form-control"},
 						{"placeholder", "Lütfen İşlem Açıklaması Giriniz.."}
@@ -584,19 +582,19 @@
 	</div>
 
 
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action0.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action1.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action2.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action3.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action4.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action5.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action10.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action11.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action12.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action13.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action14.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action15.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action99.cshtml", Model);
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action0.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action1.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action2.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action3.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action4.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action5.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action10.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action11.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action12.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action13.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action14.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action15.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
+	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action99.cshtml", new VMPRD_TransactionModel().EntityDataCopyForMaterial(Model.Transaction));
 
 
 	<div class="clearfix m-t-md" style="display:none;" id="productTable">
@@ -613,7 +611,6 @@
 				</tr>
 			</thead>
 			<tbody id="RowContainer">
-
 			</tbody>
 			<tfoot>
 				<tr>

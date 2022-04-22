@@ -17,6 +17,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string CMPTypes_Title { get; set;}
         public string CMPTypeIds { get; set;}
         public Guid? pid { get; set;}
+        public string ManagingUserIds { get; set;}
         public string pid_Title { get; set;}
     }
 }

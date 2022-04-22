@@ -44,6 +44,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public bool hasUpdate { get; set; }
 		public string tenderIds { get; set; }
 		public Guid? taskId { get; set; }
+		public bool isStockTaking { get; set; }
 		public VMPRD_TransactionModel Load()
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
@@ -60,6 +61,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 			else
 			{
+
 				this.hasUpdate = false;
 				this.code = string.IsNullOrEmpty(this.code) ? BusinessExtensions.B_GetIdCode() : this.code;
 				this.date = this.date ?? DateTime.Now;

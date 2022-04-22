@@ -435,9 +435,12 @@
                     <li data-toggle="tooltip" data-placement="top" title="Firma Dosya ve Evrakları">
                         <a data-toggle="tab" href="#SYS_Files" aria-expanded="false"><i class="icon-attach text-success fa-2x" aria-hidden="true"></i></a>
                     </li>
-                    <li data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" data-toggle="tooltip" data-placement="top" title="Banka&Kasa İşlemleri">
-                        <a data-toggle="tab" href="#VWPA_Accounts" aria-expanded="false"><i class="icon-bank text-success fa-2x" aria-hidden="true"></i></a>
-                    </li>
+                    @if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+                    {
+                        <li data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" data-toggle="tooltip" data-placement="top" title="Banka&Kasa İşlemleri">
+                            <a data-toggle="tab" href="#VWPA_Accounts" aria-expanded="false"><i class="icon-bank text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+                    }
                 </ul>
                 <style>
                     .k-icon {
@@ -664,9 +667,11 @@
                 }
             }))
                     </div>
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" id="VWPA_Accounts">
-                        <h4><i class="text-success icon-bank"></i> BANKA VE KASA İŞLEMLERİ </h4>
-                        @(Html.Akilli()
+                    @if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MusteriSatisSorumlusu)))
+                    {
+                        <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" id="VWPA_Accounts">
+                            <h4><i class="text-success icon-bank"></i> BANKA VE KASA İŞLEMLERİ </h4>
+                            @(Html.Akilli()
                .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Account>("VWPA_Account")
                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Account", new { area = "PA" }))
                .Filter(a => a.dataTable == "CMP_Company" && a.dataId == Model.id && a.type == (int)EnumPA_AccountType.Banka).PageSize(25))
@@ -694,9 +699,9 @@
                        x.Custom().Text("<i data-original-title='Hesap Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPA_Account", new { area = "PA" }));
                    }
                }))
+                        </div>
+                        }
                     </div>
-
-                </div>
             </div>
         </section>
     </div>
