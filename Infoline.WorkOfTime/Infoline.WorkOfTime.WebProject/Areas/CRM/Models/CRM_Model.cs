@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM
             }
 
 
-            
+
             return result.OrderBy(a => a.Name).ToList();
 
         }
@@ -74,7 +74,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM
             {"ContactStatus","Aktivite/Randevu Durumu" },
             {"Description","Açıklama" }
         };
-
     }
 
     public class DropDownDataSource
@@ -83,5 +82,4 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM
         public string Name { get; set; }
         public int? type { get; set; }
     }
-
 }

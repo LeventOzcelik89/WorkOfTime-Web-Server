@@ -13,5 +13,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public int? ContactStatus { get; set;}
         public Guid? PresentationStageId { get; set;}
         public Guid? customerId { get; set;}
+        public Guid? storageId { get; set;}
     }
 }

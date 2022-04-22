@@ -415,6 +415,11 @@ namespace Infoline.WorkOfTime.Controllers
 			var res = id != null ? new CRM_Model().GetSH_UsersForPresentationById(id.Value) : null;
 			return Content(Helper.Json.Serialize(res), "application/json");
 		}
+		public ContentResult GetCMP_StorageForCompanyById(Guid? id)
+		{
+			var res = new WorkOfTimeDatabase().GetCMP_Storage().Select(a => new { companyId = id, Name = a.name }).OrderBy(a => a.Name).ToArray();
+			return Content(Infoline.Helper.Json.Serialize(res), "application/json");
+		}
 		public ContentResult GetCRM_ManagerStageCodeAndName()
 		{
 			var res = new WorkOfTimeDatabase().GetCRM_ManagerStage().OrderBy(a => a.Code).Select(a => new { Id = a.id, Name = a.Code + " - " + a.Name, color = a.color }).OrderBy(a => a.Name).ToArray();

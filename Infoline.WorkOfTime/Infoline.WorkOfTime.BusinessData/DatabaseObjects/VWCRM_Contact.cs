@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public int? ContactStatus { get; set;}
         public Guid? PresentationStageId { get; set;}
         public Guid? customerId { get; set;}
+        public Guid? storageId { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string PresentationStageId_Title { get; set;}
@@ -31,5 +32,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? ChannelCompanyId { get; set;}
         public string CustomerCompanyId_Title { get; set;}
         public IGeometry  CustomerCompanyLocation { get; set;}
+        public string storageId_Title { get; set;}
     }
 }

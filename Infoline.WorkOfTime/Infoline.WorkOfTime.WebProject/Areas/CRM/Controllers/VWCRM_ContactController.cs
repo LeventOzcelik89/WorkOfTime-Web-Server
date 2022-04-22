@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 {
     public class VWCRM_ContactController : Controller
     {
-        [PageInfo("Aktivite ve Randevular", SHRoles.CRMYonetici, SHRoles.SatisPersoneli,SHRoles.MusteriSatisSorumlusu)]
+        [PageInfo("Aktivite ve Randevular", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.MusteriSatisSorumlusu)]
         public ActionResult Index(string ids)
         {
             var _ids = new List<Guid>();
@@ -28,7 +28,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi,SHRoles.MusteriSatisSorumlusu)]
+        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi, SHRoles.MusteriSatisSorumlusu)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -236,10 +236,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             {
                 userId_Title.Add(item.FullName);
             }
-            
+
             ViewBag.participant_Title = String.Join(",", userId_Title);
 
-            ViewBag.Company = data.CustomerCompanyId.HasValue ? db.GetVWCMP_CompanyById(data.CustomerCompanyId.Value) : db.GetVWCMP_CompanyById(data.customerId.Value) ;
+            ViewBag.Company = data.CustomerCompanyId.HasValue ? db.GetVWCMP_CompanyById(data.CustomerCompanyId.Value) : db.GetVWCMP_CompanyById(data.customerId.Value);
 
             return View(model.Load());
         }
@@ -816,7 +816,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return View(model);
 
         }
-        [PageInfo("Aktivite Rapor Detayı",  SHRoles.CRMYonetici)]
+        [PageInfo("Aktivite Rapor Detayı", SHRoles.CRMYonetici)]
         public ActionResult ContactReportDetail(VMCRM_ContactModel item)
         {
             var model = item;
