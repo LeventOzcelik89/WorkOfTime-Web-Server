@@ -451,7 +451,7 @@ namespace System
                 rs &= db.InsertSH_User(new SH_User
                 {
                     id = Guid.Empty,
-                    email = "developer@infoline-tr.com",
+                    email = "leventozcelik89@gmail.com",
                     loginname = "developer",
                     firstname = "workoftime",
                     lastname = "developer",

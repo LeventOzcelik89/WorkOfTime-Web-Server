@@ -38,7 +38,7 @@ namespace Infoline.OmixEntegrationApp
                     return System.Configuration.ConfigurationManager.AppSettings["LogMailUsers"].ToString();
                 }
 
-                return "seyit.tekce@infoline-tr.com";
+                return "leventozcelik89@gmail.com";
 
             }
         }

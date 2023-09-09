@@ -19,17 +19,16 @@ namespace LO.DatabaseMigration
         public void Run(string nameSpace)
         {
 
-            //  RunAllTables(nameSpace);
+            RunAllTables(nameSpace);
 
-            var clss = typeof(TEN_Tenant);
-
-            CreateTable(clss, "Infoline.WorkOfTime.BusinessAccess");
+            //  var clss = typeof(TEN_Tenant);
+            //  CreateTable(clss, "Infoline.WorkOfTime.BusinessAccess");
 
         }
 
         private void RunAllTables(string nameSpace)
         {
-
+            var cc = new SH_User();
             var typeConverter = new SqlTypeConverter();
             var typeMapper = new MssqlTypeMapper();
 
@@ -46,11 +45,19 @@ namespace LO.DatabaseMigration
             var typeMapper = new MssqlTypeMapper();
 
             var sqlType = typeMapper.GetSqlType(propertyType);
-            var isNullable = name != "id"
-                ? Nullable.GetUnderlyingType(propertyType) != null
-                : false;
+            var baseProps = typeof(InfolineTable).GetProperties().Select(b => b.Name).Concat(new string[] { "geography", "nvarchar(255)" }).ToList();
+            baseProps.Remove("id");
+            var isNullable = baseProps.Contains(name);
 
-            isNullable = new string[] { "geography", "nvarchar(255)" }.Contains(sqlType);
+            if (!isNullable && Nullable.GetUnderlyingType(propertyType) != null)
+            {
+                isNullable = true;
+            }
+
+            if (!isNullable && propertyType.Name == "String")
+            {
+                isNullable = true;
+            }
 
             var res = string.Format("\t [{0}] {1} {2}", name, sqlType, (isNullable ? "NULL" : "NOT NULL"));
 

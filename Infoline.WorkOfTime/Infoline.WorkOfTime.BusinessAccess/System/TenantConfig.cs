@@ -266,7 +266,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.Version = string.Format("{0}.{1}.{2}.{3}", current.Major, current.Minor, current.Revision, current.Build);
             this.Logo = "/Content/Customers/" + TenantCode + "/images/logo.png";
             this.Favicon = "/Content/Customers/1100/images/favicon.ico";
-
+            this.MailingUsers = "leventozcelik89@gmail.com";
 
             switch (TenantCode)
             {
@@ -276,7 +276,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         SHRoles.YardimMasaPersonel,
                         SHRoles.YardimMasaTalep,
                     });
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com" };
                     this.AllowModules = new List<Enum_Modules>() {
                         Enum_Modules.MODULE_DASHBOARD,
                         Enum_Modules.MODULE_TASKS,
@@ -296,7 +295,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                     break;
                 case 1101:
-                    this.MailingUsers = new string[] { "ebru.guven@ozsahiletisim.com.tr", "ahmet.temiz@infoline-tr.com" };
                     this.WorkingTimes = new Dictionary<DayOfWeek, WorkingTime>
                     {
                         {DayOfWeek.Monday,new WorkingTime { allowTimes =new List<TimeInterval> {
@@ -325,10 +323,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.LanguageCode = 1101;
                     break;
                 case 1103:
-                    this.MailingUsers = new string[] { "suleymankobak@foxairtech.com", "ahmet.temiz@infoline-tr.com" };
                     break;
                 case 1108:
-                    this.MailingUsers = new string[] { "ibrahim.ozkocacik@vpro.com.tr", "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -336,7 +332,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1114:
-                    this.MailingUsers = new string[] { "ozturkgeridonusum16@gmail.com", "oali53348@gmail.com", "ahmet.temiz@infoline-tr.com" };
                     this.WorkingTimes = new Dictionary<DayOfWeek, WorkingTime>
                     {
                         {DayOfWeek.Monday,new WorkingTime { allowTimes =new List<TimeInterval> {
@@ -364,16 +359,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     };
                     break;
                 case 1115:
-                    this.MailingUsers = new string[] { "recep@kar-des.com", "ahmet.temiz@infoline-tr.com" };
                     break;
                 case 1127:
-                    this.MailingUsers = new string[] { "kobi@kobikom.com.tr", "ahmet.temiz@infoline-tr.com" };
                     break;
                 case 1129:
-                    this.MailingUsers = new string[] { "hale.haznedar@kargem.com.tr", "ahmet.temiz@infoline-tr.com" };
                     break;
                 case 1130:
-                    this.MailingUsers = new string[] { "mehmet.gokduman@vaven.com.tr", "ahmet.temiz@infoline-tr.com" };
                     this.WorkingTimes = new Dictionary<DayOfWeek, WorkingTime>
                     {
                         {DayOfWeek.Monday,new WorkingTime { allowTimes =new List<TimeInterval> {
@@ -401,10 +392,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     };
                     break;
                 case 1131:
-                    this.MailingUsers = new string[] { "onur@yorunge.com.tr", "ahmet.temiz@infoline-tr.com" };
                     break;
                 case 1132:
-                    this.MailingUsers = new string[] { "muratozbalci@artikel.com.tr", "ahmet.temiz@infoline-tr.com" };
                     this.WorkingTimes = new Dictionary<DayOfWeek, WorkingTime>
                     {
                         {DayOfWeek.Monday,new WorkingTime { allowTimes =new List<TimeInterval> {
@@ -432,13 +421,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     };
                     break;
                 case 1133:
-                    this.MailingUsers = new string[] { "ilkerdurmus@zeropest.com.tr", "operasyon@zeropest.com.tr>", "ahmet.temiz@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.SahaGorevMusteri,
                     });
                     break;
                 case 1135:
-                    this.MailingUsers = new string[] { "hilal.akman@eceas.com", "ahmet.temiz@infoline-tr.com" };
                     this.AllowModules = new List<Enum_Modules>() {
                         Enum_Modules.MODULE_COMMISSIONS,
                         Enum_Modules.MODULE_DASHBOARD,
@@ -453,10 +440,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     };
                     break;
                 case 1136:
-                    this.MailingUsers = new string[] { "o.ertugrul@nasabil.com", "ahmet.temiz@infoline-tr.com" };
                     break;
                 case 1137:
-                    this.MailingUsers = new string[] { "baharozyilmaz@gmail.com", "ahmet.temiz@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -464,11 +449,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1138:
-                    this.MailingUsers = new string[] { "zkepekci@bizcom.com.tr", "ahmet.temiz@infoline-tr.com" };
                     break;
                 case 1139:
                     this.Favicon = "/Content/Customers/" + TenantCode + "/images/favicon.ico";
-                    this.MailingUsers = new string[] { "alisan.yildirim@callay.com.tr", "ahmet.temiz@infoline-tr.com" };
                     this.LdapUrls = new string[] { "sv-dc-01.callay.com.tr:636" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
@@ -496,7 +479,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     break;
 
                 case 1140:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -504,16 +486,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1142:
-                    this.MailingUsers = new string[] { "erhan.yuksel@gilangroup.com", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1143:
-                    this.MailingUsers = new string[] { "erhan.yuksel@gilangroup.com", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1144:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1145:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -521,13 +499,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1146:
-                    this.MailingUsers = new string[] { "ipak@atlantisbilisim.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1147:
-                    this.MailingUsers = new string[] {"ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1148:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles = new List<string>() {
                         SHRoles.DepoSorumlusu,
                         SHRoles.IdariPersonelYonetici,
@@ -552,13 +527,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                     break;
                 case 1149:
-                    this.MailingUsers = new string[] { "serif.gunay@ortem.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1150:
-                    this.MailingUsers = new string[] { "akgun@akronis.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1151:
-                    this.MailingUsers = new string[] { "samet.kaya@turktab.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles = new List<string>() {
                     SHRoles.CRMYonetici,
                     SHRoles.DepoSorumlusu,
@@ -577,25 +549,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     };
                     break;
                 case 1152:
-                    this.MailingUsers = new string[] { "meryem.isik@doraes.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1153:
-                    this.MailingUsers = new string[] { "eda@mathis.com.tr", "ahmet.temiz@infoline-tr.com", "yemliha@mathis.com.tr", "senol.elik@infoline-tr.com" };
                     break;
                 case 1154:
-                    this.MailingUsers = new string[] { "karesiasansor@hotmail.com", "ahmet.temiz@infoline-tr.com", "yemliha@mathis.com.tr", "senol.elik@infoline-tr.com" };
                     break;
                 case 1155:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "yemliha@mathis.com.tr", "senol.elik@infoline-tr.com" };
                     break;
                 case 1156:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "yemliha@mathis.com.tr", "senol.elik@infoline-tr.com" };
                     break;
                 case 1157:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1158:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -603,7 +568,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1159:
-                    this.MailingUsers = new string[] { "berkan@baykullar.com", "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -611,7 +575,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1160:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -619,7 +582,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1161:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -627,7 +589,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1162:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -635,7 +596,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1163:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -643,13 +603,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1164:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1165:
-                    this.MailingUsers = new string[] { "s.kahraman@partekbilisim.com", "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1166:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -657,7 +614,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1167:
-                    this.MailingUsers = new string[] { "ersin.pirbudak@orecom.com", "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -665,7 +621,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1168:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -673,7 +628,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1169:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -681,7 +635,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1170:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "yasin.ersever@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -689,7 +642,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1171:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -697,7 +649,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1172:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -706,11 +657,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     break;
 
                 case 1173:
-                    this.MailingUsers = new string[] { "info@altincelikkapi.com", "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
 
                 case 1174:
-                    this.MailingUsers = new string[] { "saltunkaynak@vitapress.com.tr", "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -731,7 +680,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     break;
 
                 case 1175:
-                    this.MailingUsers = new string[] { "gokalp.orcan@exabyte.com.tr", "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -739,7 +687,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1176:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -747,7 +694,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1177:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -755,10 +701,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1178:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1179:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -766,10 +710,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1180:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1181:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -777,7 +719,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1182:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -785,7 +726,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1183:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -793,7 +733,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1184:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -801,7 +740,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1185:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -810,7 +748,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1186:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -818,7 +755,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1187:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -851,7 +787,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     };
                     break;
                 case 1189:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -859,7 +794,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1191:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -879,7 +813,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.LanguageCode = 1191;
                     break;
                 case 1192:
-                    this.MailingUsers = new string[] { "cihat.kapucu@infoline-tr.com", "kerem.un@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -913,7 +846,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.AllowModules.Remove(Enum_Modules.MODULE_SHIFT);
                     break;
                 case 1194:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "kerem.un@infoline-tr.com", "cihat.kapucu@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -935,7 +867,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1994:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -943,10 +874,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1200:
-                    this.MailingUsers = new string[] {
-                        "ahmet.temiz@infoline-tr.com",
-                        "bilal.dursun@infoline-tr.com",
-                        "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -954,10 +881,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1203:
-                    this.MailingUsers = new string[] {
-                        "ahmet.temiz@infoline-tr.com",
-                        "bilal.dursun@infoline-tr.com",
-                        "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -965,7 +888,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     });
                     break;
                 case 1999:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
@@ -973,7 +895,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         });
                     break;
                 default:
-                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "bilal.dursun@infoline-tr.com" };
                     break;
             }
         }

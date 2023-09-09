@@ -485,7 +485,7 @@ namespace System.Web.Mvc
 
 #if !DEBUG
                     Log.Error("Sayfa Yetki Hatası : " + text);
-                    new Email().Send((Int16)EmailSendTypes.ZorunluMailler,"ahmet.undemir@infoline-tr.com", "Sayfa Yetki Hatası", text, true, false, new string[] { "oguz.yavuz@infoline-tr.com", "senol.elik@infoline-tr.com", "ahmet.undemir@infoline-tr.com", "ahmet.temiz@infoline-tr.com" });
+                    new Email().Send((Int16)EmailSendTypes.ZorunluMailler,"leventozcelik89@gmail.com", "Sayfa Yetki Hatası", text, true, false);
 #endif
                     if (filterContext.HttpContext.Request.IsAjaxRequest())
                     {

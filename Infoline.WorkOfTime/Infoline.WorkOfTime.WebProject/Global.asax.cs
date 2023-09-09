@@ -27,11 +27,6 @@ namespace Infoline.WorkOfTime.WebProject
             ModelBinders.Binders.Add(typeof(double?), new DoubleBinderTest());
             ModelBinders.Binders.Add(typeof(bool), new UIBoolBinder());
             ModelBinders.Binders.Add(typeof(bool?), new UIBoolBinder());
-
-            //var mesaj = string.Format("asdasdasdasdasdsadsada");
-            //new Email().Template("Template1", "birthday.jpg", "Doğum Günü Tebrik", mesaj)
-            //   .Send((Int16)EmailSendTypes.ZorunluMailler, "oguz.yavuz@infoline-tr.com", string.Format("{0} | {1}", "sa", "Doğum Günü Tebrik"), true, null, null);
-            
         }
 
         public void AutoLogin(string loginname, string pass)
@@ -119,7 +114,7 @@ namespace Infoline.WorkOfTime.WebProject
                             message += "<br/><br/>" + serverError.ErrorCode + "<br/><br/>" + serverError.Message;
                             try
                             {
-                                new Email().Send((Int16)EmailSendTypes.ZorunluMailler,"ahmet.undemir@infoline-tr.com", "Sayfa Hata Verdi.", message, true, false, new string[] { "oguz.yavuz@infoline-tr.com","kerem.un@infoline-tr.com","cihat.kapucu@infoline-tr.com", "senol.elik@infoline-tr.com", "levent.ozcelik@infoline-tr.com", "ahmet.temiz@infoline-tr.com",  "ahmet.undemir@infoline-tr.com", "kerem.un@infoline-tr.com" }, null, null, true);
+                                new Email().Send((Int16)EmailSendTypes.ZorunluMailler,"leventozcelik89@gmail.com", "Sayfa Hata Verdi.", message, true, false, null, null, true);
                             }
                             catch
                             {
@@ -149,7 +144,7 @@ namespace Infoline.WorkOfTime.WebProject
                     message += "<br/><br/>" + error.Source + "<br/><br/>" + error.Message + "<br/><br/>" + error.StackTrace;
                     try
                     {
-                        new Email().Send((Int16)EmailSendTypes.ZorunluMailler, "ahmet.undemir@infoline-tr.com", "Sayfa Hata Verdi.", message, true, false, new string[] { "oguz.yavuz@infoline-tr.com","kerem.un@infoline-tr.com","cihat.kapucu@infoline-tr.com", "senol.elik@infoline-tr.com", "levent.ozcelik@infoline-tr.com", "ahmet.temiz@infoline-tr.com", "ahmet.undemir@infoline-tr.com", "kerem.un@infoline-tr.com" }, null, null, true);
+                        new Email().Send((Int16)EmailSendTypes.ZorunluMailler, "leventozcelik89@gmail.com", "Sayfa Hata Verdi.", message, true, false, null, null, true);
 
                     }
                     catch { }

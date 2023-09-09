@@ -178,22 +178,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
             IRestResponse response = client.Execute(request);
             return JsonConvert.DeserializeObject<AccessToken>(response.Content);
 
-
-            //var client = new RestClient("https://login.microsoftonline.com/3544557f-bb65-473f-8ec4-aac7117032a0/oauth2/v2.0/token");
-            //client.Timeout = -1;
-            //var request = new RestRequest(Method.POST);
-            //request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
-            //request.AddHeader("SdkVersion", "postman-graph/v1.0");
-            //request.AddHeader("Cookie", "buid=0.AAAAf1VENWW7P0eOxKrHEXAyoAAAAAAAAAAAAAAAAAAAAABzAAA.AQABAAEAAABeStGSRwwnTq2vHplZ9KL46JaIviaHyy6BbQxAP1mbdrhHUaH02Mab9olvqxRdSgVPQ_ywFBtmRG6BSN6N_gwJO6zkbfZTOz4HUGoCLz8I9acaODBD-eDGN7s6N60MpaIgAA; x-ms-gateway-slice=prod; stsservicecookie=ests; fpc=Aqw9sMX0MedLkCnt4xK4iemDf9bWAgAAADp0mNcOAAAAEkoxtwEAAABOdZjXDgAAAKJTtxMCAAAAy3eY1w4AAAA");
-            //request.AddParameter("grant_type", "password");
-            //request.AddParameter("client_id", "3c6c21a0-f303-4df1-bfdb-2e421de1bec1");
-            //request.AddParameter("client_secret", "DD.13yU~W_ZWWloaEQusF_cR5bzb0E_-5d");
-            //request.AddParameter("scope", "https://graph.microsoft.com/.default");
-            //request.AddParameter("userName", "ahmet.undemir@infoline-tr.com");
-            //request.AddParameter("password", "Kax49305");
-            //IRestResponse response = client.Execute(request);
-            //return JsonConvert.DeserializeObject<AccessToken>(response.Content);
-
         }
 
 

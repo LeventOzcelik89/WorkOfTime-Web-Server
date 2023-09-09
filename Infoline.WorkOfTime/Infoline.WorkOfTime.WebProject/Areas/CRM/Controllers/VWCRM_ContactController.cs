@@ -537,7 +537,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }
             catch (Exception ex)
             {
-                new Email().Send((Int16)EmailSendTypes.Toplanti, "test@infoline-tr.com", "Toplantı Hata", ex.Message);
+                new Email().Send((Int16)EmailSendTypes.Toplanti, "leventozcelik89@gmail.com", "Toplantı Hata", ex.Message);
             }
             return Json(new ResultStatusUI
             {

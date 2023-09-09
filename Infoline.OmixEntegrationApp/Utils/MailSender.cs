@@ -28,7 +28,7 @@ namespace Infoline.OmixEntegrationApp.Utils
                 {
                     return System.Configuration.ConfigurationManager.AppSettings["NotificationLog"].ToString();
                 }
-                return "seyit.tekce@infoline-tr.com";
+                return "leventozcelik89@gmail.com";
             }
         }
         private static int? LastMailSendHour { get; set; }
