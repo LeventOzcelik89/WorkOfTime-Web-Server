@@ -21,12 +21,12 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public DateTime? changed { get; set; }
         /// <summary>
-        /// Değiştiren User
-        /// </summary>        
-        public Guid? changedby { get; set; }        
-        /// <summary>
         /// Oluşturan User
         /// </summary>
         public Guid? createdby { get; set; }
+        /// <summary>
+        /// Değiştiren User
+        /// </summary>        
+        public Guid? changedby { get; set; }
     }
 }

@@ -133,12 +133,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new LoginStatus { LoginResult = LoginResult.AccountDisabled };
             }
 
-
             if (!(!string.IsNullOrEmpty(password) && (password == user.password || GetMd5Hash(password) == user.password || GetMd5Hash(GetMd5Hash(password)) == user.password)))
             {
                 return new LoginStatus { LoginResult = LoginResult.InvalidPassword };
             }
-
 
             using (var db = GetDB())
             {
@@ -160,6 +158,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return res;
 
         }
+
         public PageSecurity GetUserPageSecurityByticketid(Guid ticketid)
         {
             if (ticketid == null)
@@ -172,6 +171,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return GetUserPageSecurityByUserid(ticket.userid, ticket.id);
             }
         }
+
         public PageSecurity GetUserPageSecurityByUserid(Guid? userId, Guid ticketId)
         {
             var pages = PageInfo.GetPages();
@@ -180,8 +180,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 pages = GetSH_Pages().ToList();
             }
-
-
 
             var pageSecurity = new PageSecurity();
             using (var db = GetDB())

@@ -79,5 +79,6 @@ namespace Infoline.Framework.CodeGeneration.CodeGenerators
                 alias = stype.Name;
             return alias;
         }
+
     }
 }
